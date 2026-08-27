@@ -18,6 +18,9 @@ interface AdvertorialContextType {
   selectedBlockId: string | null;
   setSelectedBlockId: (id: string | null) => void;
   saving: boolean;
+  loading: boolean;
+  /** True when the requested advertorial does not exist or is not the user's. */
+  notFound: boolean;
   isLesson?: boolean;
 
   // Block operations
@@ -39,28 +42,35 @@ interface AdvertorialContextType {
 
 export const AdvertorialContext = createContext<AdvertorialContextType | undefined>(undefined);
 
-export const AdvertorialProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AdvertorialProvider: React.FC<{ children: React.ReactNode; advertorialId: string }> = ({ children, advertorialId }) => {
   const { user } = useAuth();
   const [advertorial, setAdvertorial] = useState<Advertorial>(createDefaultAdvertorial());
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [dbId, setDbId] = useState<string | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isLoadedRef = useRef(false);
 
   // Load or create advertorial on mount
   useEffect(() => {
-    if (!user) return;
-    
+    if (!user || !advertorialId) {
+      setLoading(false);
+      return;
+    }
+
     const loadOrCreate = async () => {
+      isLoadedRef.current = false;
+      setLoading(true);
+      setNotFound(false);
       try {
-        // Try to load existing advertorial for this user
+        // Load the requested advertorial project.
         const { data, error } = await supabase
           .from('advertorials')
           .select('*')
+          .eq('id', advertorialId)
           .eq('user_id', user.id)
-          .order('updated_at', { ascending: false })
-          .limit(1)
           .maybeSingle();
 
         if (error) throw error;
@@ -75,32 +85,20 @@ export const AdvertorialProvider: React.FC<{ children: React.ReactNode }> = ({ c
             updatedAt: new Date(data.updated_at),
             publishedUrl: data.published_url || undefined,
           });
+          isLoadedRef.current = true;
         } else {
-          // Create new advertorial in DB
-          const defaultAdvert = createDefaultAdvertorial();
-          const { data: newData, error: createError } = await supabase
-            .from('advertorials')
-            .insert({
-              user_id: user.id,
-              title: defaultAdvert.settings.title,
-              settings: defaultAdvert.settings as any,
-              blocks: defaultAdvert.blocks as any,
-            })
-            .select()
-            .single();
-
-          if (createError) throw createError;
-          setDbId(newData.id);
-          setAdvertorial(prev => ({ ...prev, id: newData.id }));
+          // Creation happens on the project list, not here.
+          setNotFound(true);
         }
-        isLoadedRef.current = true;
       } catch (err) {
         console.error('Error loading advertorial:', err);
+      } finally {
+        setLoading(false);
       }
     };
 
     loadOrCreate();
-  }, [user]);
+  }, [user, advertorialId]);
 
   // Auto-save with debounce
   const saveToDb = useCallback(async (advert: Advertorial) => {
@@ -265,6 +263,8 @@ export const AdvertorialProvider: React.FC<{ children: React.ReactNode }> = ({ c
       selectedBlockId,
       setSelectedBlockId,
       saving,
+      loading,
+      notFound,
       addBlock,
       updateBlock,
       deleteBlock,

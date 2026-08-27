@@ -1,4 +1,6 @@
-project_id = "franprkgpunrzwblsrzq"
+# Dev project. The active link lives in supabase/.temp/project-ref (gitignored);
+# this is the fallback default, so it must never name production.
+project_id = "pxixzxajqzlqxlpuvvzc"
 
 [functions.verify_domain]
 verify_jwt = false

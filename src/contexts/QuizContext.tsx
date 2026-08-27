@@ -11,6 +11,8 @@ interface QuizContextType {
   setSelectedQuestionId: (id: string | null) => void;
   loading: boolean;
   saving: boolean;
+  /** True when the requested quiz does not exist or does not belong to the user. */
+  notFound: boolean;
   
   // Question operations
   addQuestion: (question: Question) => void;
@@ -41,34 +43,46 @@ interface QuizContextType {
 
 const QuizContext = createContext<QuizContextType | undefined>(undefined);
 
-export const QuizProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const QuizProvider: React.FC<{ children: React.ReactNode; quizId: string }> = ({ children, quizId }) => {
   const { user } = useAuth();
   const [quiz, setQuiz] = useState<Quiz>(createDefaultQuiz());
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [notFound, setNotFound] = useState(false);
   const [dbQuizId, setDbQuizId] = useState<string | null>(null);
+  // Autosave must not fire until a real row has been read into state, or the
+  // debounced save would overwrite that row with a blank default quiz.
+  const hydratedRef = useRef(false);
 
-  // Load quiz from database when user logs in
+  // Load the requested quiz project.
   useEffect(() => {
     const loadQuiz = async () => {
-      if (!user) {
+      if (!user || !quizId) {
         setLoading(false);
         return;
       }
+
+      hydratedRef.current = false;
+      setLoading(true);
+      setNotFound(false);
 
       try {
         const { data, error } = await supabase
           .from('quizzes')
           .select('*')
+          .eq('id', quizId)
           .eq('user_id', user.id)
-          .order('updated_at', { ascending: false })
-          .limit(1)
           .maybeSingle();
 
         if (error) throw error;
 
-        if (data) {
+        if (!data) {
+          setNotFound(true);
+          return;
+        }
+
+        {
           setDbQuizId(data.id);
           setQuiz({
             id: data.id,
@@ -81,6 +95,7 @@ export const QuizProvider: React.FC<{ children: React.ReactNode }> = ({ children
             updatedAt: new Date(data.updated_at),
             publishedUrl: data.published_url || undefined,
           });
+          hydratedRef.current = true;
         }
       } catch (error) {
         console.error('Error loading quiz:', error);
@@ -91,7 +106,7 @@ export const QuizProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     loadQuiz();
-  }, [user]);
+  }, [user, quizId]);
 
   const saveQuiz = useCallback(async () => {
     if (!user) return;
@@ -109,25 +124,16 @@ export const QuizProvider: React.FC<{ children: React.ReactNode }> = ({ children
         published_url: quiz.publishedUrl || null,
       };
 
-      if (dbQuizId) {
-        // Update existing quiz
-        const { error } = await supabase
-          .from('quizzes')
-          .update(quizData)
-          .eq('id', dbQuizId);
+      // Creation happens on the project list; the editor only ever updates the
+      // project it loaded.
+      if (!dbQuizId) return;
 
-        if (error) throw error;
-      } else {
-        // Create new quiz
-        const { data, error } = await supabase
-          .from('quizzes')
-          .insert([quizData as { user_id: string }])
-          .select('id')
-          .single();
+      const { error } = await supabase
+        .from('quizzes')
+        .update(quizData)
+        .eq('id', dbQuizId);
 
-        if (error) throw error;
-        if (data) setDbQuizId(data.id);
-      }
+      if (error) throw error;
     } catch (error) {
       console.error('Error saving quiz:', error);
     } finally {
@@ -140,7 +146,7 @@ export const QuizProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => { saveQuizRef.current = saveQuiz; });
 
   useEffect(() => {
-    if (!user || loading) return;
+    if (!user || loading || !hydratedRef.current) return;
 
     const timeoutId = setTimeout(() => {
       saveQuizRef.current();
@@ -331,6 +337,7 @@ export const QuizProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSelectedQuestionId,
       loading,
       saving,
+      notFound,
       addQuestion,
       updateQuestion,
       updateResultConfig,

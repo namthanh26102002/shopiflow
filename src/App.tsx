@@ -7,7 +7,9 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import Builder from "./pages/Builder";
+import QuizProjects from "./pages/QuizProjects";
 import AdvertorialBuilder from "./pages/AdvertorialBuilder";
+import AdvertorialProjects from "./pages/AdvertorialProjects";
 import QuizPublic from "./pages/QuizPublic";
 import AdvertorialPublic from "./pages/AdvertorialPublic";
 import SlugResolver from "./pages/SlugResolver";
@@ -55,12 +57,28 @@ const App = () => (
               path="/builder"
               element={
                 <ProtectedRoute>
+                  <QuizProjects />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/builder/:quizId"
+              element={
+                <ProtectedRoute>
                   <Builder />
                 </ProtectedRoute>
               }
             />
             <Route
               path="/advertorial-builder"
+              element={
+                <ProtectedRoute>
+                  <AdvertorialProjects />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/advertorial-builder/:advertorialId"
               element={
                 <ProtectedRoute>
                   <AdvertorialBuilder />

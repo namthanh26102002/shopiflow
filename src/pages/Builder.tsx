@@ -1,5 +1,6 @@
 // Quiz Builder Page
 import React, { useState } from 'react';
+import { useParams, Navigate } from 'react-router-dom';
 import { QuizProvider, useQuiz } from '@/contexts/QuizContext';
 import { BuilderHeader } from '@/components/builder/BuilderHeader';
 import { BuilderSidebar, BuilderTab } from '@/components/builder/BuilderSidebar';
@@ -14,11 +15,14 @@ import { PublishDialog } from '@/components/builder/PublishDialog';
 import { QuestionsListSkeleton, EditorSkeleton, PreviewSkeleton } from '@/components/builder/BuilderSkeleton';
 
 const BuilderContent: React.FC = () => {
-  const { quiz, selectedQuestionId, loading } = useQuiz();
+  const { quiz, selectedQuestionId, loading, notFound } = useQuiz();
   const [activeTab, setActiveTab] = useState<BuilderTab>('questions');
   const [publishOpen, setPublishOpen] = useState(false);
 
   const selectedQuestion = quiz.questions.find(q => q.id === selectedQuestionId);
+
+  // Deleted, or someone else's — send them back to the project list.
+  if (notFound) return <Navigate to="/builder" replace />;
 
   return (
     <div className="h-screen flex flex-col bg-background">
@@ -112,8 +116,12 @@ const BuilderContent: React.FC = () => {
 };
 
 const Builder: React.FC = () => {
+  const { quizId } = useParams<{ quizId: string }>();
+
+  if (!quizId) return <Navigate to="/builder" replace />;
+
   return (
-    <QuizProvider>
+    <QuizProvider quizId={quizId}>
       <BuilderContent />
     </QuizProvider>
   );

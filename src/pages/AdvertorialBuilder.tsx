@@ -1,6 +1,7 @@
 // Advertorial Page Builder - drag-and-drop content editor
 import React, { useState } from 'react';
-import { AdvertorialProvider } from '@/contexts/AdvertorialContext';
+import { useParams, Navigate } from 'react-router-dom';
+import { AdvertorialProvider, useAdvertorial } from '@/contexts/AdvertorialContext';
 import { AdvertorialHeader } from '@/components/advertorial/AdvertorialHeader';
 import { AdvertorialSidebar, AdvertorialTab } from '@/components/advertorial/AdvertorialSidebar';
 import { ComponentLibrary } from '@/components/advertorial/ComponentLibrary';
@@ -13,6 +14,10 @@ import { AdvertorialAnalyticsPanel } from '@/components/advertorial/AdvertorialA
 
 const AdvertorialBuilderContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AdvertorialTab>('components');
+  const { notFound } = useAdvertorial();
+
+  // Deleted, or someone else's — send them back to the project list.
+  if (notFound) return <Navigate to="/advertorial-builder" replace />;
 
   return (
     <div className="h-screen flex flex-col bg-background">
@@ -71,8 +76,12 @@ const AdvertorialBuilderContent: React.FC = () => {
 };
 
 const AdvertorialBuilder: React.FC = () => {
+  const { advertorialId } = useParams<{ advertorialId: string }>();
+
+  if (!advertorialId) return <Navigate to="/advertorial-builder" replace />;
+
   return (
-    <AdvertorialProvider>
+    <AdvertorialProvider advertorialId={advertorialId}>
       <AdvertorialBuilderContent />
     </AdvertorialProvider>
   );

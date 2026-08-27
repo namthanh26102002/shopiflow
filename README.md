@@ -33,8 +33,14 @@ Local development runs against **dev**. Production is served by a separate
 Lovable deployment that this repository does not push to.
 
 > **Before any `supabase db push`, `functions deploy`, or `link`, check
-> which project is linked:** `npx supabase projects list`. A `db push`
+> which project is linked:** `cat supabase/.temp/project-ref`. A `db push`
 > against production alters the live database immediately.
+
+`supabase link` records the active project in `supabase/.temp/project-ref`,
+which is gitignored — it does **not** rewrite `project_id` in
+`supabase/config.toml`. After a fresh clone there is no `.temp`, so
+`config.toml` is the only ref on disk; it names the dev project
+deliberately, so an unlinked `db push` cannot reach production.
 
 Production credentials, if ever needed, are in `.env.production.local`
 (gitignored). They do not belong in `.env`.
@@ -128,6 +134,20 @@ supabase/
                 verify_domain
   seed-dev.sql  Dev bootstrap (access code + admin role)
 ```
+
+## Project limits
+
+Each builder is multi-project. `/builder` and `/advertorial-builder` list the
+current user's projects; the editors live at `/builder/:quizId` and
+`/advertorial-builder/:advertorialId`.
+
+Non-admins may keep **2 projects per builder**; admins are unlimited. The cap
+is enforced by a `BEFORE INSERT` trigger (`public.enforce_project_limit`) on
+`quizzes` and `advertorials`, so it holds even for direct PostgREST calls —
+the checks in `useProjects` only keep the UI in step.
+
+The trigger blocks inserts only. A user who already holds more than the cap
+keeps every project and simply cannot create another until they delete one.
 
 ## Gotchas
 
