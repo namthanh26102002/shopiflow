@@ -1,0 +1,13 @@
+project_id = "franprkgpunrzwblsrzq"
+
+[functions.verify_domain]
+verify_jwt = false
+
+[functions."check-dns"]
+verify_jwt = false
+
+[functions.admin-users]
+verify_jwt = false
+
+[functions."access-code"]
+verify_jwt = false

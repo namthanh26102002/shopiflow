@@ -1,0 +1,1 @@
+ALTER TABLE public.winning_products ADD COLUMN custom_links jsonb NOT NULL DEFAULT '[]'::jsonb;

@@ -1,0 +1,1 @@
+ALTER TABLE public.advertorial_events ADD COLUMN IF NOT EXISTS percent integer;

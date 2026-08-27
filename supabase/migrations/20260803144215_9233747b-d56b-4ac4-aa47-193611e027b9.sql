@@ -1,0 +1,1 @@
+ALTER TABLE public.classrooms ADD COLUMN IF NOT EXISTS cover_aspect_ratio text NOT NULL DEFAULT '16/9';
