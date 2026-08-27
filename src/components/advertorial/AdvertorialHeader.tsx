@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { LogOut, Cloud, CloudOff, ExternalLink, Share2 } from 'lucide-react';
 import { useAdvertorial } from '@/contexts/AdvertorialContext';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { BuilderSwitcher } from '@/components/shared/BuilderSwitcher';
+import { ProjectSwitcher } from '@/components/shared/ProjectSwitcher';
 import { AdvertorialPublishDialog } from '@/components/advertorial/AdvertorialPublishDialog';
 
 export const AdvertorialHeader: React.FC = () => {
   const { advertorial, saving } = useAdvertorial();
+  const { advertorialId } = useParams<{ advertorialId: string }>();
   const { signOut, user } = useAuth();
   const [publishOpen, setPublishOpen] = useState(false);
 
@@ -19,8 +22,16 @@ export const AdvertorialHeader: React.FC = () => {
           
           <div className="h-6 w-px bg-border" />
           
-          <div className="text-sm">
-            <span className="text-muted-foreground">{advertorial.settings.title || 'Untitled'}</span>
+          <div className="flex items-center gap-1 text-sm">
+            <span className="text-muted-foreground truncate max-w-[12rem]">
+              {advertorial.settings.title || 'Untitled'}
+            </span>
+            <ProjectSwitcher
+              table="advertorials"
+              basePath="/advertorial-builder"
+              noun="advertorial"
+              currentId={advertorialId}
+            />
           </div>
           
           {/* Auto-save indicator */}

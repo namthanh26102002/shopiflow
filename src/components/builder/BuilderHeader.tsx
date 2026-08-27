@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Undo2, Redo2, Share2, LogOut, Cloud, CloudOff, KeyRound, Users } from 'lucide-react';
 import { useQuiz } from '@/contexts/QuizContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -7,6 +7,7 @@ import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
 import { AccessCodeManager } from '@/components/admin/AccessCodeManager';
 import { BuilderSwitcher } from '@/components/shared/BuilderSwitcher';
+import { ProjectSwitcher } from '@/components/shared/ProjectSwitcher';
 
 interface BuilderHeaderProps {
   onPublish: () => void;
@@ -17,6 +18,7 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({ onPublish }) => {
   const { signOut, user } = useAuth();
   const { isAdmin } = useAdmin();
   const navigate = useNavigate();
+  const { quizId } = useParams<{ quizId: string }>();
   const [showAccessCodes, setShowAccessCodes] = useState(false);
 
   return (
@@ -26,12 +28,15 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({ onPublish }) => {
         
         <div className="h-6 w-px bg-border" />
         
-        <input
-          value={quiz.settings.title}
-          onChange={(e) => updateSettings({ title: e.target.value })}
-          className="text-sm text-muted-foreground bg-transparent border-none outline-none focus:text-foreground hover:text-foreground transition-colors w-48"
-          placeholder="Quiz name..."
-        />
+        <div className="flex items-center gap-1">
+          <input
+            value={quiz.settings.title}
+            onChange={(e) => updateSettings({ title: e.target.value })}
+            className="text-sm text-muted-foreground bg-transparent border-none outline-none focus:text-foreground hover:text-foreground transition-colors w-48"
+            placeholder="Quiz name..."
+          />
+          <ProjectSwitcher table="quizzes" basePath="/builder" noun="quiz" currentId={quizId} />
+        </div>
         
         {/* Auto-save indicator */}
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
