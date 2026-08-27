@@ -31,6 +31,7 @@ export const AdvertorialHeader: React.FC = () => {
               basePath="/advertorial-builder"
               noun="advertorial"
               currentId={advertorialId}
+              currentTitle={advertorial.settings.title}
             />
           </div>
           

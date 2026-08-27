@@ -22,13 +22,16 @@ interface ProjectSwitcherProps {
   noun: string;
   /** Project currently open, so it can be ticked. */
   currentId?: string;
+  /** Live title from the editor. Preferred over the stored one for the open
+   *  project, which lags by the autosave debounce after a rename. */
+  currentTitle?: string;
 }
 
 export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
-  table, basePath, noun, currentId,
+  table, basePath, noun, currentId, currentTitle,
 }) => {
   const navigate = useNavigate();
-  const { projects, isAdmin, atLimit, limit, busy, createProject } = useProjects(table);
+  const { projects, isAdmin, atLimit, limit, busy, createProject, refresh } = useProjects(table);
 
   const handleCreate = async () => {
     const id = await createProject();
@@ -36,7 +39,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
   };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={(open) => { if (open) refresh(); }}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
@@ -63,7 +66,9 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
             <Check
               className={`w-3.5 h-3.5 shrink-0 ${p.id === currentId ? 'opacity-100' : 'opacity-0'}`}
             />
-            <span className="truncate">{p.title}</span>
+            <span className="truncate">
+              {p.id === currentId && currentTitle ? currentTitle : p.title}
+            </span>
           </DropdownMenuItem>
         ))}
 

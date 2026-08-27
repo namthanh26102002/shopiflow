@@ -1,7 +1,9 @@
 // Quiz Builder Page
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { QuizProvider, useQuiz } from '@/contexts/QuizContext';
+import { rememberOpenProject } from '@/hooks/useProjects';
+import { toast } from 'sonner';
 import { BuilderHeader } from '@/components/builder/BuilderHeader';
 import { BuilderSidebar, BuilderTab } from '@/components/builder/BuilderSidebar';
 import { QuestionsList } from '@/components/builder/QuestionsList';
@@ -21,7 +23,12 @@ const BuilderContent: React.FC = () => {
 
   const selectedQuestion = quiz.questions.find(q => q.id === selectedQuestionId);
 
-  // Deleted, or someone else's — send them back to the project list.
+  // Deleted (possibly in another tab), or someone else's. Say why before
+  // sending them back, rather than ejecting silently.
+  useEffect(() => {
+    if (notFound) toast.error('That quiz project no longer exists.');
+  }, [notFound]);
+
   if (notFound) return <Navigate to="/builder" replace />;
 
   return (
@@ -117,6 +124,10 @@ const BuilderContent: React.FC = () => {
 
 const Builder: React.FC = () => {
   const { quizId } = useParams<{ quizId: string }>();
+
+  useEffect(() => {
+    if (quizId) rememberOpenProject('quizzes', quizId);
+  }, [quizId]);
 
   if (!quizId) return <Navigate to="/builder" replace />;
 

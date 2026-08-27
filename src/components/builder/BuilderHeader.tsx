@@ -35,7 +35,13 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({ onPublish }) => {
             className="text-sm text-muted-foreground bg-transparent border-none outline-none focus:text-foreground hover:text-foreground transition-colors w-48"
             placeholder="Quiz name..."
           />
-          <ProjectSwitcher table="quizzes" basePath="/builder" noun="quiz" currentId={quizId} />
+          <ProjectSwitcher
+            table="quizzes"
+            basePath="/builder"
+            noun="quiz"
+            currentId={quizId}
+            currentTitle={quiz.settings.title}
+          />
         </div>
         
         {/* Auto-save indicator */}

@@ -1,7 +1,9 @@
 // Advertorial Page Builder - drag-and-drop content editor
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { AdvertorialProvider, useAdvertorial } from '@/contexts/AdvertorialContext';
+import { rememberOpenProject } from '@/hooks/useProjects';
+import { toast } from 'sonner';
 import { AdvertorialHeader } from '@/components/advertorial/AdvertorialHeader';
 import { AdvertorialSidebar, AdvertorialTab } from '@/components/advertorial/AdvertorialSidebar';
 import { ComponentLibrary } from '@/components/advertorial/ComponentLibrary';
@@ -16,7 +18,12 @@ const AdvertorialBuilderContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AdvertorialTab>('components');
   const { notFound } = useAdvertorial();
 
-  // Deleted, or someone else's — send them back to the project list.
+  // Deleted (possibly in another tab), or someone else's. Say why before
+  // sending them back, rather than ejecting silently.
+  useEffect(() => {
+    if (notFound) toast.error('That advertorial project no longer exists.');
+  }, [notFound]);
+
   if (notFound) return <Navigate to="/advertorial-builder" replace />;
 
   return (
@@ -77,6 +84,10 @@ const AdvertorialBuilderContent: React.FC = () => {
 
 const AdvertorialBuilder: React.FC = () => {
   const { advertorialId } = useParams<{ advertorialId: string }>();
+
+  useEffect(() => {
+    if (advertorialId) rememberOpenProject('advertorials', advertorialId);
+  }, [advertorialId]);
 
   if (!advertorialId) return <Navigate to="/advertorial-builder" replace />;
 

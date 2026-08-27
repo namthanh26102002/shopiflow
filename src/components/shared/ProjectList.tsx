@@ -18,7 +18,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { useProjects, ProjectTable, ProjectSummary } from '@/hooks/useProjects';
+import {
+  useProjects, getOpenProject, forgetOpenProject,
+  ProjectTable, ProjectSummary,
+} from '@/hooks/useProjects';
 
 interface ProjectListProps {
   table: ProjectTable;
@@ -38,6 +41,9 @@ export const ProjectList: React.FC<ProjectListProps> = ({ table, heading, basePa
   } = useProjects(table);
 
   const [pendingDelete, setPendingDelete] = useState<ProjectSummary | null>(null);
+  // The project this tab has open in the editor, so deleting it can be called out.
+  const openProjectId = getOpenProject(table);
+  const deletingOpenProject = !!pendingDelete && pendingDelete.id === openProjectId;
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftTitle, setDraftTitle] = useState('');
 
@@ -186,15 +192,27 @@ export const ProjectList: React.FC<ProjectListProps> = ({ table, heading, basePa
           <AlertDialogHeader>
             <AlertDialogTitle>Delete “{pendingDelete?.title}”?</AlertDialogTitle>
             <AlertDialogDescription>
-              This permanently deletes the project and its content. If it is published,
-              the live page will stop working. This cannot be undone.
+              This permanently deletes the project and its content.
+              {pendingDelete?.published_url
+                ? ' It is published, so the live page will stop working.'
+                : ''}
+              {' '}This cannot be undone.
             </AlertDialogDescription>
+            {deletingOpenProject && (
+              <p className="text-sm text-destructive mt-2">
+                This is the {noun} you have open in the builder. Deleting it will
+                close that editor and return you here.
+              </p>
+            )}
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                if (pendingDelete) deleteProject(pendingDelete.id);
+                if (pendingDelete) {
+                  if (pendingDelete.id === openProjectId) forgetOpenProject(table);
+                  deleteProject(pendingDelete.id);
+                }
                 setPendingDelete(null);
               }}
             >
