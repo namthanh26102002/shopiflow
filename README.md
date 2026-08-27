@@ -1,73 +1,142 @@
-# Welcome to your Lovable project
+# Shopiflow Pro
 
-## Project info
+A multi-tenant SaaS for dropshipping operators, built as four modules on a
+shared auth and custom-domain layer.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+| Module | Routes | Purpose |
+|---|---|---|
+| Quiz builder | `/builder`, `/quiz/:id` | Product-recommendation quizzes with scoring, results mapping, live preview, analytics |
+| Advertorial builder | `/advertorial-builder`, `/advertorial/:id` | Block-based advertorial/landing pages with rich text and analytics |
+| Info (LMS) | `/info/*` | Classrooms, lessons, document editor, student view |
+| Orders & Products | `/orders/*`, `/winning-products/*` | Order tracking with public timelines; product research dashboards |
 
-## How can I edit this code?
+Customers can publish quizzes and advertorials on their own domains. A
+non-recognised hostname routes through `SlugResolver` instead of the app
+shell — see `isCustomDomain()` in `src/App.tsx`.
 
-There are several ways of editing your application.
+**Stack:** Vite 5 · React 18 · TypeScript · Tailwind · shadcn/ui ·
+React Router 6 · TanStack Query · Supabase (Postgres + Auth + Storage +
+Edge Functions).
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Environments
 
-Changes made via Lovable will be committed automatically to this repo.
+There are two Supabase projects. **They are not interchangeable.**
 
-**Use your preferred IDE**
+| | Project ref | Used by |
+|---|---|---|
+| Production | `franprkgpunrzwblsrzq` | The deployed Lovable app. Real customer data. |
+| Development | `pxixzxajqzlqxlpuvvzc` | Local work. Disposable. |
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Local development runs against **dev**. Production is served by a separate
+Lovable deployment that this repository does not push to.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+> **Before any `supabase db push`, `functions deploy`, or `link`, check
+> which project is linked:** `npx supabase projects list`. A `db push`
+> against production alters the live database immediately.
 
-Follow these steps:
+Production credentials, if ever needed, are in `.env.production.local`
+(gitignored). They do not belong in `.env`.
+
+---
+
+## Local setup
+
+Requires Node 20+ and npm.
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+npm install
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+Create `.env` from the template and fill in your **dev** project's values
+(Supabase dashboard → Project Settings → API):
 
-# Step 3: Install the necessary dependencies.
-npm i
+```sh
+cp .env.example .env
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+Use the **anon / public** key, never `service_role` — Vite inlines these
+into the browser bundle.
+
+```sh
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Runs on http://localhost:8080.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Bootstrapping a fresh dev database
 
-**Use GitHub Codespaces**
+A new database has no users and no access codes, and signup is gated behind
+a valid code — so you cannot register until one exists.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+1. Apply schema and functions:
 
-## What technologies are used for this project?
+   ```sh
+   npx supabase link --project-ref <your-dev-ref>
+   npx supabase db push
+   npx supabase functions deploy
+   ```
 
-This project is built with:
+2. In the Supabase SQL Editor, run **STEP 1** of `supabase/seed-dev.sql`.
+   This creates the access code `DEV-LOCAL`.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+3. Disable **Authentication → Sign In / Providers → Email → Confirm email**.
+   Signup claims the access code using the session returned by `signUp()`;
+   with confirmation on there is no session, and the claim fails with a
+   misleading "invalid access code" error.
 
-## How can I deploy this project?
+4. Register at http://localhost:8080 using access code `DEV-LOCAL`.
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+5. Run **STEP 2** of `supabase/seed-dev.sql` with your email to grant
+   yourself the `admin` role, then sign out and back in.
 
-## Can I connect a custom domain to my Lovable project?
+Only `check-dns` needs a manual secret, and only for custom-domain work:
 
-Yes, you can!
+```sh
+npx supabase secrets set PROXY_IP=<ip>
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+---
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## Scripts
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Dev server on port 8080 |
+| `npm run build` | Production build |
+| `npm run preview` | Serve the build locally |
+| `npm run lint` | ESLint |
+| `npm test` | Vitest (single run) |
+| `npm run test:watch` | Vitest in watch mode |
+
+---
+
+## Layout
+
+```
+src/
+  components/   ui/ (shadcn) · builder/ · advertorial/ · orders/ ·
+                winning-products/ · info/ · admin/ · shared/
+  contexts/     Quiz, Advertorial, Lesson editor state
+  hooks/        useAuth, useAdmin, useOrders, useLessons, …
+  integrations/ Supabase client + generated types
+  pages/        Route components
+supabase/
+  migrations/   Schema history — applied in filename order
+  functions/    access-code · admin-users · check-dns · track-visit ·
+                verify_domain
+  seed-dev.sql  Dev bootstrap (access code + admin role)
+```
+
+## Gotchas
+
+- **Access codes are capped at 12 characters.** Both `Auth.tsx` and
+  `AccessCodeManager.tsx` set `maxLength={12}`, while the `access-code`
+  edge function accepts up to 32. Longer codes are truncated by the input
+  with no warning and fail validation.
+- **`src/integrations/supabase/types.ts` is generated.** Regenerate with
+  `npx supabase gen types typescript --linked > src/integrations/supabase/types.ts`
+  rather than editing it.
+- **Vite reads `.env` only at startup.** Restart the dev server after
+  changing it.
