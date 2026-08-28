@@ -13,12 +13,14 @@ import { AnalyticsPanel } from '@/components/builder/AnalyticsPanel';
 import { DomainPanel } from '@/components/builder/DomainPanel';
 import { LivePreview } from '@/components/builder/LivePreview';
 import { PublishDialog } from '@/components/builder/PublishDialog';
+import { QuizOverview } from '@/components/builder/QuizOverview';
 import { QuestionsListSkeleton, EditorSkeleton, PreviewSkeleton } from '@/components/builder/BuilderSkeleton';
 
 const BuilderContent: React.FC = () => {
-  const { quiz, selectedQuestionId, loading, notFound } = useQuiz();
+  const { quiz, selectedQuestionId, setSelectedQuestionId, loading, notFound } = useQuiz();
   const [activeTab, setActiveTab] = useState<BuilderTab>('questions');
   const [publishOpen, setPublishOpen] = useState(false);
+  const [overviewOpen, setOverviewOpen] = useState(false);
 
   const selectedQuestion = quiz.questions.find(q => q.id === selectedQuestionId);
 
@@ -32,7 +34,10 @@ const BuilderContent: React.FC = () => {
 
   return (
     <div className="h-screen flex flex-col bg-background">
-      <BuilderHeader onPublish={() => setPublishOpen(true)} />
+      <BuilderHeader
+        onPublish={() => setPublishOpen(true)}
+        onOverview={() => setOverviewOpen(true)}
+      />
       
       <div className="flex-1 flex overflow-hidden">
         <BuilderSidebar activeTab={activeTab} onTabChange={setActiveTab} />
@@ -117,6 +122,18 @@ const BuilderContent: React.FC = () => {
       </div>
 
       <PublishDialog open={publishOpen} onOpenChange={setPublishOpen} />
+
+      <QuizOverview
+        open={overviewOpen}
+        onOpenChange={setOverviewOpen}
+        quiz={quiz}
+        onSelectQuestion={(id) => {
+          // Selecting only shows in the questions tab, so switch there too.
+          setSelectedQuestionId(id);
+          setActiveTab('questions');
+          setOverviewOpen(false);
+        }}
+      />
     </div>
   );
 };

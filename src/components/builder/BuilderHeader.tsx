@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Undo2, Redo2, Share2, LogOut, Cloud, CloudOff, KeyRound, Users } from 'lucide-react';
+import { Undo2, Redo2, Share2, LogOut, Cloud, CloudOff, KeyRound, Users, LayoutGrid } from 'lucide-react';
 import { useQuiz } from '@/contexts/QuizContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdmin } from '@/hooks/useAdmin';
@@ -11,9 +11,10 @@ import { ProjectSwitcher } from '@/components/shared/ProjectSwitcher';
 
 interface BuilderHeaderProps {
   onPublish: () => void;
+  onOverview: () => void;
 }
 
-export const BuilderHeader: React.FC<BuilderHeaderProps> = ({ onPublish }) => {
+export const BuilderHeader: React.FC<BuilderHeaderProps> = ({ onPublish, onOverview }) => {
   const { quiz, saving, updateSettings } = useQuiz();
   const { signOut, user } = useAuth();
   const { isAdmin } = useAdmin();
@@ -77,6 +78,16 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({ onPublish }) => {
             <Redo2 className="w-4 h-4" />
           </Button>
         </div>
+
+        <Button
+          variant="outline"
+          onClick={onOverview}
+          className="h-8 px-3 text-sm"
+          title="See the whole quiz flow"
+        >
+          <LayoutGrid className="w-3.5 h-3.5 mr-1.5" />
+          Overview
+        </Button>
 
         <Button 
           onClick={onPublish} 

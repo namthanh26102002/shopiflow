@@ -200,6 +200,19 @@ the checks in `useProjects` only keep the UI in step.
 The trigger blocks inserts only. A user who already holds more than the cap
 keeps every project and simply cannot create another until they delete one.
 
+## Quiz overview
+
+`QuizOverview`, opened from the Overview button beside Publish, maps the whole
+funnel as numbered cards: the welcome page, every question in order, then the
+results page. Welcome and results are pages respondents see but the editor
+lists separately, so the flow only reads correctly with them included.
+
+Cards are schematic rather than real previews — `LivePreview` already renders
+one page at full fidelity, and mounting it per card would be expensive. Each
+card shows the headline plus a per-type body: options for choice questions,
+thumbnails for image selection, bar labels for analyzing. Clicking a question
+card selects it and switches to the questions tab.
+
 ## Templates
 
 Admin-authored starting points for both builders, in `public.content_templates`
