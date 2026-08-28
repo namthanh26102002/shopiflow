@@ -22,30 +22,23 @@ Edge Functions).
 
 ## Environments
 
-There are two Supabase projects. **They are not interchangeable.**
+`shopiflow-dev` (`pxixzxajqzlqxlpuvvzc`) is the project of record. It backs
+both local development and the deployed app.
 
-| | Project ref | Used by |
-|---|---|---|
-| Production | `franprkgpunrzwblsrzq` | The deployed Lovable app. Real customer data. |
-| Development | `pxixzxajqzlqxlpuvvzc` | Local work. Disposable. |
+The original database (`franprkgpunrzwblsrzq`) belonged to a Lovable-managed
+Supabase organization, not to this account — it could not be migrated,
+backed up, or administered with the CLI, so it was retired rather than
+carried forward. Nothing in it was worth keeping.
 
-Local development runs against **dev**. Production is served by a separate
-Lovable deployment that this repository does not push to.
-
-> **Before any `supabase db push`, `functions deploy`, or `link`, check
-> which project is linked:** `cat supabase/.temp/project-ref`. A `db push`
-> against production alters the live database immediately.
-
-`supabase link` records the active project in `supabase/.temp/project-ref`,
-which is gitignored — it does **not** rewrite `project_id` in
-`supabase/config.toml`. After a fresh clone there is no `.temp`, so
-`config.toml` is the only ref on disk; it names the dev project
-deliberately, so an unlinked `db push` cannot reach production.
-
-Production credentials, if ever needed, are in `.env.production.local`
-(gitignored). They do not belong in `.env`.
-
----
+> **Local development and the deployed site currently share one database.**
+> Running the dev server writes real rows: a test quiz is a real quiz, and
+> preview clicks land in `quiz_page_views` and `advertorial_events`.
+>
+> That is a deliberate trade while there are no customers. Before onboarding
+> anyone, split it: create a second Supabase project, apply
+> `supabase/migrations` and `supabase/seed-dev.sql` to it, and point local
+> `.env` there — leaving this one for the deployment. Note the free plan
+> allows two active projects per organisation, so one may need pausing.
 
 ## Local setup
 
@@ -141,19 +134,19 @@ The app is a static Vite SPA. Vercel auto-detects the framework; `vercel.json`
 supplies the catch-all rewrite, without which every deep link
 (`/builder/:quizId`, `/quiz/:id`, customer slugs) 404s on direct load.
 
-Set these in **Vercel → Project → Settings → Environment Variables**, using the
-**production** Supabase project. They are read at build time, so changing one
+Set these in **Vercel → Project → Settings → Environment Variables**, to the
+same values as local `.env`. They are read at build time, so changing one
 requires a redeploy:
 
 | Variable | Value |
 |---|---|
-| `VITE_SUPABASE_URL` | `https://<prod-ref>.supabase.co` |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | production anon key |
-| `VITE_SUPABASE_PROJECT_ID` | production ref |
+| `VITE_SUPABASE_URL` | `https://pxixzxajqzlqxlpuvvzc.supabase.co` |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | anon key (never `service_role`) |
+| `VITE_SUPABASE_PROJECT_ID` | `pxixzxajqzlqxlpuvvzc` |
 
-Before pointing a domain at a new deployment, make sure production has every
-migration this code expects (`npx supabase db push` while linked to
-production), or the app will hit tables and triggers that are not there.
+Before pointing a domain at a deployment, make sure the database has every
+migration this code expects (`npx supabase db push`), or the app will hit
+tables and triggers that are not there.
 
 ### Custom domains
 
