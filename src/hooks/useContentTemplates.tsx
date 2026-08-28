@@ -36,6 +36,45 @@ const PROJECT_TABLE: Record<TemplateType, 'quizzes' | 'advertorials'> = {
   advertorial: 'advertorials',
 };
 
+/**
+ * Build the project row for an imported template.
+ *
+ * Both builders render `settings.title` and write the `title` column from it on
+ * the next save, so the settings copy is the one that has to carry the
+ * template's name — setting only the column leaves the imported project showing
+ * whatever the source project was called.
+ */
+export const buildProjectRow = (
+  contentType: TemplateType,
+  template: Pick<ContentTemplate, 'title' | 'content'>,
+  userId: string,
+) => {
+  const c = (template.content ?? {}) as Record<string, unknown>;
+  const sourceSettings =
+    typeof c.settings === 'object' && c.settings !== null
+      ? (c.settings as Record<string, unknown>)
+      : {};
+  const settings = { ...sourceSettings, title: template.title };
+
+  if (contentType === 'quiz') {
+    return {
+      user_id: userId,
+      title: template.title,
+      settings,
+      questions: c.questions ?? [],
+      products: c.products ?? [],
+      results: c.results ?? {},
+    };
+  }
+
+  return {
+    user_id: userId,
+    title: template.title,
+    settings,
+    blocks: c.blocks ?? [],
+  };
+};
+
 /** A one-line summary for the gallery card, per builder. */
 export const describeTemplate = (t: ContentTemplate): string => {
   if (t.content_type === 'quiz') {
@@ -83,22 +122,7 @@ export const useContentTemplates = (contentType: TemplateType) => {
     if (!user) return null;
     setBusyId(t.id);
     try {
-      const c = t.content ?? {};
-      const row = contentType === 'quiz'
-        ? {
-            user_id: user.id,
-            title: t.title,
-            settings: c.settings ?? {},
-            questions: c.questions ?? [],
-            products: c.products ?? [],
-            results: c.results ?? {},
-          }
-        : {
-            user_id: user.id,
-            title: t.title,
-            settings: c.settings ?? {},
-            blocks: c.blocks ?? [],
-          };
+      const row = buildProjectRow(contentType, t, user.id);
 
       const { data, error } = await supabase
         .from(PROJECT_TABLE[contentType])
