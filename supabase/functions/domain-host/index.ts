@@ -42,6 +42,42 @@ const vercelApi = async (path: string, init: RequestInit = {}) => {
   return { ok: res.ok, status: res.status, body };
 };
 
+/**
+ * Turn a Vercel failure into something actionable. Vercel answers scope
+ * problems with a bare "Not authorized", which does not say whether the token
+ * is wrong, the team is wrong, or the project is wrong.
+ */
+const describeVercelError = (
+  status: number,
+  body: { error?: { message?: string } },
+  tokenValid: boolean | null,
+): string => {
+  const raw = body?.error?.message;
+
+  if (status === 401) {
+    return "Vercel rejected the API token (401). It may be expired or mistyped - create a new one and set VERCEL_TOKEN.";
+  }
+  if (status === 403) {
+    return tokenValid === true
+      ? "The token is valid but not authorized for this project (403). Its scope probably does not match VERCEL_TEAM_ID - recreate the token scoped to that team."
+      : "Vercel refused the request (403). Check VERCEL_TOKEN and that its scope matches VERCEL_TEAM_ID.";
+  }
+  if (status === 404) {
+    return "Vercel could not find the project (404). Check VERCEL_PROJECT_ID, and that VERCEL_TEAM_ID names the team that owns it.";
+  }
+  return raw ? `${raw} (${status})` : `Vercel request failed (${status})`;
+};
+
+/** Is the token itself usable? Separates a bad token from a bad scope. */
+const checkToken = async (): Promise<boolean | null> => {
+  try {
+    const res = await vercelApi("/v2/user");
+    return res.ok;
+  } catch {
+    return null;
+  }
+};
+
 /** Does the domain's A record point at our proxy? */
 const checkDns = async (domain: string, proxyIp: string) => {
   const res = await fetch(
@@ -133,7 +169,10 @@ Deno.serve(async (req) => {
         });
         // domain_already_in_use on this same project is not an error for us.
         if (!add.ok && add.body?.error?.code !== "domain_already_exists") {
-          lastError = add.body?.error?.message ?? `Vercel rejected the domain (${add.status})`;
+          const tokenValid = add.status === 401 || add.status === 403
+            ? await checkToken()
+            : null;
+          lastError = describeVercelError(add.status, add.body, tokenValid);
         }
       }
 
@@ -146,7 +185,10 @@ Deno.serve(async (req) => {
         } else if (info.status === 404) {
           lastError = "Domain is not registered with the host yet";
         } else {
-          lastError = info.body?.error?.message ?? `Host check failed (${info.status})`;
+          const tokenValid = info.status === 401 || info.status === 403
+            ? await checkToken()
+            : null;
+          lastError = describeVercelError(info.status, info.body, tokenValid);
         }
       }
     } catch (err) {
