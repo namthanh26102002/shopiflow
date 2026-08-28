@@ -21,13 +21,21 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
-const vercelApi = async (path: string, init: RequestInit = {}) => {
+const vercelApi = async (
+  path: string,
+  init: RequestInit = {},
+  // Account-level endpoints must not be team-scoped: sending teamId to
+  // /v2/user makes a valid token look invalid, which is exactly the wrong
+  // answer when the point of the call is to test the token.
+  opts: { teamScoped?: boolean } = {},
+) => {
+  const { teamScoped = true } = opts;
   const token = Deno.env.get("VERCEL_TOKEN");
   const teamId = Deno.env.get("VERCEL_TEAM_ID");
   if (!token) throw new Error("VERCEL_TOKEN is not configured");
 
   const url = new URL(`https://api.vercel.com${path}`);
-  if (teamId) url.searchParams.set("teamId", teamId);
+  if (teamScoped && teamId) url.searchParams.set("teamId", teamId);
 
   const res = await fetch(url, {
     ...init,
@@ -51,16 +59,23 @@ const describeVercelError = (
   status: number,
   body: { error?: { message?: string } },
   tokenValid: boolean | null,
+  teamOk: boolean | null,
 ): string => {
   const raw = body?.error?.message;
 
-  if (status === 401) {
-    return "Vercel rejected the API token (401). It may be expired or mistyped - create a new one and set VERCEL_TOKEN.";
-  }
-  if (status === 403) {
-    return tokenValid === true
-      ? "The token is valid but not authorized for this project (403). Its scope probably does not match VERCEL_TEAM_ID - recreate the token scoped to that team."
-      : "Vercel refused the request (403). Check VERCEL_TOKEN and that its scope matches VERCEL_TEAM_ID.";
+  if (status === 401 || status === 403) {
+    if (tokenValid === false) {
+      return "The API token is not valid (Vercel rejected it outright). Create a new token and set VERCEL_TOKEN.";
+    }
+    if (tokenValid === true && teamOk === false) {
+      return "The token works, but cannot see the team in VERCEL_TEAM_ID. Either the team id is wrong, or the token was created scoped to your personal account instead of that team.";
+    }
+    if (tokenValid === true && teamOk === true) {
+      return "The token and team are fine, so VERCEL_PROJECT_ID is the problem - it does not name a project in that team. Copy it from the project's Settings > General (it starts with prj_).";
+    }
+    return raw
+      ? `Vercel refused the request (${status}): ${raw}`
+      : `Vercel refused the request (${status}).`;
   }
   if (status === 404) {
     return "Vercel could not find the project (404). Check VERCEL_PROJECT_ID, and that VERCEL_TEAM_ID names the team that owns it.";
@@ -71,7 +86,19 @@ const describeVercelError = (
 /** Is the token itself usable? Separates a bad token from a bad scope. */
 const checkToken = async (): Promise<boolean | null> => {
   try {
-    const res = await vercelApi("/v2/user");
+    const res = await vercelApi("/v2/user", {}, { teamScoped: false });
+    return res.ok;
+  } catch {
+    return null;
+  }
+};
+
+/** Can the token see the configured team? Distinguishes scope from project id. */
+const checkTeam = async (): Promise<boolean | null> => {
+  const teamId = Deno.env.get("VERCEL_TEAM_ID");
+  if (!teamId) return null;
+  try {
+    const res = await vercelApi(`/v2/teams/${teamId}`, {}, { teamScoped: false });
     return res.ok;
   } catch {
     return null;
@@ -169,10 +196,10 @@ Deno.serve(async (req) => {
         });
         // domain_already_in_use on this same project is not an error for us.
         if (!add.ok && add.body?.error?.code !== "domain_already_exists") {
-          const tokenValid = add.status === 401 || add.status === 403
-            ? await checkToken()
-            : null;
-          lastError = describeVercelError(add.status, add.body, tokenValid);
+          const probe = add.status === 401 || add.status === 403;
+          const tokenValid = probe ? await checkToken() : null;
+          const teamOk = probe && tokenValid ? await checkTeam() : null;
+          lastError = describeVercelError(add.status, add.body, tokenValid, teamOk);
         }
       }
 
@@ -185,10 +212,10 @@ Deno.serve(async (req) => {
         } else if (info.status === 404) {
           lastError = "Domain is not registered with the host yet";
         } else {
-          const tokenValid = info.status === 401 || info.status === 403
-            ? await checkToken()
-            : null;
-          lastError = describeVercelError(info.status, info.body, tokenValid);
+          const probe = info.status === 401 || info.status === 403;
+          const tokenValid = probe ? await checkToken() : null;
+          const teamOk = probe && tokenValid ? await checkTeam() : null;
+          lastError = describeVercelError(info.status, info.body, tokenValid, teamOk);
         }
       }
     } catch (err) {
