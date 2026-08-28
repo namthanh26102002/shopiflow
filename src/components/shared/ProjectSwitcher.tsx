@@ -3,7 +3,7 @@
 // straight in the editor.
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, Plus, Check, Trash2 } from 'lucide-react';
+import { ChevronDown, Plus, Check, Trash2, LayoutTemplate, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -24,6 +24,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useProjects, ProjectTable } from '@/hooks/useProjects';
+import { TemplateGallery } from '@/components/shared/TemplateGallery';
+import { SaveAsTemplateDialog } from '@/components/shared/SaveAsTemplateDialog';
+import { TemplateContent } from '@/hooks/useQuizTemplates';
 
 interface ProjectSwitcherProps {
   table: ProjectTable;
@@ -35,16 +38,24 @@ interface ProjectSwitcherProps {
   currentId?: string;
   /** Live title from the editor, which leads the stored one after a rename. */
   currentTitle?: string;
+  /** Quiz builders pass the open project's content so admins can save it as a
+   *  template. Omitted elsewhere, which hides the template actions. */
+  templateContent?: TemplateContent;
 }
 
 export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
-  table, basePath, noun, currentId, currentTitle,
+  table, basePath, noun, currentId, currentTitle, templateContent,
 }) => {
   const navigate = useNavigate();
   const {
     projects, isAdmin, atLimit, limit, busy, createProject, deleteProject, refresh,
   } = useProjects(table);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
+
+  // Templates exist for quizzes only.
+  const supportsTemplates = table === 'quizzes';
 
   const handleCreate = async () => {
     const id = await createProject();
@@ -109,6 +120,20 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
             </p>
           )}
 
+          {supportsTemplates && (
+            <DropdownMenuItem onClick={() => setGalleryOpen(true)} className="gap-2">
+              <LayoutTemplate className="w-3.5 h-3.5 shrink-0" />
+              Start from a template
+            </DropdownMenuItem>
+          )}
+
+          {supportsTemplates && isAdmin && templateContent && (
+            <DropdownMenuItem onClick={() => setSaveTemplateOpen(true)} className="gap-2">
+              <Save className="w-3.5 h-3.5 shrink-0" />
+              Save as template
+            </DropdownMenuItem>
+          )}
+
           <DropdownMenuItem
             onClick={() => setConfirmDelete(true)}
             disabled={busy || !currentId}
@@ -119,6 +144,19 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {supportsTemplates && (
+        <TemplateGallery open={galleryOpen} onOpenChange={setGalleryOpen} />
+      )}
+
+      {supportsTemplates && templateContent && (
+        <SaveAsTemplateDialog
+          open={saveTemplateOpen}
+          onOpenChange={setSaveTemplateOpen}
+          quizTitle={currentTitle || 'Untitled Quiz'}
+          content={templateContent}
+        />
+      )}
 
       <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
         <AlertDialogContent>

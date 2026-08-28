@@ -200,6 +200,30 @@ the checks in `useProjects` only keep the UI in step.
 The trigger blocks inserts only. A user who already holds more than the cap
 keeps every project and simply cannot create another until they delete one.
 
+## Quiz templates
+
+Admin-authored starting points, in `public.quiz_templates` — deliberately not a
+flag on `public.quizzes`, since templates are not user projects: they must not
+count toward the project limit, must not appear in anyone's project switcher,
+and need the opposite access rule (readable by all, writable by admins).
+
+RLS shows published templates to every signed-in user and drafts to admins only.
+
+Everything lives in the project dropdown:
+
+| Action | Who | Where |
+|---|---|---|
+| Start from a template | everyone | Dropdown -> Start from a template |
+| Publish / unpublish, rename, duplicate, delete | admin | Inline in the gallery |
+| Save the open quiz as a template | admin | Dropdown -> Save as template |
+
+Importing copies `settings`, `questions`, `products` and `results` into a new
+`quizzes` row. There is no link back, so the imported project is independent by
+construction — no ownership checks are needed to keep users out of templates.
+
+There is no separate template editor. To change a template's content, import it,
+edit the resulting quiz, then **Save as template** and overwrite the original.
+
 ## Gotchas
 
 - **Access code rules live in `src/lib/accessCode.ts`.** The signup form,

@@ -619,6 +619,48 @@ export type Database = {
         }
         Relationships: []
       }
+      quiz_templates: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string
+          id: string
+          is_published: boolean
+          products: Json
+          questions: Json
+          results: Json
+          settings: Json
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string
+          id?: string
+          is_published?: boolean
+          products?: Json
+          questions?: Json
+          results?: Json
+          settings?: Json
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string
+          id?: string
+          is_published?: boolean
+          products?: Json
+          questions?: Json
+          results?: Json
+          settings?: Json
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       quizzes: {
         Row: {
           analytics: Json

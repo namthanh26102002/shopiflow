@@ -41,6 +41,12 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({ onPublish }) => {
             noun="quiz"
             currentId={quizId}
             currentTitle={quiz.settings.title}
+            templateContent={{
+              settings: quiz.settings,
+              questions: quiz.questions,
+              products: quiz.products,
+              results: quiz.results,
+            }}
           />
         </div>
         
