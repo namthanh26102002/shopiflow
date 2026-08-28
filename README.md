@@ -161,9 +161,13 @@ An unlisted host is treated as a customer domain and routed to `SlugResolver`.
 
 ## Project limits
 
-Each builder is multi-project. `/builder` and `/advertorial-builder` list the
-current user's projects; the editors live at `/builder/:quizId` and
-`/advertorial-builder/:advertorialId`.
+Each builder is multi-project, but there is no project list page: signing in
+lands directly in the editor. `/builder` and `/advertorial-builder` resolve to
+the user's most recently edited project, creating one if they have none, then
+redirect to `/builder/:quizId` or `/advertorial-builder/:advertorialId`.
+
+Switching, creating and deleting all happen in the header dropdown
+(`ProjectSwitcher`), next to the project name.
 
 Non-admins may keep **2 projects per builder**; admins are unlimited. The cap
 is enforced by a `BEFORE INSERT` trigger (`public.enforce_project_limit`) on

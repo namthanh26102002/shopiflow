@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { QuizProvider, useQuiz } from '@/contexts/QuizContext';
-import { rememberOpenProject } from '@/hooks/useProjects';
 import { toast } from 'sonner';
 import { BuilderHeader } from '@/components/builder/BuilderHeader';
 import { BuilderSidebar, BuilderTab } from '@/components/builder/BuilderSidebar';
@@ -125,9 +124,6 @@ const BuilderContent: React.FC = () => {
 const Builder: React.FC = () => {
   const { quizId } = useParams<{ quizId: string }>();
 
-  useEffect(() => {
-    if (quizId) rememberOpenProject('quizzes', quizId);
-  }, [quizId]);
 
   if (!quizId) return <Navigate to="/builder" replace />;
 

@@ -11,9 +11,9 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 // does not download the builder, the charts or the drag-and-drop libraries.
 const Auth = lazy(() => import("./pages/Auth"));
 const Builder = lazy(() => import("./pages/Builder"));
-const QuizProjects = lazy(() => import("./pages/QuizProjects"));
+const BuilderEntry = lazy(() => import("./pages/BuilderEntry"));
 const AdvertorialBuilder = lazy(() => import("./pages/AdvertorialBuilder"));
-const AdvertorialProjects = lazy(() => import("./pages/AdvertorialProjects"));
+const AdvertorialBuilderEntry = lazy(() => import("./pages/AdvertorialBuilderEntry"));
 const QuizPublic = lazy(() => import("./pages/QuizPublic"));
 const AdvertorialPublic = lazy(() => import("./pages/AdvertorialPublic"));
 const SlugResolver = lazy(() => import("./pages/SlugResolver"));
@@ -76,7 +76,7 @@ const App = () => (
               path="/builder"
               element={
                 <ProtectedRoute>
-                  <QuizProjects />
+                  <BuilderEntry />
                 </ProtectedRoute>
               }
             />
@@ -92,7 +92,7 @@ const App = () => (
               path="/advertorial-builder"
               element={
                 <ProtectedRoute>
-                  <AdvertorialProjects />
+                  <AdvertorialBuilderEntry />
                 </ProtectedRoute>
               }
             />

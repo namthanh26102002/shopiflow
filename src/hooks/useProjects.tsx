@@ -25,22 +25,6 @@ export interface ProjectSummary {
 
 const LIMIT_MARKER = 'PROJECT_LIMIT_REACHED';
 
-const openKey = (table: ProjectTable) => `shopiflow:open:${table}`;
-
-/** Record the project this tab has open in the editor. */
-export const rememberOpenProject = (table: ProjectTable, id: string) => {
-  try { sessionStorage.setItem(openKey(table), id); } catch { /* private mode */ }
-};
-
-/** The project this tab has open, if any. */
-export const getOpenProject = (table: ProjectTable): string | null => {
-  try { return sessionStorage.getItem(openKey(table)); } catch { return null; }
-};
-
-export const forgetOpenProject = (table: ProjectTable) => {
-  try { sessionStorage.removeItem(openKey(table)); } catch { /* private mode */ }
-};
-
 const newProjectRow = (table: ProjectTable, userId: string) => {
   if (table === 'quizzes') {
     const q = createDefaultQuiz();

@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { AdvertorialProvider, useAdvertorial } from '@/contexts/AdvertorialContext';
-import { rememberOpenProject } from '@/hooks/useProjects';
 import { toast } from 'sonner';
 import { AdvertorialHeader } from '@/components/advertorial/AdvertorialHeader';
 import { AdvertorialSidebar, AdvertorialTab } from '@/components/advertorial/AdvertorialSidebar';
@@ -85,9 +84,6 @@ const AdvertorialBuilderContent: React.FC = () => {
 const AdvertorialBuilder: React.FC = () => {
   const { advertorialId } = useParams<{ advertorialId: string }>();
 
-  useEffect(() => {
-    if (advertorialId) rememberOpenProject('advertorials', advertorialId);
-  }, [advertorialId]);
 
   if (!advertorialId) return <Navigate to="/advertorial-builder" replace />;
 
