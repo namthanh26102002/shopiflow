@@ -57,6 +57,9 @@ export const useDomains = () => {
 
   const load = useCallback(async () => {
     if (!user) { setDomains([]); setMappings([]); setLoading(false); return; }
+    // Report progress on refetches too, so a dialog reopening does not briefly
+    // present stale data as current.
+    setLoading(true);
     try {
       const [d, m] = await Promise.all([
         supabase.from('domains').select('*').eq('user_id', user.id).order('created_at'),

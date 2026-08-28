@@ -1,7 +1,7 @@
 // Template gallery. Users browse published templates and import one as a new
 // project; admins additionally see drafts and manage them inline, so there is
 // one surface rather than separate browse and manage screens.
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   LayoutTemplate, Loader2, Copy, Trash2, Eye, EyeOff, Pencil, Check, X, ArrowRight,
@@ -36,8 +36,14 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
   const navigate = useNavigate();
   const {
     templates, loading, busyId, isAdmin,
-    importTemplate, updateTemplateMeta, duplicateTemplate, deleteTemplate,
+    importTemplate, updateTemplateMeta, duplicateTemplate, deleteTemplate, refresh,
   } = useContentTemplates(contentType);
+
+  // The gallery mounts with the builder header, so its first fetch happens long
+  // before a template is saved. Refetch on open or it shows a stale list.
+  useEffect(() => {
+    if (open) refresh();
+  }, [open, refresh]);
 
   const [pendingDelete, setPendingDelete] = useState<ContentTemplate | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -82,7 +88,10 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
           </DialogHeader>
 
           {loading ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">Loading…</p>
+            <div className="py-10 flex flex-col items-center gap-2">
+              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">Loading templates…</p>
+            </div>
           ) : templates.length === 0 ? (
             <div className="border border-border-subtle rounded-lg p-10 text-center">
               <p className="text-sm font-medium text-foreground mb-1">

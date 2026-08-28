@@ -55,6 +55,10 @@ export const useContentTemplates = (contentType: TemplateType) => {
 
   const load = useCallback(async () => {
     if (!user) { setTemplates([]); setLoading(false); return; }
+    // Every load reports progress, not just the first: callers refetch when a
+    // dialog opens, and showing the previous (possibly empty) list as if it
+    // were current is how a freshly saved template appeared to be missing.
+    setLoading(true);
     try {
       // RLS decides visibility: published for users, drafts too for admins.
       const { data, error } = await supabase

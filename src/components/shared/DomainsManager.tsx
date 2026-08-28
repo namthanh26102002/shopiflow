@@ -44,7 +44,7 @@ const StatusBadge: React.FC<{ domain: Domain }> = ({ domain }) => {
 
 export const DomainsManager: React.FC<DomainsManagerProps> = ({ open, onOpenChange }) => {
   const {
-    domains, mappings, loading, busyId, addDomain, recheckDomain, removeDomain,
+    domains, mappings, loading, busyId, addDomain, recheckDomain, removeDomain, refresh,
   } = useDomains();
   const [newDomain, setNewDomain] = useState('');
   const [pendingRemove, setPendingRemove] = useState<Domain | null>(null);
@@ -53,6 +53,12 @@ export const DomainsManager: React.FC<DomainsManagerProps> = ({ open, onOpenChan
 
   // The A-record target is a deployment detail, so it comes from the server
   // rather than being hard-coded in the client.
+  // Mounted with the Domain tab, so refetch on open rather than showing
+  // whatever was true when the panel first rendered.
+  useEffect(() => {
+    if (open) refresh();
+  }, [open, refresh]);
+
   useEffect(() => {
     if (!open) return;
     supabase.functions
@@ -137,7 +143,10 @@ export const DomainsManager: React.FC<DomainsManagerProps> = ({ open, onOpenChan
 
           <div className="space-y-2">
             {loading ? (
-              <p className="text-sm text-muted-foreground py-6 text-center">Loading…</p>
+              <div className="py-8 flex flex-col items-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">Loading domains…</p>
+              </div>
             ) : domains.length === 0 ? (
               <div className="border border-border-subtle rounded-lg p-8 text-center">
                 <p className="text-sm font-medium text-foreground mb-1">No domains yet</p>
