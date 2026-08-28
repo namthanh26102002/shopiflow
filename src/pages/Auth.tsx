@@ -6,6 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { AlertTriangle } from 'lucide-react';
+import {
+  ACCESS_CODE_MAX_LENGTH,
+  normalizeAccessCode,
+  describeAccessCodeProblem,
+} from '@/lib/accessCode';
 
 const Auth: React.FC = () => {
   const { user, loading, signIn, signUp } = useAuth();
@@ -17,6 +22,8 @@ const Auth: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const trialExpired = searchParams.get('trial_expired') === 'true';
+  // Shown as you type, so a malformed code is obvious before submitting.
+  const accessCodeProblem = describeAccessCodeProblem(normalizeAccessCode(accessCode));
 
   if (loading) {
     return (
@@ -43,9 +50,12 @@ const Auth: React.FC = () => {
       return;
     }
 
-    if (isSignUp && !accessCode.trim()) {
-      toast.error('Please enter an access code');
-      return;
+    if (isSignUp) {
+      const problem = describeAccessCodeProblem(normalizeAccessCode(accessCode));
+      if (problem) {
+        toast.error(problem);
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -134,10 +144,12 @@ const Auth: React.FC = () => {
                 value={accessCode}
                 onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
                 className="input-clean font-mono"
-                maxLength={12}
+                maxLength={ACCESS_CODE_MAX_LENGTH}
               />
               <p className="text-xs text-muted-foreground">
-                You need a valid access code to create an account
+                {accessCodeProblem && accessCode
+                  ? accessCodeProblem
+                  : 'You need a valid access code to create an account'}
               </p>
             </div>
           )}

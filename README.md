@@ -175,10 +175,14 @@ keeps every project and simply cannot create another until they delete one.
 
 ## Gotchas
 
-- **Access codes are capped at 12 characters.** Both `Auth.tsx` and
-  `AccessCodeManager.tsx` set `maxLength={12}`, while the `access-code`
-  edge function accepts up to 32. Longer codes are truncated by the input
-  with no warning and fail validation.
+- **Access code rules live in `src/lib/accessCode.ts`.** The signup form,
+  the admin creator and the `access-code` edge function must agree
+  (`/^[A-Z0-9-]{4,32}$/`). The inputs used to cap at 12 characters, so a
+  longer valid code was silently truncated and then rejected as invalid.
+- **Routes are lazily loaded** (`src/App.tsx`). Keep new routes lazy, and
+  avoid naming a heavy library in `manualChunks` — doing so makes it an
+  initial chunk that every page preloads, which is what happened to
+  recharts.
 - **`src/integrations/supabase/types.ts` is generated.** Regenerate with
   `npx supabase gen types typescript --linked > src/integrations/supabase/types.ts`
   rather than editing it.

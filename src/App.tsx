@@ -3,32 +3,42 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import Auth from "./pages/Auth";
-import Builder from "./pages/Builder";
-import QuizProjects from "./pages/QuizProjects";
-import AdvertorialBuilder from "./pages/AdvertorialBuilder";
-import AdvertorialProjects from "./pages/AdvertorialProjects";
-import QuizPublic from "./pages/QuizPublic";
-import AdvertorialPublic from "./pages/AdvertorialPublic";
-import SlugResolver from "./pages/SlugResolver";
-import OrderPublic from "./pages/OrderPublic";
-import WinningProducts from "./pages/WinningProducts";
-import WinningProductDetail from "./pages/WinningProductDetail";
-import WinningProductsManage from "./pages/WinningProductsManage";
-import AdminUsers from "./pages/AdminUsers";
-import Info from "./pages/Info";
-import InfoManage from "./pages/InfoManage";
-import InfoClassroom from "./pages/InfoClassroom";
-import InfoLessonEditor from "./pages/InfoLessonEditor";
-import InfoLessonView from "./pages/InfoLessonView";
-import Orders from "./pages/Orders";
-import OrderDetail from "./pages/OrderDetail";
-import OrderManage from "./pages/OrderManage";
-import NotFound from "./pages/NotFound";
+
+// Every route is its own chunk, so a visitor landing on a public quiz page
+// does not download the builder, the charts or the drag-and-drop libraries.
+const Auth = lazy(() => import("./pages/Auth"));
+const Builder = lazy(() => import("./pages/Builder"));
+const QuizProjects = lazy(() => import("./pages/QuizProjects"));
+const AdvertorialBuilder = lazy(() => import("./pages/AdvertorialBuilder"));
+const AdvertorialProjects = lazy(() => import("./pages/AdvertorialProjects"));
+const QuizPublic = lazy(() => import("./pages/QuizPublic"));
+const AdvertorialPublic = lazy(() => import("./pages/AdvertorialPublic"));
+const SlugResolver = lazy(() => import("./pages/SlugResolver"));
+const OrderPublic = lazy(() => import("./pages/OrderPublic"));
+const WinningProducts = lazy(() => import("./pages/WinningProducts"));
+const WinningProductDetail = lazy(() => import("./pages/WinningProductDetail"));
+const WinningProductsManage = lazy(() => import("./pages/WinningProductsManage"));
+const AdminUsers = lazy(() => import("./pages/AdminUsers"));
+const Info = lazy(() => import("./pages/Info"));
+const InfoManage = lazy(() => import("./pages/InfoManage"));
+const InfoClassroom = lazy(() => import("./pages/InfoClassroom"));
+const InfoLessonEditor = lazy(() => import("./pages/InfoLessonEditor"));
+const InfoLessonView = lazy(() => import("./pages/InfoLessonView"));
+const Orders = lazy(() => import("./pages/Orders"));
+const OrderDetail = lazy(() => import("./pages/OrderDetail"));
+const OrderManage = lazy(() => import("./pages/OrderManage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
+
+const RouteFallback = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+  </div>
+);
 
 // Hosts that serve the app itself. Anything else is treated as a customer's
 // custom domain and routed through SlugResolver, so every host we deploy to
@@ -56,6 +66,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path="/" element={isCustomDomain() ? <SlugResolver /> : <Auth />} />
             <Route path="/auth" element={<Auth />} />
@@ -132,6 +143,7 @@ const App = () => (
             <Route path="/:slug" element={<SlugResolver />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

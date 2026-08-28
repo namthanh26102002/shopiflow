@@ -14,6 +14,11 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import {
+  ACCESS_CODE_MAX_LENGTH,
+  normalizeAccessCode,
+  describeAccessCodeProblem,
+} from '@/lib/accessCode';
 
 interface AccessCodeManagerProps {
   open: boolean;
@@ -40,6 +45,15 @@ export const AccessCodeManager: React.FC<AccessCodeManagerProps> = ({ open, onOp
   const [isCreating, setIsCreating] = useState(false);
 
   const handleCreateCode = async () => {
+    // Only validate a custom code; an empty field means "generate a random one".
+    if (customCode.trim()) {
+      const problem = describeAccessCodeProblem(normalizeAccessCode(customCode));
+      if (problem) {
+        toast.error(problem);
+        return;
+      }
+    }
+
     setIsCreating(true);
     const days = trialDays.trim() ? parseInt(trialDays, 10) : null;
     if (trialDays.trim() && (isNaN(days!) || days! < 1)) {
@@ -115,7 +129,7 @@ export const AccessCodeManager: React.FC<AccessCodeManagerProps> = ({ open, onOp
                 placeholder="Custom code or leave empty for random"
                 value={customCode}
                 onChange={(e) => setCustomCode(e.target.value.toUpperCase())}
-                maxLength={12}
+                maxLength={ACCESS_CODE_MAX_LENGTH}
               />
             </div>
             <div className="w-28">
