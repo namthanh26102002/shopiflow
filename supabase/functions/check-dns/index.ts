@@ -92,11 +92,13 @@ Deno.serve(async (req) => {
 
     const pointsToProxy = aRecords.includes(proxyIp);
 
-    // Update verified status in database
+    // Verification state lives on public.domains now, and is written by the
+    // domain-host function, which also knows whether the host has the domain
+    // registered. This endpoint only reports what DNS currently says.
     if (pointsToProxy) {
       await supabase
-        .from("custom_domains")
-        .update({ verified: true })
+        .from("domains")
+        .update({ dns_ok: true, last_checked_at: new Date().toISOString() })
         .eq("domain", domain)
         .eq("user_id", userData.user.id);
     }

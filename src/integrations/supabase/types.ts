@@ -10,7 +10,32 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.1"
+    PostgrestVersion: "14.17"
+  }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -179,30 +204,74 @@ export type Database = {
           content_type: string
           created_at: string
           domain: string
+          domain_id: string | null
           id: string
           path: string
           user_id: string
-          verified: boolean
         }
         Insert: {
           content_id: string
           content_type: string
           created_at?: string
           domain: string
+          domain_id?: string | null
           id?: string
           path?: string
           user_id: string
-          verified?: boolean
         }
         Update: {
           content_id?: string
           content_type?: string
           created_at?: string
           domain?: string
+          domain_id?: string | null
           id?: string
           path?: string
           user_id?: string
-          verified?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_domains_domain_id_fkey"
+            columns: ["domain_id"]
+            isOneToOne: false
+            referencedRelation: "domains"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      domains: {
+        Row: {
+          created_at: string
+          dns_ok: boolean
+          domain: string
+          host_ok: boolean
+          id: string
+          last_checked_at: string | null
+          last_error: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dns_ok?: boolean
+          domain: string
+          host_ok?: boolean
+          id?: string
+          last_checked_at?: string | null
+          last_error?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dns_ok?: boolean
+          domain?: string
+          host_ok?: boolean
+          id?: string
+          last_checked_at?: string | null
+          last_error?: string | null
+          status?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -913,6 +982,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       app_role: ["admin", "user"],

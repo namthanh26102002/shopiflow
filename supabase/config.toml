@@ -13,3 +13,6 @@ verify_jwt = false
 
 [functions."access-code"]
 verify_jwt = false
+
+[functions."domain-host"]
+verify_jwt = false

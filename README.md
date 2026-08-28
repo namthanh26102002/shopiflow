@@ -150,14 +150,37 @@ tables and triggers that are not there.
 
 ### Custom domains
 
-Customers point A records for `@` and `www` at the `PROXY_IP` edge-function
-secret, and `check-dns` verifies the match against Cloudflare DNS. Changing
-hosts means updating `PROXY_IP` **and** every customer re-pointing their DNS —
-their sites stay down until they do. Plan that as a customer migration, not a
-deploy step.
+A domain is only served when **two** things are true, and `public.domains`
+tracks them separately:
+
+| Column | Meaning |
+|---|---|
+| `dns_ok` | The domain's A records point at `PROXY_IP` |
+| `host_ok` | Vercel has the domain on the project and reports it configured |
+
+`status` is generated from those: `active` when both hold, `error` when
+`last_error` is set, otherwise `pending`. Pointing DNS alone is not enough —
+Vercel serves only domains added to the project, which is what the
+`domain-host` edge function does via Vercel's API.
+
+`domain-host` needs these secrets:
+
+```sh
+npx supabase secrets set VERCEL_TOKEN=<token>
+npx supabase secrets set VERCEL_PROJECT_ID=<project id>
+npx supabase secrets set VERCEL_TEAM_ID=<team id>   # only for team accounts
+```
+
+`custom_domains` stays the `(domain, path) -> content` mapping, with
+`UNIQUE (domain, path)` preventing two projects claiming one address. Domains
+are managed account-wide in `DomainsManager`; each project only picks one in
+`ProjectDomainAssignment`.
 
 Any host serving the app must be listed in `isCustomDomain()` in `src/App.tsx`.
 An unlisted host is treated as a customer domain and routed to `SlugResolver`.
+
+`verify_domain` is a leftover Caddy on-demand-TLS hook from the previous
+hosting setup. Vercel terminates TLS itself, so nothing calls it.
 
 ## Project limits
 
