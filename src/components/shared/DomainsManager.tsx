@@ -122,10 +122,25 @@ export const DomainsManager: React.FC<DomainsManagerProps> = ({ open, onOpenChan
             </p>
           </div>
 
-          <p className="text-xs text-muted-foreground">
-            Each domain below shows the exact DNS record it needs. Records can
-            take up to an hour to propagate; press Recheck once they are in.
-          </p>
+          <div className="rounded-lg border border-border-subtle p-3 space-y-2">
+            <p className="text-xs font-medium text-foreground">How connecting a domain works</p>
+            <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
+              <li>Add your domain above. We register it with our host for you.</li>
+              <li>
+                At your DNS provider, add the record shown beneath the domain.
+                Each domain gets its own — an apex like
+                <span className="font-mono"> example.com </span>
+                takes A records, a subdomain like
+                <span className="font-mono"> try.example.com </span>
+                takes a CNAME.
+              </li>
+              <li>Remove any conflicting A or CNAME records for the same name.</li>
+              <li>
+                Press Recheck. DNS can take up to an hour to propagate, so it may
+                stay pending for a while before it turns green.
+              </li>
+            </ol>
+          </div>
 
           <div className="space-y-2">
             {loading ? (
@@ -157,9 +172,11 @@ export const DomainsManager: React.FC<DomainsManagerProps> = ({ open, onOpenChan
                           {describeDomainState(d)}
                         </p>
 
-                        {d.status !== 'active' && (
-                          <div className="mt-2 rounded border border-border-subtle p-2 space-y-1">
-                            {dnsRecordsFor(d.domain, expectedIp).map((r) => (
+                        <div className="mt-2 rounded border border-border-subtle p-2 space-y-1">
+                          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                            {d.status === 'active' ? 'DNS records in use' : 'Add these DNS records'}
+                          </p>
+                          {dnsRecordsFor(d.domain, expectedIp).map((r) => (
                               <button
                                 key={`${r.type}-${r.name}`}
                                 onClick={() => copyValue(r.value)}
@@ -173,9 +190,8 @@ export const DomainsManager: React.FC<DomainsManagerProps> = ({ open, onOpenChan
                                   ? <Check className="w-3 h-3 shrink-0" />
                                   : <Copy className="w-3 h-3 shrink-0 opacity-50" />}
                               </button>
-                            ))}
-                          </div>
-                        )}
+                          ))}
+                        </div>
 
                         {projects.length > 0 ? (
                           <p className="text-xs text-muted-foreground mt-1.5">
