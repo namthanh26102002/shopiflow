@@ -198,6 +198,42 @@ export type Database = {
         }
         Relationships: []
       }
+      content_templates: {
+        Row: {
+          content: Json
+          content_type: string
+          created_at: string
+          created_by: string
+          description: string
+          id: string
+          is_published: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content?: Json
+          content_type: string
+          created_at?: string
+          created_by: string
+          description?: string
+          id?: string
+          is_published?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          content_type?: string
+          created_at?: string
+          created_by?: string
+          description?: string
+          id?: string
+          is_published?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       custom_domains: {
         Row: {
           content_id: string
@@ -616,48 +652,6 @@ export type Database = {
           utm_campaign?: string | null
           utm_medium?: string | null
           utm_source?: string | null
-        }
-        Relationships: []
-      }
-      quiz_templates: {
-        Row: {
-          created_at: string
-          created_by: string
-          description: string
-          id: string
-          is_published: boolean
-          products: Json
-          questions: Json
-          results: Json
-          settings: Json
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          created_by: string
-          description?: string
-          id?: string
-          is_published?: boolean
-          products?: Json
-          questions?: Json
-          results?: Json
-          settings?: Json
-          title?: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string
-          description?: string
-          id?: string
-          is_published?: boolean
-          products?: Json
-          questions?: Json
-          results?: Json
-          settings?: Json
-          title?: string
-          updated_at?: string
         }
         Relationships: []
       }

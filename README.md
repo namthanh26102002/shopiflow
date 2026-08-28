@@ -200,14 +200,19 @@ the checks in `useProjects` only keep the UI in step.
 The trigger blocks inserts only. A user who already holds more than the cap
 keeps every project and simply cannot create another until they delete one.
 
-## Quiz templates
+## Templates
 
-Admin-authored starting points, in `public.quiz_templates` — deliberately not a
-flag on `public.quizzes`, since templates are not user projects: they must not
-count toward the project limit, must not appear in anyone's project switcher,
-and need the opposite access rule (readable by all, writable by admins).
+Admin-authored starting points for both builders, in `public.content_templates`
+— deliberately not a flag on the project tables, since templates are not user
+projects: they must not count toward the project limit, must not appear in
+anyone's project switcher, and need the opposite access rule (readable by all,
+writable by admins). RLS shows published templates to every signed-in user and
+drafts to admins only.
 
-RLS shows published templates to every signed-in user and drafts to admins only.
+One table serves both builders. The payloads differ — a quiz carries
+`questions`/`products`/`results`, an advertorial carries `blocks` — so the body
+is a single `content` jsonb column whose shape is owned by the builder that
+reads it, keyed by `content_type`.
 
 Everything lives in the project dropdown:
 
@@ -215,14 +220,14 @@ Everything lives in the project dropdown:
 |---|---|---|
 | Start from a template | everyone | Dropdown -> Start from a template |
 | Publish / unpublish, rename, duplicate, delete | admin | Inline in the gallery |
-| Save the open quiz as a template | admin | Dropdown -> Save as template |
+| Save the open project as a template | admin | Dropdown -> Save as template |
 
-Importing copies `settings`, `questions`, `products` and `results` into a new
-`quizzes` row. There is no link back, so the imported project is independent by
-construction — no ownership checks are needed to keep users out of templates.
+Importing copies `content` into a new project row. There is no link back, so the
+imported project is independent by construction — no ownership checks are needed
+to keep users out of templates.
 
 There is no separate template editor. To change a template's content, import it,
-edit the resulting quiz, then **Save as template** and overwrite the original.
+edit the resulting project, then **Save as template** and overwrite the original.
 
 ## Gotchas
 

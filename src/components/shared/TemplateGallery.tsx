@@ -17,35 +17,42 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import {
-  useQuizTemplates, QuizTemplate, templateQuestionCount,
-} from '@/hooks/useQuizTemplates';
+  useContentTemplates, ContentTemplate, TemplateType, describeTemplate,
+} from '@/hooks/useContentTemplates';
 
 interface TemplateGalleryProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  contentType: TemplateType;
+  /** Editor route prefix for the imported project, e.g. "/builder". */
+  basePath: string;
+  /** Noun used in the copy, e.g. "quiz". */
+  noun: string;
 }
 
-export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ open, onOpenChange }) => {
+export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
+  open, onOpenChange, contentType, basePath, noun,
+}) => {
   const navigate = useNavigate();
   const {
     templates, loading, busyId, isAdmin,
     importTemplate, updateTemplateMeta, duplicateTemplate, deleteTemplate,
-  } = useQuizTemplates();
+  } = useContentTemplates(contentType);
 
-  const [pendingDelete, setPendingDelete] = useState<QuizTemplate | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<ContentTemplate | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftTitle, setDraftTitle] = useState('');
   const [draftDescription, setDraftDescription] = useState('');
 
-  const handleUse = async (t: QuizTemplate) => {
+  const handleUse = async (t: ContentTemplate) => {
     const id = await importTemplate(t);
     if (id) {
       onOpenChange(false);
-      navigate(`/builder/${id}`);
+      navigate(`${basePath}/${id}`);
     }
   };
 
-  const startEdit = (t: QuizTemplate) => {
+  const startEdit = (t: ContentTemplate) => {
     setEditingId(t.id);
     setDraftTitle(t.title);
     setDraftDescription(t.description);
@@ -66,10 +73,10 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ open, onOpenCh
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <LayoutTemplate className="w-4 h-4" />
-              Quiz templates
+              {noun === 'quiz' ? 'Quiz' : 'Advertorial'} templates
             </DialogTitle>
             <DialogDescription>
-              Start from a ready-made quiz. Importing creates your own copy —
+              Start from a ready-made {noun}. Importing creates your own copy —
               editing it never changes the template.
             </DialogDescription>
           </DialogHeader>
@@ -83,7 +90,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ open, onOpenCh
               </p>
               <p className="text-xs text-muted-foreground">
                 {isAdmin
-                  ? 'Open a quiz and choose "Save as template" to create the first one.'
+                  ? `Open a ${noun} and choose "Save as template" to create the first one.`
                   : 'Check back later — templates are published by the Shopiflow team.'}
               </p>
             </div>
@@ -129,8 +136,7 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ open, onOpenCh
                           <p className="text-xs text-muted-foreground mt-1">{t.description}</p>
                         )}
                         <p className="text-xs text-muted-foreground mt-1">
-                          {templateQuestionCount(t)} question
-                          {templateQuestionCount(t) === 1 ? '' : 's'}
+                          {describeTemplate(t)}
                         </p>
                       </div>
 
@@ -191,8 +197,8 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({ open, onOpenCh
 
           {isAdmin && (
             <p className="text-xs text-muted-foreground">
-              To change a template&apos;s questions or design: use it to create a
-              quiz, edit that quiz, then choose <strong>Save as template</strong> and
+              To change a template&apos;s content: use it to create a {noun}, edit
+              that {noun}, then choose <strong>Save as template</strong> and
               overwrite this one.
             </p>
           )}

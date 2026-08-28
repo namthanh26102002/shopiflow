@@ -16,24 +16,31 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { useQuizTemplates, TemplateContent } from '@/hooks/useQuizTemplates';
+import {
+  useContentTemplates, TemplateContent, TemplateType,
+} from '@/hooks/useContentTemplates';
 
 interface SaveAsTemplateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Title of the quiz being saved, used as the default template name. */
-  quizTitle: string;
+  contentType: TemplateType;
+  /** Title of the project being saved, used as the default template name. */
+  projectTitle: string;
+  /** Noun used in the copy, e.g. "quiz". */
+  noun: string;
   content: TemplateContent;
 }
 
 const NEW = '__new__';
 
 export const SaveAsTemplateDialog: React.FC<SaveAsTemplateDialogProps> = ({
-  open, onOpenChange, quizTitle, content,
+  open, onOpenChange, contentType, projectTitle, noun, content,
 }) => {
-  const { templates, busyId, createTemplate, updateTemplateContent } = useQuizTemplates();
+  const {
+    templates, busyId, createTemplate, updateTemplateContent,
+  } = useContentTemplates(contentType);
   const [target, setTarget] = useState<string>(NEW);
-  const [title, setTitle] = useState(quizTitle);
+  const [title, setTitle] = useState(projectTitle);
   const [description, setDescription] = useState('');
 
   const saving = busyId !== null;
@@ -52,7 +59,7 @@ export const SaveAsTemplateDialog: React.FC<SaveAsTemplateDialogProps> = ({
   return (
     <Dialog
       open={open}
-      onOpenChange={(o) => { if (o) setTitle(quizTitle); onOpenChange(o); }}
+      onOpenChange={(o) => { if (o) setTitle(projectTitle); onOpenChange(o); }}
     >
       <DialogContent>
         <DialogHeader>
@@ -61,8 +68,8 @@ export const SaveAsTemplateDialog: React.FC<SaveAsTemplateDialogProps> = ({
             Save as template
           </DialogTitle>
           <DialogDescription>
-            Copies this quiz&apos;s questions, products, results and design into a
-            template other users can start from.
+            Copies this {noun}&apos;s content and design into a template other
+            users can start from.
           </DialogDescription>
         </DialogHeader>
 
@@ -112,9 +119,9 @@ export const SaveAsTemplateDialog: React.FC<SaveAsTemplateDialogProps> = ({
             </>
           ) : (
             <p className="text-xs text-muted-foreground">
-              Replaces that template&apos;s content with this quiz. Its name,
-              description and published state stay as they are, and quizzes already
-              created from it are unaffected.
+              Replaces that template&apos;s content with this {noun}. Its name,
+              description and published state stay as they are, and projects
+              already created from it are unaffected.
             </p>
           )}
         </div>

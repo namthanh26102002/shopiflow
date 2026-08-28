@@ -32,6 +32,10 @@ export const AdvertorialHeader: React.FC = () => {
               noun="advertorial"
               currentId={advertorialId}
               currentTitle={advertorial.settings.title}
+              templateContent={{
+                settings: advertorial.settings,
+                blocks: advertorial.blocks,
+              }}
             />
           </div>
           

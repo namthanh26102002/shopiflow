@@ -26,7 +26,7 @@ import {
 import { useProjects, ProjectTable } from '@/hooks/useProjects';
 import { TemplateGallery } from '@/components/shared/TemplateGallery';
 import { SaveAsTemplateDialog } from '@/components/shared/SaveAsTemplateDialog';
-import { TemplateContent } from '@/hooks/useQuizTemplates';
+import { TemplateContent, TemplateType } from '@/hooks/useContentTemplates';
 
 interface ProjectSwitcherProps {
   table: ProjectTable;
@@ -38,8 +38,8 @@ interface ProjectSwitcherProps {
   currentId?: string;
   /** Live title from the editor, which leads the stored one after a rename. */
   currentTitle?: string;
-  /** Quiz builders pass the open project's content so admins can save it as a
-   *  template. Omitted elsewhere, which hides the template actions. */
+  /** The open project's content, so admins can save it as a template. Omitted
+   *  where templates do not apply, which hides the "Save as template" action. */
   templateContent?: TemplateContent;
 }
 
@@ -54,8 +54,8 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
 
-  // Templates exist for quizzes only.
-  const supportsTemplates = table === 'quizzes';
+  // Both builders have templates; the table tells us which kind.
+  const templateType: TemplateType = table === 'quizzes' ? 'quiz' : 'advertorial';
 
   const handleCreate = async () => {
     const id = await createProject();
@@ -120,14 +120,12 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
             </p>
           )}
 
-          {supportsTemplates && (
-            <DropdownMenuItem onClick={() => setGalleryOpen(true)} className="gap-2">
-              <LayoutTemplate className="w-3.5 h-3.5 shrink-0" />
-              Start from a template
-            </DropdownMenuItem>
-          )}
+          <DropdownMenuItem onClick={() => setGalleryOpen(true)} className="gap-2">
+            <LayoutTemplate className="w-3.5 h-3.5 shrink-0" />
+            Start from a template
+          </DropdownMenuItem>
 
-          {supportsTemplates && isAdmin && templateContent && (
+          {isAdmin && templateContent && (
             <DropdownMenuItem onClick={() => setSaveTemplateOpen(true)} className="gap-2">
               <Save className="w-3.5 h-3.5 shrink-0" />
               Save as template
@@ -145,15 +143,21 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {supportsTemplates && (
-        <TemplateGallery open={galleryOpen} onOpenChange={setGalleryOpen} />
-      )}
+      <TemplateGallery
+        open={galleryOpen}
+        onOpenChange={setGalleryOpen}
+        contentType={templateType}
+        basePath={basePath}
+        noun={noun}
+      />
 
-      {supportsTemplates && templateContent && (
+      {templateContent && (
         <SaveAsTemplateDialog
           open={saveTemplateOpen}
           onOpenChange={setSaveTemplateOpen}
-          quizTitle={currentTitle || 'Untitled Quiz'}
+          contentType={templateType}
+          projectTitle={currentTitle || `Untitled ${noun}`}
+          noun={noun}
           content={templateContent}
         />
       )}
