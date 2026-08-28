@@ -1,5 +1,7 @@
 import type { CSSProperties } from 'react';
 
+import type { QuizThemeColors } from './quizTheme';
+
 export type QuestionType = 'multiple-choice' | 'image-selection' | 'yes-no' | 'blank' | 'analyzing' | 'chart' | 'summary' | 'result' | 'score-slider' | 'feedback' | 'warning';
 
 export type FontWeight = 'normal' | 'medium' | 'semibold';
@@ -341,8 +343,16 @@ export interface ResultsConfig {
 export type LogoLayout = 'horizontal' | 'vertical';
 export type LogoSize = 'small' | 'medium' | 'large';
 
+/** A theme applied to a quiz: a preset id plus the values it wrote, so the
+ *  user can adjust any of them and a published quiz never changes because a
+ *  preset was edited later. */
+export interface QuizThemeSettings extends Partial<QuizThemeColors> {
+  id?: string;
+}
+
 export interface QuizSettings {
   title: string;
+  theme?: QuizThemeSettings;
   welcomeText: string;
   welcomeButtonText: string;
   primaryColor: string;

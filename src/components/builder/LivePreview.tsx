@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ChevronRight, RotateCcw, Check, X } from 'lucide-react';
 import { useQuiz } from '@/contexts/QuizContext';
 import { cn } from '@/lib/utils';
+import { resolveQuizTheme } from '@/lib/quizTheme';
+import { useWebFonts } from '@/hooks/useWebFonts';
 import { PreviewSkeleton } from './BuilderSkeleton';
 import { ButtonSize, ButtonRadius, FontWeight, AnalyzingBar, AnalyzingPopupConfig, CardSliderConfig, getQuizTextSizeVars } from '@/types/quiz';
 import { Progress } from '@/components/ui/progress';
@@ -178,6 +180,12 @@ export const LivePreview: React.FC = () => {
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string | string[]>>({});
   const [analyzingComplete, setAnalyzingComplete] = useState<Record<string, boolean>>({});
 
+  // Resolved above the loading return: hooks must run on every render, and
+  // useWebFonts is a hook. Falls back to the original settings for un-themed
+  // quizzes, so the preview matches what respondents see.
+  const theme = resolveQuizTheme(quiz.settings);
+  useWebFonts(theme.webFonts);
+
   if (loading) {
     return <PreviewSkeleton />;
   }
@@ -278,7 +286,7 @@ export const LivePreview: React.FC = () => {
   };
 
   // Button styling
-  const buttonColor = quiz.settings.nextButtonColor || quiz.settings.primaryColor;
+  const buttonColor = theme.buttonBg;
   const buttonSize = buttonSizes[quiz.settings.nextButtonSize || 'medium'];
   const buttonRadius = buttonRadii[quiz.settings.nextButtonRadius || 'large'];
 
@@ -301,13 +309,13 @@ export const LivePreview: React.FC = () => {
             "preview-frame max-w-sm mx-auto flex flex-col quiz-typography",
             (currentQuestion?.type === 'result' || currentQuestion?.type === 'summary') ? 'min-h-[640px]' : 'aspect-[9/16]'
           )}
-          style={{ 
-            '--brand-color': quiz.settings.primaryColor,
-            backgroundColor: quiz.settings.backgroundColor || '#FFFFFF',
-            backgroundImage: currentQuestion?.type === 'warning'
+          style={{
+            '--brand-color': theme.accent,
+            background: currentQuestion?.type === 'warning'
               ? warningGradient(currentQuestion.warningConfig)
-              : undefined,
-            color: quiz.settings.fontColor || '#1A1A1A',
+              : theme.background,
+            color: theme.heading,
+            fontFamily: theme.bodyFont,
             ...getQuizTextSizeVars(quiz.settings.textSizes, true),
           } as React.CSSProperties}
         >
@@ -595,12 +603,9 @@ export const LivePreview: React.FC = () => {
                                   isSelected && 'selected'
                                 )}
                                 style={{
-                                  borderColor: isSelected 
-                                    ? quiz.settings.primaryColor 
-                                    : (quiz.settings.fontColor || '#1A1A1A') + '20',
-                                  backgroundColor: isSelected 
-                                    ? `${quiz.settings.primaryColor}10` 
-                                    : undefined,
+                                  borderColor: isSelected ? theme.accent : theme.optionBorder,
+                                  background: isSelected ? theme.accent + '22' : theme.optionBg,
+                                  color: theme.optionText,
                                 }}
                               >
                                 {/* Yes/No icons */}

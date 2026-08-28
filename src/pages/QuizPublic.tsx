@@ -5,6 +5,8 @@ import { ChevronRight, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Quiz, Question, Product, QuizSettings, ResultsConfig, ButtonSize, ButtonRadius, FontWeight, AnalyzingBar, AnalyzingPopupConfig, ChartConfig, SummaryConfig, ResultQuestionConfig, CardSliderConfig, getQuizTextSizeVars } from '@/types/quiz';
 import { cn } from '@/lib/utils';
+import { resolveQuizTheme } from '@/lib/quizTheme';
+import { useWebFonts } from '@/hooks/useWebFonts';
 import { sanitizeHtml, sanitizeSvg } from '@/lib/sanitize';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { addDays, format } from 'date-fns';
@@ -450,6 +452,11 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
     loadQuiz();
   }, [quizId]);
 
+  // Resolved before the early returns below: hooks must run on every render,
+  // and useWebFonts is a hook.
+  const theme = resolveQuizTheme(quiz?.settings ?? ({} as Quiz['settings']));
+  useWebFonts(theme.webFonts);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -629,12 +636,12 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
       .slice(0, 3);
   };
 
-  const bgColor = quiz.settings.backgroundColor || '#FFFFFF';
-  const textColor = quiz.settings.fontColor || '#1A1A1A';
-  const mutedTextColor = textColor + '99';
+  const bgColor = theme.background;
+  const textColor = theme.heading;
+  const mutedTextColor = theme.muted;
 
   // Button styling
-  const buttonColor = quiz.settings.nextButtonColor || quiz.settings.primaryColor;
+  const buttonColor = theme.buttonBg;
   const buttonSize = buttonSizes[quiz.settings.nextButtonSize || 'medium'];
   const buttonRadius = buttonRadii[quiz.settings.nextButtonRadius || 'large'];
 
@@ -642,11 +649,11 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
     <div
       className="min-h-screen flex flex-col quiz-typography"
       style={{
-        backgroundColor: bgColor,
-        backgroundImage: currentQuestion?.type === 'warning'
+        background: currentQuestion?.type === 'warning'
           ? warningGradient(currentQuestion.warningConfig)
-          : undefined,
+          : bgColor,
         color: textColor,
+        fontFamily: theme.bodyFont,
         ...getQuizTextSizeVars(quiz.settings.textSizes),
       }}
     >
@@ -905,8 +912,9 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
                               hasAnyImage ? 'flex flex-col items-center text-center' : 'p-4 flex items-center gap-3'
                             )}
                             style={{
-                              borderColor: isSelected ? quiz.settings.primaryColor : textColor + '20',
-                              backgroundColor: isSelected ? quiz.settings.primaryColor + '15' : 'transparent',
+                              borderColor: isSelected ? theme.accent : theme.optionBorder,
+                              background: isSelected ? theme.accent + '22' : theme.optionBg,
+                              color: theme.optionText,
                             }}
                           >
                             {/* Yes/No icons */}

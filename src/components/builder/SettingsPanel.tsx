@@ -13,6 +13,7 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { QuizAnalyticsDashboard } from './QuizAnalyticsDashboard';
+import { ThemePicker } from './ThemePicker';
 import { generateDemoQuizAnalytics } from '@/lib/quizAnalytics';
 
 const colorPresets = [
@@ -347,7 +348,11 @@ export const SettingsPanel: React.FC = () => {
         </div>
       </SettingsSection>
 
-      <SettingsSection id="colors" title="Colors" description="Brand, background and text colors">
+      <SettingsSection id="colors" title="Colors" description="Theme, brand, background and text colors">
+        <div className="pb-6 mb-6 border-b border-border-subtle">
+          <ThemePicker />
+        </div>
+
         <div className="space-y-4">
           <div>
             <Label className="text-sm font-medium text-foreground">Brand Color</Label>

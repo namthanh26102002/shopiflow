@@ -210,6 +210,27 @@ the checks in `useProjects` only keep the UI in step.
 The trigger blocks inserts only. A user who already holds more than the cap
 keeps every project and simply cannot create another until they delete one.
 
+## Quiz themes
+
+Ten presets from the Quiz Palettes design, in `src/types/quizTheme.ts`.
+Applying one writes its values into the quiz's `settings.theme`, so every colour
+stays editable afterwards and a published quiz never shifts because a preset was
+edited later.
+
+A theme carries more roles than the original settings did: a three-stop
+background gradient, a panel surface with its own border, separate heading and
+muted text colours, tinted answer options, and heading/body font families.
+
+`resolveQuizTheme()` turns settings into concrete CSS values, falling back
+through the original `backgroundColor` / `fontColor` / `primaryColor` fields to
+hard defaults — so a quiz created before themes existed renders exactly as it
+did, with no migration. Both renderers (`LivePreview`, `QuizPublic`) consume the
+resolved theme, so the preview and the public page cannot drift.
+
+Webfonts load on demand via `useWebFonts`, only when a theme names one. Quizzes
+on system fonts fetch nothing, which matters on the public page a respondent is
+waiting for.
+
 ## Quiz overview
 
 `QuizOverview`, opened from the Overview button beside Publish, maps the whole
