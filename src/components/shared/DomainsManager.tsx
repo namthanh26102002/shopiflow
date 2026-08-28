@@ -18,7 +18,7 @@ import {
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import {
-  useDomains, Domain, STATUS_LABEL, describeDomainState,
+  useDomains, Domain, STATUS_LABEL, describeDomainState, dnsRecordsFor,
 } from '@/hooks/useDomains';
 
 interface DomainsManagerProps {
@@ -48,7 +48,7 @@ export const DomainsManager: React.FC<DomainsManagerProps> = ({ open, onOpenChan
   } = useDomains();
   const [newDomain, setNewDomain] = useState('');
   const [pendingRemove, setPendingRemove] = useState<Domain | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
   const [expectedIp, setExpectedIp] = useState<string | null>(null);
 
   // The A-record target is a deployment detail, so it comes from the server
@@ -73,12 +73,12 @@ export const DomainsManager: React.FC<DomainsManagerProps> = ({ open, onOpenChan
     if (ok) setNewDomain('');
   };
 
-  const copyIp = () => {
-    if (!expectedIp) return;
-    navigator.clipboard.writeText(expectedIp);
-    setCopied(true);
-    toast.success('IP copied');
-    setTimeout(() => setCopied(false), 2000);
+  const copyValue = (value: string) => {
+    if (!value) return;
+    navigator.clipboard.writeText(value);
+    setCopied(value);
+    toast.success('Copied');
+    setTimeout(() => setCopied(null), 2000);
   };
 
   /** Projects currently pointed at a domain, for the "in use by" line. */
@@ -122,24 +122,10 @@ export const DomainsManager: React.FC<DomainsManagerProps> = ({ open, onOpenChan
             </p>
           </div>
 
-          {expectedIp && (
-            <div className="rounded-lg border border-border-subtle p-3 text-xs space-y-1">
-              <p className="font-medium text-foreground">DNS for every domain</p>
-              <p className="text-muted-foreground">
-                Add A records for <strong>@</strong> and <strong>www</strong> pointing to:
-              </p>
-              <button
-                onClick={copyIp}
-                className="inline-flex items-center gap-1.5 font-mono text-foreground hover:text-primary"
-              >
-                {expectedIp}
-                {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-              </button>
-              <p className="text-muted-foreground">
-                Remove any conflicting A or CNAME records. DNS can take up to an hour.
-              </p>
-            </div>
-          )}
+          <p className="text-xs text-muted-foreground">
+            Each domain below shows the exact DNS record it needs. Records can
+            take up to an hour to propagate; press Recheck once they are in.
+          </p>
 
           <div className="space-y-2">
             {loading ? (
@@ -170,6 +156,26 @@ export const DomainsManager: React.FC<DomainsManagerProps> = ({ open, onOpenChan
                         <p className="text-xs text-muted-foreground mt-1">
                           {describeDomainState(d)}
                         </p>
+
+                        {d.status !== 'active' && (
+                          <div className="mt-2 rounded border border-border-subtle p-2 space-y-1">
+                            {dnsRecordsFor(d.domain, expectedIp).map((r) => (
+                              <button
+                                key={`${r.type}-${r.name}`}
+                                onClick={() => copyValue(r.value)}
+                                className="flex items-center gap-2 text-[11px] font-mono hover:text-primary w-full text-left"
+                                title="Copy value"
+                              >
+                                <span className="w-12 shrink-0 text-muted-foreground">{r.type}</span>
+                                <span className="w-16 shrink-0 truncate">{r.name}</span>
+                                <span className="truncate">{r.value || '…'}</span>
+                                {copied === r.value
+                                  ? <Check className="w-3 h-3 shrink-0" />
+                                  : <Copy className="w-3 h-3 shrink-0 opacity-50" />}
+                              </button>
+                            ))}
+                          </div>
+                        )}
 
                         {projects.length > 0 ? (
                           <p className="text-xs text-muted-foreground mt-1.5">

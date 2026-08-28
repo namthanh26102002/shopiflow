@@ -37,9 +37,49 @@ export const STATUS_LABEL: Record<DomainStatus, string> = {
 export const describeDomainState = (d: Domain): string => {
   if (d.status === 'active') return 'Serving traffic';
   if (d.last_error) return d.last_error;
-  if (!d.dns_ok && !d.host_ok) return 'Waiting on DNS and host registration';
-  if (!d.dns_ok) return 'Waiting on DNS - the A records are not pointing here yet';
-  return 'Registered, waiting for the host to confirm DNS';
+  // dns_ok is our own A-record lookup, which a CNAME'd subdomain will not
+  // satisfy even when correctly configured, so it only softens the wording.
+  if (!d.dns_ok) return 'Waiting on DNS - add the record below, then Recheck';
+  return 'DNS looks right - waiting for the host to confirm';
+};
+
+export interface DnsRecord {
+  type: 'A' | 'CNAME';
+  /** The host field, as most DNS panels label it. */
+  name: string;
+  value: string;
+}
+
+// Second-level labels that are really part of the suffix, so example.co.uk is
+// an apex rather than a subdomain of co.uk.
+const COMPOUND_SUFFIX = ['co', 'com', 'net', 'org', 'gov', 'edu', 'ac'];
+
+/** Is this the root of a domain, rather than a subdomain of it? */
+export const isApexDomain = (domain: string): boolean => {
+  const labels = domain.split('.').filter(Boolean);
+  if (labels.length <= 2) return true;
+  if (labels.length === 3) {
+    const [, second, tld] = labels;
+    return tld.length === 2 && COMPOUND_SUFFIX.includes(second);
+  }
+  return false;
+};
+
+/**
+ * The DNS records this domain needs. An apex is pointed with A records at the
+ * proxy; a subdomain takes a CNAME, because you cannot put an A record on a
+ * name the host serves from rotating addresses.
+ */
+export const dnsRecordsFor = (domain: string, proxyIp: string | null): DnsRecord[] => {
+  if (isApexDomain(domain)) {
+    const value = proxyIp ?? '';
+    return [
+      { type: 'A', name: '@', value },
+      { type: 'A', name: 'www', value },
+    ];
+  }
+  const [sub] = domain.split('.');
+  return [{ type: 'CNAME', name: sub, value: 'cname.vercel-dns.com' }];
 };
 
 export const normalizeDomain = (raw: string): string =>

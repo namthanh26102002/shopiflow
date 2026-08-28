@@ -155,13 +155,23 @@ tracks them separately:
 
 | Column | Meaning |
 |---|---|
-| `dns_ok` | The domain's A records point at `PROXY_IP` |
-| `host_ok` | Vercel has the domain on the project and reports it configured |
+| `host_ok` | Vercel has the domain and reports it verified — **authoritative** |
+| `dns_ok` | Our own A-record lookup against `PROXY_IP` — informational only |
 
-`status` is generated from those: `active` when both hold, `error` when
+`status` is generated from `host_ok`: `active` when it holds, `error` when
 `last_error` is set, otherwise `pending`. Pointing DNS alone is not enough —
 Vercel serves only domains added to the project, which is what the
 `domain-host` edge function does via Vercel's API.
+
+`dns_ok` deliberately does **not** gate the status. It only describes apex
+domains: a subdomain is pointed with a CNAME, which resolves to the host's
+rotating addresses and never matches `PROXY_IP`, so such a domain would serve
+correctly while showing as pending forever. Vercel reports `verified` only once
+it has confirmed DNS itself, so `host_ok` already implies working DNS.
+
+`dnsRecordsFor()` derives the record a domain needs — A records at `PROXY_IP`
+for an apex, a CNAME for a subdomain — and the Domains dialog shows it per
+domain rather than giving one apex-shaped instruction to everyone.
 
 `domain-host` needs these secrets:
 
