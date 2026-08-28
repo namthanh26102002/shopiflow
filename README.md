@@ -135,6 +135,37 @@ supabase/
   seed-dev.sql  Dev bootstrap (access code + admin role)
 ```
 
+## Deployment (Vercel)
+
+The app is a static Vite SPA. Vercel auto-detects the framework; `vercel.json`
+supplies the catch-all rewrite, without which every deep link
+(`/builder/:quizId`, `/quiz/:id`, customer slugs) 404s on direct load.
+
+Set these in **Vercel → Project → Settings → Environment Variables**, using the
+**production** Supabase project. They are read at build time, so changing one
+requires a redeploy:
+
+| Variable | Value |
+|---|---|
+| `VITE_SUPABASE_URL` | `https://<prod-ref>.supabase.co` |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | production anon key |
+| `VITE_SUPABASE_PROJECT_ID` | production ref |
+
+Before pointing a domain at a new deployment, make sure production has every
+migration this code expects (`npx supabase db push` while linked to
+production), or the app will hit tables and triggers that are not there.
+
+### Custom domains
+
+Customers point A records for `@` and `www` at the `PROXY_IP` edge-function
+secret, and `check-dns` verifies the match against Cloudflare DNS. Changing
+hosts means updating `PROXY_IP` **and** every customer re-pointing their DNS —
+their sites stay down until they do. Plan that as a customer migration, not a
+deploy step.
+
+Any host serving the app must be listed in `isCustomDomain()` in `src/App.tsx`.
+An unlisted host is treated as a customer domain and routed to `SlugResolver`.
+
 ## Project limits
 
 Each builder is multi-project. `/builder` and `/advertorial-builder` list the

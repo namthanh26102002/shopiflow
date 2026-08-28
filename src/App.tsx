@@ -30,15 +30,23 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// Hosts that serve the app itself. Anything else is treated as a customer's
+// custom domain and routed through SlugResolver, so every host we deploy to
+// must be listed here — including preview URLs and LAN addresses used for
+// local testing, which would otherwise resolve as customer domains.
+const APP_HOSTS = ['localhost', '127.0.0.1', 'tryshopiflow.com', 'www.tryshopiflow.com'];
+const APP_HOST_SUFFIXES = ['.lovable.app', '.lovableproject.com', '.vercel.app'];
+
 const isCustomDomain = () => {
   const host = window.location.hostname;
-  return (
-    host !== 'localhost' &&
-    !host.endsWith('.lovable.app') &&
-    !host.endsWith('.lovableproject.com') &&
-    host !== 'tryshopiflow.com' &&
-    host !== 'www.tryshopiflow.com'
-  );
+
+  if (APP_HOSTS.includes(host)) return false;
+  if (APP_HOST_SUFFIXES.some((suffix) => host.endsWith(suffix))) return false;
+
+  // Private ranges: the Vite dev server's Network URL, used to test on phones.
+  if (/^(10\.|127\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host)) return false;
+
+  return true;
 };
 
 const App = () => (
