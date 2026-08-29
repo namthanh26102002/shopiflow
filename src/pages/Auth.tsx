@@ -16,7 +16,7 @@ const Auth: React.FC = () => {
   const {
     user, loading, signIn, signUp, signInWithGoogle,
     accessCodeClaimed, claimAccessCode,
-    recoveryMode, requestPasswordReset, updatePassword,
+    recoveryMode, requestPasswordReset, updatePassword, claimCheckFailed,
   } = useAuth();
   const [searchParams] = useSearchParams();
   const [mode, setMode] = useState<'signin' | 'signup' | 'forgot'>('signin');
@@ -46,10 +46,11 @@ const Auth: React.FC = () => {
   }
 
   // Signed in but unclaimed: OAuth has nowhere to carry a code, so ask now.
-  const needsAccessCode = !!user && !recoveryMode && accessCodeClaimed === false;
+  const needsAccessCode =
+    !!user && !recoveryMode && !isSubmitting && accessCodeClaimed === false;
 
   // Waiting on the claim check for a signed-in user.
-  if (user && !recoveryMode && accessCodeClaimed === null) {
+  if (user && !recoveryMode && accessCodeClaimed === null && !claimCheckFailed) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -100,6 +101,28 @@ const Auth: React.FC = () => {
       setIsSubmitting(false);
     }
   };
+
+  // --- The claim check itself failed --------------------------------------
+  if (user && !recoveryMode && claimCheckFailed) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="w-full max-w-sm text-center">
+          <h1 className="text-2xl font-bold text-foreground mb-2">
+            Could not verify your account
+          </h1>
+          <p className="text-sm text-muted-foreground mb-6">
+            We could not check your account just now. This is usually temporary.
+          </p>
+          <Button className="w-full mb-2" onClick={() => window.location.reload()}>
+            Try again
+          </Button>
+          <Button variant="ghost" className="w-full" onClick={signOut}>
+            Sign out
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // --- Set a new password, after following a reset link -------------------
   if (recoveryMode) {

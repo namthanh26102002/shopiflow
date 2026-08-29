@@ -17,6 +17,9 @@ interface AuthContextType {
   /** null while unknown. False means signed in but no access code claimed yet,
    *  which is possible after OAuth since the provider carries no code. */
   accessCodeClaimed: boolean | null;
+  /** True when the claim check itself failed, so the UI can offer a retry
+   *  instead of spinning forever. */
+  claimCheckFailed: boolean;
   /** True while the user is following a password-reset link. */
   recoveryMode: boolean;
   signUp: (email: string, password: string, accessCode: string) => Promise<{ error: Error | null }>;
@@ -38,6 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [trialInfo, setTrialInfo] = useState<TrialInfo | null>(null);
   const [accessCodeClaimed, setAccessCodeClaimed] = useState<boolean | null>(null);
+  const [claimCheckFailed, setClaimCheckFailed] = useState(false);
   const [recoveryMode, setRecoveryMode] = useState(false);
 
   const checkTrialStatus = async (userId?: string): Promise<TrialInfo | null> => {
@@ -75,6 +79,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // only good for setting a new password.
         if (event === 'PASSWORD_RECOVERY') setRecoveryMode(true);
         if (event === 'SIGNED_OUT') {
+          setClaimCheckFailed(false);
           setAccessCodeClaimed(null);
           setRecoveryMode(false);
         }
@@ -97,9 +102,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { data, error } = await supabase.rpc('has_access_code', { _user_id: userId });
       if (error) throw error;
       setAccessCodeClaimed(data === true);
+      setClaimCheckFailed(false);
     } catch (err) {
+      // Failing open would defeat the gate, and leaving it null spins forever,
+      // so surface it and let the user retry.
       console.error('Error checking access code claim:', err);
       setAccessCodeClaimed(null);
+      setClaimCheckFailed(true);
     }
   };
 
@@ -227,7 +236,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider value={{
-      user, session, loading, trialInfo, accessCodeClaimed, recoveryMode,
+      user, session, loading, trialInfo, accessCodeClaimed, claimCheckFailed, recoveryMode,
       signUp, signIn, signInWithGoogle, signOut,
       validateAccessCode, claimAccessCode,
       requestPasswordReset, updatePassword, checkTrialStatus,
