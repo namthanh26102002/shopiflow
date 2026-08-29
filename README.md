@@ -210,6 +210,35 @@ the checks in `useProjects` only keep the UI in step.
 The trigger blocks inserts only. A user who already holds more than the cap
 keeps every project and simply cannot create another until they delete one.
 
+## Authentication
+
+Email/password and Google, both gated by an access code.
+
+Google cannot carry a code — the user returns from the provider already
+authenticated — so the gate is applied afterwards. `has_access_code()` answers
+whether the signed-in user has claimed one; `check_trial_status` cannot, since
+it returns NULL both for "no code" and for a code granting permanent access.
+Both the Auth screen and `ProtectedRoute` hold an unclaimed session on the
+"enter your access code" step, so a provider sign-in cannot reach the app
+without one.
+
+Password reset uses Supabase's own mailer, returning the user to `/auth` where
+a `PASSWORD_RECOVERY` event puts the page into set-a-new-password mode. That
+session is only good for setting the password and does not fall through to the
+app. The confirmation message is identical whether or not the email has an
+account, so the form cannot be used to enumerate users.
+
+### Dashboard setup
+
+Google sign-in needs the provider enabled in **Authentication -> Sign In /
+Providers -> Google**, with a client ID and secret from the Google Cloud
+console, and `<project>.supabase.co/auth/v1/callback` as an authorised redirect
+URI. Add the site's URL under **Authentication -> URL Configuration**, or the
+post-login redirect will bounce to localhost.
+
+Password reset emails go through Supabase's built-in SMTP, which is heavily
+rate-limited (a few per hour). Configure custom SMTP before relying on it.
+
 ## Quiz themes
 
 Ten presets from the Quiz Palettes design, in `src/types/quizTheme.ts`.
