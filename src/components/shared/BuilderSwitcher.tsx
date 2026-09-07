@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronDown, HelpCircle, Newspaper, Trophy, BookOpen, Package } from 'lucide-react';
+import { ChevronDown, HelpCircle, Newspaper, BookOpen, Package } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +14,6 @@ import { cn } from '@/lib/utils';
 const builders = [
   { id: 'quiz', name: 'Quiz Builder', description: 'Product recommendation quizzes', icon: HelpCircle, path: '/builder' },
   { id: 'advertorial', name: 'Advertorial Builder', description: 'High-converting landing pages', icon: Newspaper, path: '/advertorial-builder' },
-  { id: 'winning-products', name: 'Trending Products', description: 'Top dropshipping product picks', icon: Trophy, path: '/winning-products' },
   { id: 'info', name: 'Info', description: 'Classrooms and lessons', icon: BookOpen, path: '/info' },
   { id: 'orders', name: 'Orders', description: 'Tracking simulation', icon: Package, path: '/orders' },
 ];
@@ -25,7 +24,7 @@ export const BuilderSwitcher: React.FC = () => {
   const { colors } = useInfoTheme();
 
   const currentBuilder = builders.find(b => location.pathname.startsWith(b.path)) || builders[0];
-  const isThemedPage = location.pathname.startsWith('/winning-products') || location.pathname.startsWith('/info');
+  const isThemedPage = location.pathname.startsWith('/info');
 
   return (
     <DropdownMenu>

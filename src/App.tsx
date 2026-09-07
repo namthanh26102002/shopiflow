@@ -18,9 +18,6 @@ const QuizPublic = lazy(() => import("./pages/QuizPublic"));
 const AdvertorialPublic = lazy(() => import("./pages/AdvertorialPublic"));
 const SlugResolver = lazy(() => import("./pages/SlugResolver"));
 const OrderPublic = lazy(() => import("./pages/OrderPublic"));
-const WinningProducts = lazy(() => import("./pages/WinningProducts"));
-const WinningProductDetail = lazy(() => import("./pages/WinningProductDetail"));
-const WinningProductsManage = lazy(() => import("./pages/WinningProductsManage"));
 const AdminUsers = lazy(() => import("./pages/AdminUsers"));
 const Info = lazy(() => import("./pages/Info"));
 const InfoManage = lazy(() => import("./pages/InfoManage"));
@@ -104,16 +101,6 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route path="/winning-products" element={<WinningProducts />} />
-            <Route
-              path="/winning-products/manage"
-              element={
-                <ProtectedRoute>
-                  <WinningProductsManage />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/winning-products/:productId" element={<WinningProductDetail />} />
             <Route path="/info" element={<Info />} />
             <Route
               path="/info/manage"

@@ -8,7 +8,7 @@ shared auth and custom-domain layer.
 | Quiz builder | `/builder`, `/quiz/:id` | Product-recommendation quizzes with scoring, results mapping, live preview, analytics |
 | Advertorial builder | `/advertorial-builder`, `/advertorial/:id` | Block-based advertorial/landing pages with rich text and analytics |
 | Info (LMS) | `/info/*` | Classrooms, lessons, document editor, student view |
-| Orders & Products | `/orders/*`, `/winning-products/*` | Order tracking with public timelines; product research dashboards |
+| Orders | `/orders/*` | Order tracking with public timelines |
 
 Customers can publish quizzes and advertorials on their own domains. A
 non-recognised hostname routes through `SlugResolver` instead of the app
@@ -116,7 +116,7 @@ npx supabase secrets set PROXY_IP=<ip>
 ```
 src/
   components/   ui/ (shadcn) · builder/ · advertorial/ · orders/ ·
-                winning-products/ · info/ · admin/ · shared/
+                info/ · admin/ · shared/
   contexts/     Quiz, Advertorial, Lesson editor state
   hooks/        useAuth, useAdmin, useOrders, useLessons, …
   integrations/ Supabase client + generated types
