@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { OrderProductsTable } from './OrderProductsTable';
+import { toLocalDatetime } from '@/lib/localDatetime';
 
 interface Props {
   order?: Order;
@@ -22,7 +23,7 @@ export const OrderForm: React.FC<Props> = ({ order, onSubmit, isSubmitting }) =>
   const { user } = useAuth();
   const [orderNumber, setOrderNumber] = useState(order?.order_number || '');
   const [status, setStatus] = useState(order?.status || 'Pending');
-  const [orderDate, setOrderDate] = useState(order?.order_date ? new Date(order.order_date).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16));
+  const [orderDate, setOrderDate] = useState(toLocalDatetime(order?.order_date ?? new Date()));
   const [products, setProducts] = useState<OrderProduct[]>((order?.products as OrderProduct[]) || []);
   const [shipping, setShipping] = useState(order?.shipping ?? 0);
   const [shippingMethod, setShippingMethod] = useState(order?.shipping_method || '');

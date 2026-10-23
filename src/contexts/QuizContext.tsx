@@ -43,6 +43,10 @@ interface QuizContextType {
 
 const QuizContext = createContext<QuizContextType | undefined>(undefined);
 
+// The fields the editor saves, serialised to tell a real edit from a re-render.
+const editSnapshot = (q: Quiz) =>
+  JSON.stringify([q.settings, q.questions, q.products, q.results, q.publishedUrl ?? null]);
+
 export const QuizProvider: React.FC<{ children: React.ReactNode; quizId: string }> = ({ children, quizId }) => {
   const { user } = useAuth();
   const [quiz, setQuiz] = useState<Quiz>(createDefaultQuiz());
@@ -54,6 +58,8 @@ export const QuizProvider: React.FC<{ children: React.ReactNode; quizId: string 
   // Autosave must not fire until a real row has been read into state, or the
   // debounced save would overwrite that row with a blank default quiz.
   const hydratedRef = useRef(false);
+  // What the database holds, so opening a quiz does not write it straight back.
+  const lastSavedRef = useRef<string | null>(null);
 
   // Load the requested quiz project.
   useEffect(() => {
@@ -83,8 +89,7 @@ export const QuizProvider: React.FC<{ children: React.ReactNode; quizId: string 
         }
 
         {
-          setDbQuizId(data.id);
-          setQuiz({
+          const loaded: Quiz = {
             id: data.id,
             settings: data.settings as unknown as QuizSettings,
             questions: data.questions as unknown as Question[],
@@ -94,7 +99,10 @@ export const QuizProvider: React.FC<{ children: React.ReactNode; quizId: string 
             createdAt: new Date(data.created_at),
             updatedAt: new Date(data.updated_at),
             publishedUrl: data.published_url || undefined,
-          });
+          };
+          setDbQuizId(data.id);
+          setQuiz(loaded);
+          lastSavedRef.current = editSnapshot(loaded);
           hydratedRef.current = true;
         }
       } catch (error) {
@@ -110,6 +118,9 @@ export const QuizProvider: React.FC<{ children: React.ReactNode; quizId: string 
 
   const saveQuiz = useCallback(async () => {
     if (!user) return;
+
+    const snapshot = editSnapshot(quiz);
+    if (snapshot === lastSavedRef.current) return;
 
     setSaving(true);
     try {
@@ -134,6 +145,7 @@ export const QuizProvider: React.FC<{ children: React.ReactNode; quizId: string 
         .eq('id', dbQuizId);
 
       if (error) throw error;
+      lastSavedRef.current = snapshot;
     } catch (error) {
       console.error('Error saving quiz:', error);
     } finally {
@@ -154,6 +166,15 @@ export const QuizProvider: React.FC<{ children: React.ReactNode; quizId: string 
 
     return () => clearTimeout(timeoutId);
   }, [quiz, user, loading]);
+
+  // Switching quiz or leaving the builder cancels the debounce timer above, so
+  // save anything still pending (saveQuiz skips when nothing changed). This
+  // runs before the next quiz loads, while the ref still holds the old one.
+  useEffect(() => {
+    return () => {
+      if (hydratedRef.current) saveQuizRef.current();
+    };
+  }, [quizId]);
 
 
   const addQuestion = useCallback((question: Question) => {
@@ -313,7 +334,7 @@ export const QuizProvider: React.FC<{ children: React.ReactNode; quizId: string 
       if (error) throw error;
 
       if (data) {
-        setQuiz({
+        const refreshed: Quiz = {
           id: data.id,
           settings: data.settings as unknown as QuizSettings,
           questions: data.questions as unknown as Question[],
@@ -323,7 +344,9 @@ export const QuizProvider: React.FC<{ children: React.ReactNode; quizId: string 
           createdAt: new Date(data.created_at),
           updatedAt: new Date(data.updated_at),
           publishedUrl: data.published_url || undefined,
-        });
+        };
+        setQuiz(refreshed);
+        lastSavedRef.current = editSnapshot(refreshed);
       }
     } catch (error) {
       console.error('Error refreshing quiz:', error);

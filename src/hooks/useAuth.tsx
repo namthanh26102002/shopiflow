@@ -1,6 +1,7 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface TrialInfo {
   is_expired: boolean;
@@ -86,13 +87,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    // With a saved session, getSession refreshes the token first and keeps
+    // retrying while the server is unreachable, which left every page on a
+    // spinner. Stop waiting after a while and say why.
+    let settled = false;
+    const stalled = setTimeout(() => {
+      if (settled) return;
       setLoading(false);
-    });
+      toast.error("Can't reach Shopiflow's servers. Check your connection and reload.");
+    }, 15000);
 
-    return () => subscription.unsubscribe();
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+      })
+      .catch((err) => console.error('Error restoring session:', err))
+      .finally(() => {
+        settled = true;
+        clearTimeout(stalled);
+        setLoading(false);
+      });
+
+    return () => {
+      clearTimeout(stalled);
+      subscription.unsubscribe();
+    };
   }, []);
 
   // OAuth users arrive authenticated but with no code claimed, so this is what

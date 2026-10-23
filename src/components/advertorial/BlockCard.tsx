@@ -52,7 +52,7 @@ const getBlockPreview = (block: AdvertorialBlock): string => {
     case 'cta-button':
       return block.text || 'Button';
     case 'facebook-comments':
-      return `${block.comments?.length || 0} comments`;
+      return `${(block.comments || []).reduce((n, c) => n + 1 + (c.replies?.length || 0), 0)} comments`;
     case 'image':
       return block.alt || block.caption || 'No image';
     case 'video':

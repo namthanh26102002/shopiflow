@@ -68,7 +68,7 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({ onPublish, onOverv
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="text-xs text-muted-foreground">{user?.email}</span>
+        <span className="ml-3 text-xs text-muted-foreground">{user?.email}</span>
         
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" className="w-8 h-8 text-muted-foreground" disabled>

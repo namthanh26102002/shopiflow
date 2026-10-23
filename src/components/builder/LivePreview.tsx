@@ -174,9 +174,23 @@ const renderOptionIcon = (iconSvg: string) => {
 };
 
 export const LivePreview: React.FC = () => {
-  const { quiz, loading } = useQuiz();
+  const { quiz, loading, selectedQuestionId } = useQuiz();
   const [screen, setScreen] = useState<PreviewScreen>('question');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+
+  // Jump to the question being edited, so the preview shows what you change.
+  useEffect(() => {
+    if (!selectedQuestionId) return;
+    const index = quiz.questions.findIndex((q) => q.id === selectedQuestionId);
+    if (index >= 0) setCurrentQuestionIndex(index);
+  }, [selectedQuestionId, quiz.questions]);
+
+  // Deleting questions can leave the index past the end.
+  useEffect(() => {
+    if (currentQuestionIndex > 0 && currentQuestionIndex >= quiz.questions.length) {
+      setCurrentQuestionIndex(Math.max(0, quiz.questions.length - 1));
+    }
+  }, [currentQuestionIndex, quiz.questions.length]);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string | string[]>>({});
   const [analyzingComplete, setAnalyzingComplete] = useState<Record<string, boolean>>({});
 
@@ -198,6 +212,7 @@ export const LivePreview: React.FC = () => {
   // Check if current question has a selected answer, is blank, analyzing is complete, or is chart
   const canProceed = currentQuestion?.type === 'blank' || 
     currentQuestion?.type === 'chart' ||
+    currentQuestion?.type === 'warning' ||
     currentQuestion?.type === 'summary' ||
     currentQuestion?.type === 'result' ||
     (currentQuestion?.type === 'analyzing' && analyzingComplete[currentQuestion.id]) ||

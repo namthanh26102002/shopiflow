@@ -56,7 +56,7 @@ export const AdvertorialHeader: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">{user?.email}</span>
+          <span className="ml-3 text-xs text-muted-foreground">{user?.email}</span>
 
           {advertorial.publishedUrl && (
             <Button

@@ -326,9 +326,11 @@ const AdvertorialPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) =>
     load();
   }, [advertorialId]);
 
-  // Track page_view on mount and page_exit on leave
+  // Track page_view and page_exit, only once a published page has loaded:
+  // a link to an unpublished or missing page is not a view.
+  const isLoaded = advertorial !== null;
   useEffect(() => {
-    if (!advertorialId) return;
+    if (!advertorialId || !isLoaded) return;
 
     // Page view
     // Resolve coarse location (country + region only) first, then log the view
@@ -387,7 +389,7 @@ const AdvertorialPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) =>
 
     document.addEventListener('visibilitychange', handleVisibilityChangeWithHeaders);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChangeWithHeaders);
-  }, [advertorialId]);
+  }, [advertorialId, isLoaded]);
 
   // Scroll depth, per-block visibility time and video engagement
   useEffect(() => {

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TIMELINE_TEMPLATES } from '@/constants/timelineTemplates';
 import { format } from 'date-fns';
+import { toLocalDatetime } from '@/lib/localDatetime';
 
 interface Props {
   events: TimelineEvent[];
@@ -15,13 +16,6 @@ interface Props {
   onUpdate?: (id: string, desc: string, date: string) => void;
   onDelete?: (id: string) => void;
 }
-
-const toLocalDatetime = (iso: string) => {
-  const d = new Date(iso);
-  const offset = d.getTimezoneOffset();
-  const local = new Date(d.getTime() - offset * 60000);
-  return local.toISOString().slice(0, 16);
-};
 
 const CUSTOM_VALUE = '__custom__';
 

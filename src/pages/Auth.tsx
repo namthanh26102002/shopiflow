@@ -16,7 +16,7 @@ const Auth: React.FC = () => {
   const {
     user, loading, signIn, signUp, signInWithGoogle,
     accessCodeClaimed, claimAccessCode,
-    recoveryMode, requestPasswordReset, updatePassword, claimCheckFailed,
+    recoveryMode, requestPasswordReset, updatePassword, claimCheckFailed, signOut,
   } = useAuth();
   const [searchParams] = useSearchParams();
   const [mode, setMode] = useState<'signin' | 'signup' | 'forgot'>('signin');

@@ -75,7 +75,7 @@ const OrderManage: React.FC = () => {
                         return;
                       }
                       await updateOrder.mutateAsync({ id: order.id, published: true, order_number: normalizedOrderNumber });
-                      const url = `https://shopiflow-quiz.lovable.app/order/${encodeURIComponent(normalizedOrderNumber)}`;
+                      const url = `${window.location.origin}/order/${encodeURIComponent(normalizedOrderNumber)}`;
                       navigator.clipboard.writeText(url);
                       toast({ title: 'Tracking link copied' });
                     }}>

@@ -51,6 +51,7 @@ export const AdvertorialProvider: React.FC<{ children: React.ReactNode; advertor
   const [notFound, setNotFound] = useState(false);
   const [dbId, setDbId] = useState<string | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingSaveRef = useRef<Advertorial | null>(null);
   const isLoadedRef = useRef(false);
 
   // Load or create advertorial on mount
@@ -126,8 +127,26 @@ export const AdvertorialProvider: React.FC<{ children: React.ReactNode; advertor
   // Debounced save trigger
   const triggerSave = useCallback((advert: Advertorial) => {
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    saveTimeoutRef.current = setTimeout(() => saveToDb(advert), 2000);
+    pendingSaveRef.current = advert;
+    saveTimeoutRef.current = setTimeout(() => {
+      pendingSaveRef.current = null;
+      saveToDb(advert);
+    }, 2000);
   }, [saveToDb]);
+
+  // Switching advertorial or leaving the builder would otherwise drop an edit
+  // still waiting on the debounce: the next load clears isLoadedRef first. The
+  // cleanup runs before that load, with the ref still holding this page's save.
+  const saveToDbRef = useRef(saveToDb);
+  useEffect(() => { saveToDbRef.current = saveToDb; });
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      const pending = pendingSaveRef.current;
+      pendingSaveRef.current = null;
+      if (pending) saveToDbRef.current(pending);
+    };
+  }, [advertorialId]);
 
   const updateAdvertorialAndSave = useCallback((updater: (prev: Advertorial) => Advertorial) => {
     setAdvertorial(prev => {

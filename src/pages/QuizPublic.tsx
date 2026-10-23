@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { resolveQuizTheme } from '@/lib/quizTheme';
 import { useWebFonts } from '@/hooks/useWebFonts';
 import { sanitizeHtml, sanitizeSvg } from '@/lib/sanitize';
+import { updateQuizResponse } from '@/lib/quizResponseTracking';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { addDays, format } from 'date-fns';
 import { Check } from 'lucide-react';
@@ -325,6 +326,7 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
   const [analyzingComplete, setAnalyzingComplete] = useState<Record<string, boolean>>({});
   const [sessionId] = useState(() => crypto.randomUUID());
   const [responseId, setResponseId] = useState<string | null>(null);
+  const finishedRef = React.useRef(false);
   const startTimeRef = React.useRef<number>(Date.now());
   const pageEnterRef = React.useRef<number>(Date.now());
 
@@ -397,24 +399,17 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
         });
         setLoading(false);
 
-        // Fire-and-forget: analytics increment + response tracking
+        // Fire-and-forget response tracking
         startTimeRef.current = Date.now();
         const totalQ = (data.questions as unknown as Question[]).length;
 
-        supabase
-          .from('quizzes')
-          .update({
-            analytics: {
-              ...(data.analytics as object),
-              starts: ((data.analytics as { starts?: number })?.starts || 0) + 1,
-            },
-          })
-          .eq('id', quizId)
-          .then(() => {});
-
+        // The id is chosen here, not read back from the insert: visitors may
+        // insert a response but have no read access to return it.
+        const newResponseId = crypto.randomUUID();
         supabase
           .from('quiz_responses')
           .insert({
+            id: newResponseId,
             quiz_id: quizId,
             session_id: sessionId,
             total_questions: totalQ,
@@ -422,11 +417,12 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
             last_question_index: 0,
             ...getAttribution(),
           })
-          .select('id')
-          .single()
-          .then(({ data: responseData }) => {
-            if (responseData) setResponseId(responseData.id);
-            if (!responseData) return;
+          .then(({ error: insertError }) => {
+            if (insertError) {
+              console.error('Response tracking error:', insertError);
+              return;
+            }
+            setResponseId(newResponseId);
             // Coarse location (country + region only), fire-and-forget
             supabase.functions
               .invoke('track-visit')
@@ -434,11 +430,10 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
                 const country = (geo as { country?: string | null } | null)?.country;
                 const region = (geo as { region?: string | null } | null)?.region;
                 if (!country && !region) return;
-                supabase
-                  .from('quiz_responses')
-                  .update({ country: country ?? null, region: region ?? null })
-                  .eq('id', responseData.id)
-                  .then(() => {});
+                updateQuizResponse(newResponseId, sessionId, {
+                  country: country ?? null,
+                  region: region ?? null,
+                });
               })
               .catch(() => {});
           });
@@ -489,6 +484,7 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
   // Check if current question has a selected answer, is blank, analyzing is complete, or is chart
   const canProceed = currentQuestion?.type === 'blank' || 
     currentQuestion?.type === 'chart' ||
+    currentQuestion?.type === 'warning' ||
     currentQuestion?.type === 'summary' ||
     currentQuestion?.type === 'result' ||
     (currentQuestion?.type === 'analyzing' && analyzingComplete[currentQuestion.id]) ||
@@ -541,6 +537,8 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
   };
 
   const handleNext = async () => {
+    // Once finished, a repeat tap must not log the last page again.
+    if (finishedRef.current) return;
     const nextIndex = currentQuestionIndex + 1;
     const timeOnPage = Date.now() - pageEnterRef.current;
 
@@ -591,27 +589,35 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
 
       // Update progress in quiz_responses
       if (responseId) {
-        const updateData: Record<string, unknown> = {
+        // Mark completed when reaching a result page
+        const reachedResult = nextQuestion?.type === 'result';
+        await updateQuizResponse(responseId, sessionId, {
           last_question_index: nextIndex,
           questions_answered: nextIndex,
-        };
-
-        // Mark completed when reaching a result page
-        if (nextQuestion?.type === 'result') {
-          updateData.completed_at = new Date().toISOString();
-          updateData.time_to_complete_ms = Date.now() - startTimeRef.current;
-          const topProduct = getRecommendedProducts()[0];
-          updateData.result_product_name =
-            topProduct?.name ||
-            nextQuestion.text?.trim() ||
-            'Result';
-        }
-
-        await supabase
-          .from('quiz_responses')
-          .update(updateData)
-          .eq('id', responseId);
+          ...(reachedResult && {
+            completed: true,
+            time_to_complete_ms: Date.now() - startTimeRef.current,
+            result_product_name:
+              getRecommendedProducts()[0]?.name ||
+              nextQuestion.text?.trim() ||
+              'Result',
+          }),
+        });
       }
+      return;
+    }
+
+    // Last page with no result page after it: finish here rather than leave
+    // the visitor on a Next button that does nothing.
+    finishedRef.current = true;
+    setScreen('results');
+    if (responseId) {
+      await updateQuizResponse(responseId, sessionId, {
+        last_question_index: currentQuestionIndex,
+        questions_answered: quiz.questions.length,
+        completed: true,
+        time_to_complete_ms: Date.now() - startTimeRef.current,
+      });
     }
   };
 
@@ -716,6 +722,24 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
               </h1>
               <p className="qt-sub" style={{ color: mutedTextColor }}>
                 Please check back later
+              </p>
+            </div>
+          )}
+
+          {/* Finished screen, for quizzes that end without a result page */}
+          {screen === 'results' && (
+            <div className="text-center animate-fade-in-up">
+              <div
+                className="mx-auto mb-6 w-16 h-16 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: theme.accent + '22' }}
+              >
+                <Check className="w-8 h-8" style={{ color: theme.accent }} />
+              </div>
+              <h1 className="qt-headline font-bold mb-3 text-balance" style={{ color: textColor }}>
+                Thanks for completing the quiz!
+              </h1>
+              <p className="qt-sub" style={{ color: mutedTextColor }}>
+                Your answers have been recorded.
               </p>
             </div>
           )}

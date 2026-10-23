@@ -152,6 +152,9 @@ export const LessonProvider: React.FC<{ lessonId: string; children: React.ReactN
     selectedBlockId,
     setSelectedBlockId,
     saving,
+    // Required by AdvertorialContextType; this provider has no loading screen.
+    loading: false,
+    notFound: false,
     isLesson: true,
     addBlock,
     updateBlock,

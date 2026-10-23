@@ -880,6 +880,10 @@ export type Database = {
       check_access_code: { Args: { _code: string }; Returns: boolean }
       check_trial_status: { Args: { _user_id: string }; Returns: Json }
       has_access_code: { Args: { _user_id: string }; Returns: boolean }
+      update_quiz_response: {
+        Args: { p_patch: Json; p_response_id: string; p_session_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

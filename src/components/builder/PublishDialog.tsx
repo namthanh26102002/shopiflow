@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Copy, Check, Link, Code, BarChart3, Loader2, ExternalLink } from 'lucide-react';
 import { useQuiz } from '@/contexts/QuizContext';
 import {
@@ -23,11 +23,49 @@ export const PublishDialog: React.FC<PublishDialogProps> = ({ open, onOpenChange
   const [copied, setCopied] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
 
-  const publishedBase = 'https://shopiflow-quiz.lovable.app';
-  const quizUrl = `${publishedBase}/quiz/${quiz.id}`;
+  // The app's own origin: the old Lovable host still serves a build wired to
+  // the retired database, so links pointing there show "quiz not found".
+  const quizUrl = `${window.location.origin}/quiz/${quiz.id}`;
   const embedCode = `<iframe src="${quizUrl}" width="100%" height="700" frameborder="0" style="border-radius: 8px;"></iframe>`;
 
   const isPublished = !!quiz.publishedUrl;
+
+  // Counted from quiz_responses, the table the Analytics tab reads. The old
+  // quizzes.analytics counters were only ever bumped when the owner took their
+  // own quiz, and never counted completions.
+  const [stats, setStats] = useState<{
+    starts: number;
+    completions: number;
+    topResults: { name: string; count: number }[];
+  } | null>(null);
+
+  useEffect(() => {
+    if (!open || !quiz.id) return;
+    let cancelled = false;
+    supabase
+      .from('quiz_responses')
+      .select('completed_at, result_product_name')
+      .eq('quiz_id', quiz.id)
+      .then(({ data, error }) => {
+        if (cancelled || error || !data) return;
+        const counts: Record<string, number> = {};
+        data.forEach((r) => {
+          if (r.completed_at && r.result_product_name) {
+            counts[r.result_product_name] = (counts[r.result_product_name] || 0) + 1;
+          }
+        });
+        setStats({
+          starts: data.length,
+          completions: data.filter((r) => r.completed_at).length,
+          topResults: Object.entries(counts)
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => b.count - a.count),
+        });
+      });
+    return () => { cancelled = true; };
+  }, [open, quiz.id]);
+  const starts = stats?.starts ?? 0;
+  const completions = stats?.completions ?? 0;
 
   const handleCopy = async (text: string, type: string) => {
     await navigator.clipboard.writeText(text);
@@ -272,41 +310,36 @@ export const PublishDialog: React.FC<PublishDialogProps> = ({ open, onOpenChange
           <TabsContent value="analytics" className="mt-4 space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="card-elevated p-4 text-center">
-                <p className="text-3xl font-bold text-foreground">{quiz.analytics.starts}</p>
+                <p className="text-3xl font-bold text-foreground">{starts}</p>
                 <p className="text-sm text-muted-foreground">Quiz Starts</p>
               </div>
               <div className="card-elevated p-4 text-center">
-                <p className="text-3xl font-bold text-foreground">{quiz.analytics.completions}</p>
+                <p className="text-3xl font-bold text-foreground">{completions}</p>
                 <p className="text-sm text-muted-foreground">Completions</p>
               </div>
             </div>
 
-            {quiz.analytics.starts > 0 && (
+            {starts > 0 && (
               <div className="card-elevated p-4 text-center">
                 <p className="text-3xl font-bold text-foreground">
-                  {quiz.analytics.starts > 0 
-                    ? Math.round((quiz.analytics.completions / quiz.analytics.starts) * 100) 
-                    : 0}%
+                  {Math.round((completions / starts) * 100)}%
                 </p>
                 <p className="text-sm text-muted-foreground">Completion Rate</p>
               </div>
             )}
 
             <div className="card-elevated p-4">
-              <p className="text-sm font-medium text-foreground mb-3">Top Recommended Products</p>
-              {quiz.analytics.topProducts.length > 0 ? (
+              <p className="text-sm font-medium text-foreground mb-3">Top Results</p>
+              {stats && stats.topResults.length > 0 ? (
                 <div className="space-y-2">
-                  {quiz.analytics.topProducts.slice(0, 5).map((item, index) => {
-                    const product = quiz.products.find(p => p.id === item.productId);
-                    return (
-                      <div key={item.productId} className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          {index + 1}. {product?.name || 'Unknown Product'}
-                        </span>
-                        <span className="font-medium">{item.count}</span>
-                      </div>
-                    );
-                  })}
+                  {stats.topResults.slice(0, 5).map((item, index) => (
+                    <div key={item.name} className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">
+                        {index + 1}. {item.name}
+                      </span>
+                      <span className="font-medium">{item.count}</span>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">No data yet</p>

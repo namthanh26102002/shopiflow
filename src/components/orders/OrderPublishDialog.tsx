@@ -12,15 +12,13 @@ interface OrderPublishDialogProps {
   order: Order;
 }
 
-const publishedBase = 'https://shopiflow-quiz.lovable.app';
-
 export const OrderPublishDialog: React.FC<OrderPublishDialogProps> = ({ open, onOpenChange, order }) => {
   const { updateOrder } = useOrders();
   const [copied, setCopied] = useState(false);
   const [publishing, setPublishing] = useState(false);
 
   const orderNumber = (order.order_number || '').trim();
-  const liveUrl = `${publishedBase}/order/${encodeURIComponent(orderNumber)}`;
+  const liveUrl = `${window.location.origin}/order/${encodeURIComponent(orderNumber)}`;
   const isPublished = order.published;
 
   const handleCopy = async () => {
