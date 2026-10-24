@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { SaveStatus } from '@/components/shared/SaveStatus';
 import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
+import { useT, tr, msg } from '@/i18n';
 
 interface LessonDocumentEditorProps {
   lessonId: string;
@@ -21,20 +22,20 @@ interface LessonDocumentEditorProps {
 
 const TOOLBAR_GROUPS = [
   [
-    { cmd: 'formatBlock', val: 'H1', icon: Heading1, title: 'Heading 1' },
-    { cmd: 'formatBlock', val: 'H2', icon: Heading2, title: 'Heading 2' },
-    { cmd: 'formatBlock', val: 'H3', icon: Heading3, title: 'Heading 3' },
-    { cmd: 'formatBlock', val: 'H4', icon: Heading4, title: 'Heading 4' },
+    { cmd: 'formatBlock', val: 'H1', icon: Heading1, title: msg('Heading 1') },
+    { cmd: 'formatBlock', val: 'H2', icon: Heading2, title: msg('Heading 2') },
+    { cmd: 'formatBlock', val: 'H3', icon: Heading3, title: msg('Heading 3') },
+    { cmd: 'formatBlock', val: 'H4', icon: Heading4, title: msg('Heading 4') },
   ],
   [
-    { cmd: 'bold', icon: Bold, title: 'Bold' },
-    { cmd: 'italic', icon: Italic, title: 'Italic' },
+    { cmd: 'bold', icon: Bold, title: msg('Bold') },
+    { cmd: 'italic', icon: Italic, title: msg('Italic') },
   ],
   [
-    { cmd: 'insertImage', icon: Image, title: 'Image' },
-    { cmd: 'insertHorizontalRule', icon: Minus, title: 'Divider' },
-    { cmd: 'createLink', icon: Link, title: 'Link' },
-    { cmd: 'uploadVideo', icon: Video, title: 'Upload Video' },
+    { cmd: 'insertImage', icon: Image, title: msg('Image') },
+    { cmd: 'insertHorizontalRule', icon: Minus, title: msg('Divider') },
+    { cmd: 'createLink', icon: Link, title: msg('Link') },
+    { cmd: 'uploadVideo', icon: Video, title: msg('Upload Video') },
   ],
 ];
 
@@ -43,6 +44,7 @@ export const LessonDocumentEditor: React.FC<LessonDocumentEditorProps> = ({
   initialContent,
   themeColors,
 }) => {
+  const t = useT();
   const editorRef = useRef<HTMLDivElement>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const [saving, setSaving] = useState(false);
@@ -285,7 +287,7 @@ export const LessonDocumentEditor: React.FC<LessonDocumentEditorProps> = ({
     const second = dir === 'up' ? block : sibling;
     const cells = [...blockToCells(first), ...blockToCells(second)];
     if (cells.length > MAX_ROW_ITEMS) {
-      toast.error(`Up to ${MAX_ROW_ITEMS} media items per row`);
+      toast.error(tr('Up to {count} media items per row', { count: MAX_ROW_ITEMS }));
       return;
     }
 
@@ -491,7 +493,7 @@ export const LessonDocumentEditor: React.FC<LessonDocumentEditorProps> = ({
     }
 
     if (cmd === 'createLink') {
-      const url = prompt('Enter URL:');
+      const url = prompt(tr('Enter URL:'));
       if (url) document.execCommand('createLink', false, url);
       scheduleSave();
       return;
@@ -516,13 +518,13 @@ export const LessonDocumentEditor: React.FC<LessonDocumentEditorProps> = ({
     const file = e.target.files?.[0];
     if (!file || !user) return;
     if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
+      toast.error(tr('Please select an image file'));
       return;
     }
     const ext = file.name.split('.').pop() || 'jpg';
     const path = `${user.id}/lessons/${lessonId}/${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from('quiz-assets').upload(path, file);
-    if (error) { toast.error('Upload failed: ' + error.message); return; }
+    if (error) { toast.error(tr('Upload failed: {reason}', { reason: error.message })); return; }
     const { data: { publicUrl } } = supabase.storage.from('quiz-assets').getPublicUrl(path);
     editorRef.current?.focus();
     document.execCommand('insertHTML', false, `<img src="${publicUrl}" alt="" /><p><br></p>`);
@@ -534,21 +536,21 @@ export const LessonDocumentEditor: React.FC<LessonDocumentEditorProps> = ({
     const file = e.target.files?.[0];
     if (!file || !user) return;
     if (!file.type.startsWith('video/')) {
-      toast.error('Please select a video file');
+      toast.error(tr('Please select a video file'));
       return;
     }
     const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
-    toast.info(`Uploading video (${sizeMB}MB)...`);
+    toast.info(tr('Uploading video ({size}MB)...', { size: sizeMB }));
     const ext = file.name.split('.').pop() || 'mp4';
     const path = `${user.id}/lessons/${lessonId}/${Date.now()}.${ext}`;
     const videoFile = await compressVideo(file);
     const { error } = await supabase.storage.from('quiz-assets').upload(path, videoFile);
-    if (error) { toast.error('Upload failed: ' + error.message); return; }
+    if (error) { toast.error(tr('Upload failed: {reason}', { reason: error.message })); return; }
     const { data: { publicUrl } } = supabase.storage.from('quiz-assets').getPublicUrl(path);
     editorRef.current?.focus();
     document.execCommand('insertHTML', false, `<video src="${publicUrl}" controls playsinline style="max-width:100%;border-radius:8px;margin:8px 0"></video><p><br></p>`);
     scheduleSave();
-    toast.success('Video uploaded');
+    toast.success(tr('Video uploaded'));
     e.target.value = '';
   }, [lessonId, scheduleSave, user, compressVideo]);
 
@@ -578,7 +580,7 @@ export const LessonDocumentEditor: React.FC<LessonDocumentEditorProps> = ({
                 onMouseDown={(e) => { e.preventDefault(); execCmd(btn.cmd, btn.val); }}
                 className="w-8 h-8 flex items-center justify-center rounded hover:opacity-80 transition-opacity"
                 style={{ color: themeColors.textMuted }}
-                title={btn.title}
+                                title={t(btn.title)}
               >
                 <btn.icon className="w-4 h-4" />
               </button>
@@ -594,7 +596,7 @@ export const LessonDocumentEditor: React.FC<LessonDocumentEditorProps> = ({
               onMouseDown={(e) => { e.preventDefault(); deleteSelectedMedia(); }}
               className="w-8 h-8 flex items-center justify-center rounded hover:opacity-80 transition-opacity"
               style={{ color: '#ef4444' }}
-              title="Delete selected media"
+              title={t('Delete selected media')}
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -626,7 +628,7 @@ export const LessonDocumentEditor: React.FC<LessonDocumentEditorProps> = ({
               caretColor: themeColors.accent,
               lineHeight: 1.8,
             }}
-            data-placeholder="Start writing..."
+            data-placeholder={t('Start writing...')}
           />
 
           {/* Media overlay: drag handle (hover) + resize handles (selected) */}
@@ -649,13 +651,13 @@ export const LessonDocumentEditor: React.FC<LessonDocumentEditorProps> = ({
                 style={{ top: 8, left: 8 }}
               >
                 {([
-                  { key: 'up', Icon: ChevronUp, enabled: moveState.up, title: 'Move up', action: () => moveMedia('up') },
-                  { key: 'down', Icon: ChevronDown, enabled: moveState.down, title: 'Move down', action: () => moveMedia('down') },
-                  { key: 'left', Icon: ChevronLeft, enabled: moveState.left, title: 'Move left in row', action: () => moveWithinRow('left') },
-                  { key: 'right', Icon: ChevronRight, enabled: moveState.right, title: 'Move right in row', action: () => moveWithinRow('right') },
-                  { key: 'groupUp', Icon: Columns, enabled: moveState.groupUp, title: 'Group side by side with media above', action: () => groupWith('up') },
-                  { key: 'groupDown', Icon: Columns, enabled: moveState.groupDown, title: 'Group side by side with media below', action: () => groupWith('down') },
-                  { key: 'ungroup', Icon: Rows, enabled: moveState.inRow, title: 'Ungroup (own row)', action: () => ungroup() },
+                  { key: 'up', Icon: ChevronUp, enabled: moveState.up, title: t('Move up'), action: () => moveMedia('up') },
+                  { key: 'down', Icon: ChevronDown, enabled: moveState.down, title: t('Move down'), action: () => moveMedia('down') },
+                  { key: 'left', Icon: ChevronLeft, enabled: moveState.left, title: t('Move left in row'), action: () => moveWithinRow('left') },
+                  { key: 'right', Icon: ChevronRight, enabled: moveState.right, title: t('Move right in row'), action: () => moveWithinRow('right') },
+                  { key: 'groupUp', Icon: Columns, enabled: moveState.groupUp, title: t('Group side by side with media above'), action: () => groupWith('up') },
+                  { key: 'groupDown', Icon: Columns, enabled: moveState.groupDown, title: t('Group side by side with media below'), action: () => groupWith('down') },
+                  { key: 'ungroup', Icon: Rows, enabled: moveState.inRow, title: t('Ungroup (own row)'), action: () => ungroup() },
                 ]).map(({ key, Icon, enabled, title, action }) => (
                   enabled ? (
                     <button

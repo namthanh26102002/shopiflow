@@ -1,6 +1,7 @@
 import React from 'react';
 import { Settings, LayoutGrid, Globe, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { msg, useT } from '@/i18n';
 
 export type AdvertorialTab = 'components' | 'settings' | 'domain' | 'analytics';
 
@@ -10,13 +11,14 @@ interface AdvertorialSidebarProps {
 }
 
 const tabs = [
-  { id: 'components' as AdvertorialTab, label: 'Blocks', icon: LayoutGrid },
-  { id: 'settings' as AdvertorialTab, label: 'Settings', icon: Settings },
-  { id: 'domain' as AdvertorialTab, label: 'Domain', icon: Globe },
-  { id: 'analytics' as AdvertorialTab, label: 'Analytics', icon: BarChart3 },
+  { id: 'components' as AdvertorialTab, label: msg('Blocks'), icon: LayoutGrid },
+  { id: 'settings' as AdvertorialTab, label: msg('Settings'), icon: Settings },
+  { id: 'domain' as AdvertorialTab, label: msg('Domain'), icon: Globe },
+  { id: 'analytics' as AdvertorialTab, label: msg('Analytics'), icon: BarChart3 },
 ];
 
 export const AdvertorialSidebar: React.FC<AdvertorialSidebarProps> = ({ activeTab, onTabChange }) => {
+  const t = useT();
   return (
     <aside className="w-16 border-r border-border bg-card flex flex-col items-center py-4 gap-1">
       {tabs.map((tab) => (
@@ -32,7 +34,7 @@ export const AdvertorialSidebar: React.FC<AdvertorialSidebarProps> = ({ activeTa
           )}
         >
           <tab.icon className="w-5 h-5" />
-          <span className="text-[10px] font-medium">{tab.label}</span>
+          <span className="text-[10px] font-medium">{t(tab.label)}</span>
         </button>
       ))}
     </aside>

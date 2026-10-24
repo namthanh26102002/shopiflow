@@ -29,6 +29,7 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useT, tr } from '@/i18n';
 
 interface SortableClassroomCardProps {
   id: string;
@@ -58,6 +59,7 @@ const SortableClassroomCard: React.FC<SortableClassroomCardProps> = ({ id, isAdm
 };
 
 const Info: React.FC = () => {
+  const t = useT();
   const { signOut, user } = useAuth();
   const { isAdmin } = useAdmin();
   const { classrooms, isLoading, createClassroom, updateClassroom, deleteClassroom, reorderClassrooms, setGlobalCoverRatio } = useClassrooms(isAdmin ? false : true);
@@ -103,11 +105,11 @@ const Info: React.FC = () => {
 
   const handleTogglePublish = (id: string, current: boolean) => {
     updateClassroom.mutate({ id, published: !current });
-    toast.success(!current ? 'Published' : 'Unpublished');
+    toast.success(!current ? tr('Published') : tr('Unpublished'));
   };
 
   const handleDelete = (id: string, name: string) => {
-    if (confirm(`Delete "${name}"? This will also delete all lessons inside.`)) {
+    if (confirm(tr('Delete "{name}"? This will also delete all lessons inside.', { name }))) {
       deleteClassroom.mutate(id);
     }
   };
@@ -135,9 +137,9 @@ const Info: React.FC = () => {
           }
         }
       }
-      toast.success('Cover updated');
+      toast.success(tr('Cover updated'));
     } catch {
-      toast.error('Failed to upload cover');
+      toast.error(tr('Failed to upload cover'));
     } finally {
       setUploadingId(null);
       setCoverUploadTarget(null);
@@ -155,12 +157,12 @@ const Info: React.FC = () => {
           {user ? (
             <>
               <span className="text-xs" style={{ color: colors.textMuted }}>{user.email}</span>
-              <Button variant="ghost" size="icon" className="w-8 h-8" style={{ color: colors.textMuted }} onClick={signOut} title="Sign out">
+              <Button variant="ghost" size="icon" className="w-8 h-8" style={{ color: colors.textMuted }} onClick={signOut} title={t('Sign out')}>
                 <LogOut className="w-4 h-4" />
               </Button>
             </>
           ) : (
-            <Button variant="outline" size="sm" style={{ borderColor: colors.border, color: colors.text }} onClick={() => navigate('/auth')}>Sign In</Button>
+            <Button variant="outline" size="sm" style={{ borderColor: colors.border, color: colors.text }} onClick={() => navigate('/auth')}>{t('Sign In')}</Button>
           )}
         </div>
       </header>
@@ -182,7 +184,7 @@ const Info: React.FC = () => {
                       color: colors.accent,
                       border: `1px solid ${colors.accent}`,
                     }}
-                    title="Adjust cover aspect ratio"
+                    title={t('Adjust cover aspect ratio')}
                   >
                     <Frame className="w-3.5 h-3.5" />
                     <span>{coverRatio.replace('/', ':')}</span>
@@ -194,7 +196,7 @@ const Info: React.FC = () => {
                   style={{ backgroundColor: colors.card, borderColor: colors.border }}
                 >
                   <div>
-                    <p className="text-xs font-medium mb-2" style={{ color: colors.textMuted }}>Cover ratio</p>
+                    <p className="text-xs font-medium mb-2" style={{ color: colors.textMuted }}>{t('Cover ratio')}</p>
                     <div className="flex flex-wrap gap-1.5">
                       {RATIO_PRESETS.map((r) => (
                         <button
@@ -213,7 +215,7 @@ const Info: React.FC = () => {
                     </div>
                   </div>
                   <div>
-                    <p className="text-xs font-medium mb-1.5" style={{ color: colors.textMuted }}>Custom ratio</p>
+                    <p className="text-xs font-medium mb-1.5" style={{ color: colors.textMuted }}>{t('Custom ratio')}</p>
                     <Input
                       value={customRatio}
                       onChange={(e) => setCustomRatio(e.target.value)}
@@ -221,7 +223,7 @@ const Info: React.FC = () => {
                         if (e.key === 'Enter') {
                           const m = customRatio.trim().match(/^(\d+(?:\.\d+)?)\s*[:/]\s*(\d+(?:\.\d+)?)$/);
                           if (m) { setGlobalCoverRatio.mutate(`${m[1]}/${m[2]}`); setCustomRatio(''); }
-                          else toast.error('Use format like 21:9');
+                          else toast.error(tr('Use format like 21:9'));
                         }
                       }}
                       placeholder="21:9"
@@ -242,7 +244,7 @@ const Info: React.FC = () => {
         ) : classrooms.length === 0 && !isAdmin ? (
           <div className="text-center py-16" style={{ color: colors.textMuted }}>
             <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-40" />
-            <p>No classrooms available yet.</p>
+            <p>{t('No classrooms available yet.')}</p>
           </div>
         ) : (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -271,7 +273,7 @@ const Info: React.FC = () => {
                               onClick={(e) => e.stopPropagation()}
                               className="w-7 h-7 rounded-md flex items-center justify-center backdrop-blur-sm cursor-grab active:cursor-grabbing touch-none"
                               style={{ backgroundColor: 'rgba(0,0,0,0.5)', color: '#fff' }}
-                              title="Drag to reorder"
+                              title={t('Drag to reorder')}
                             >
                               <GripVertical className="w-3.5 h-3.5" />
                             </button>
@@ -279,7 +281,7 @@ const Info: React.FC = () => {
                       onClick={(e) => { e.stopPropagation(); setEditingId(c.id); setEditName(c.name); }}
                       className="w-7 h-7 rounded-md flex items-center justify-center backdrop-blur-sm"
                       style={{ backgroundColor: 'rgba(0,0,0,0.5)', color: '#fff' }}
-                      title="Rename"
+                      title={t('Rename')}
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
@@ -287,7 +289,7 @@ const Info: React.FC = () => {
                       onClick={(e) => { e.stopPropagation(); setCoverUploadTarget(c.id); fileInputRef.current?.click(); }}
                       className="w-7 h-7 rounded-md flex items-center justify-center backdrop-blur-sm"
                       style={{ backgroundColor: 'rgba(0,0,0,0.5)', color: '#fff' }}
-                      title="Upload cover"
+                      title={t('Upload cover')}
                     >
                       <ImagePlus className="w-3.5 h-3.5" />
                     </button>
@@ -295,7 +297,7 @@ const Info: React.FC = () => {
                       onClick={(e) => { e.stopPropagation(); handleTogglePublish(c.id, c.published); }}
                       className="w-7 h-7 rounded-md flex items-center justify-center backdrop-blur-sm"
                       style={{ backgroundColor: 'rgba(0,0,0,0.5)', color: '#fff' }}
-                      title={c.published ? 'Unpublish' : 'Publish'}
+                      title={c.published ? t('Unpublish') : t('Publish')}
                     >
                       {c.published ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                     </button>
@@ -303,7 +305,7 @@ const Info: React.FC = () => {
                       onClick={(e) => { e.stopPropagation(); handleDelete(c.id, c.name); }}
                       className="w-7 h-7 rounded-md flex items-center justify-center backdrop-blur-sm"
                       style={{ backgroundColor: 'rgba(180,40,40,0.7)', color: '#fff' }}
-                      title="Delete"
+                      title={t('Delete')}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -313,7 +315,7 @@ const Info: React.FC = () => {
                 {/* Draft badge */}
                 {isAdmin && !c.published && (
                   <div className="absolute top-2 left-2 z-10">
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5" style={{ backgroundColor: 'rgba(0,0,0,0.5)', color: '#fff' }}>Draft</Badge>
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5" style={{ backgroundColor: 'rgba(0,0,0,0.5)', color: '#fff' }}>{t('Draft')}</Badge>
                   </div>
                 )}
 
@@ -343,8 +345,8 @@ const Info: React.FC = () => {
                         style={{ backgroundColor: colors.bg, color: colors.text, borderColor: colors.border }}
                         autoFocus
                       />
-                      <button aria-label="Save name" onClick={() => handleRename(c.id)} className="w-6 h-6 flex items-center justify-center" style={{ color: colors.accent }}><Check className="w-4 h-4" /></button>
-                      <button aria-label="Cancel renaming" onClick={() => setEditingId(null)} className="w-6 h-6 flex items-center justify-center" style={{ color: colors.textMuted }}><X className="w-4 h-4" /></button>
+                      <button aria-label={t('Save name')} onClick={() => handleRename(c.id)} className="w-6 h-6 flex items-center justify-center" style={{ color: colors.accent }}><Check className="w-4 h-4" /></button>
+                      <button aria-label={t('Cancel renaming')} onClick={() => setEditingId(null)} className="w-6 h-6 flex items-center justify-center" style={{ color: colors.textMuted }}><X className="w-4 h-4" /></button>
                     </div>
                   ) : (
                     <h3 className="font-semibold" style={{ color: colors.text }}>{c.name}</h3>
@@ -362,15 +364,15 @@ const Info: React.FC = () => {
                   <Input
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    placeholder="Classroom name..."
+                    placeholder={t('Classroom name...')}
                     onKeyDown={(e) => { if (e.key === 'Enter') handleCreate(); if (e.key === 'Escape') { setCreatingNew(false); setNewName(''); } }}
                     className="text-sm"
                     style={{ backgroundColor: colors.bg, color: colors.text, borderColor: colors.border }}
                     autoFocus
                   />
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={handleCreate} style={{ backgroundColor: colors.accent, color: '#fff' }}>Create</Button>
-                    <Button size="sm" variant="ghost" onClick={() => { setCreatingNew(false); setNewName(''); }} style={{ color: colors.textMuted }}>Cancel</Button>
+                    <Button size="sm" onClick={handleCreate} style={{ backgroundColor: colors.accent, color: '#fff' }}>{t('Create')}</Button>
+                    <Button size="sm" variant="ghost" onClick={() => { setCreatingNew(false); setNewName(''); }} style={{ color: colors.textMuted }}>{t('Cancel')}</Button>
                   </div>
                 </div>
               ) : (
@@ -382,7 +384,7 @@ const Info: React.FC = () => {
                   onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
                   <Plus className="w-8 h-8 mb-2" style={{ color: colors.textMuted }} />
-                  <span className="text-sm" style={{ color: colors.textMuted }}>New Classroom</span>
+                  <span className="text-sm" style={{ color: colors.textMuted }}>{t('New Classroom')}</span>
                 </button>
               )
             )}

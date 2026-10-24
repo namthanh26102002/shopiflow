@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
+import { tr } from '@/i18n';
 
 interface AdvertorialContextType {
   advertorial: Advertorial;
@@ -292,12 +293,12 @@ export const AdvertorialProvider: React.FC<{ children: React.ReactNode; advertor
       if (error) throw error;
 
       setAdvertorial(prev => ({ ...prev, publishedUrl }));
-      toast.success('Advertorial published successfully!');
+      toast.success(tr('Advertorial published successfully!'));
       
       await navigator.clipboard.writeText(publishedUrl);
     } catch (err) {
       console.error('Error publishing:', err);
-      toast.error('Failed to publish advertorial');
+      toast.error(tr('Failed to publish advertorial'));
     }
   }, [dbId, advertorial, saveToDb]);
 
@@ -308,7 +309,7 @@ export const AdvertorialProvider: React.FC<{ children: React.ReactNode; advertor
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     await saveToDb(advertorial);
 
-    toast.success('Published advertorial updated!');
+    toast.success(tr('Published advertorial updated!'));
   }, [dbId, advertorial, saveToDb]);
 
   return (

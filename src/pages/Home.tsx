@@ -14,6 +14,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { BuilderSwitcher } from '@/components/shared/BuilderSwitcher';
 import { cn } from '@/lib/utils';
 
+import { useDateLocale, useT, type MessageKey } from '@/i18n';
+import { LanguageSwitch } from '@/components/shared/LanguageSwitch';
 const STATS_DAYS = 30;
 
 interface ProjectStats {
@@ -61,19 +63,22 @@ const useProjectStats = (table: ProjectTable, projects: ProjectSummary[]) => {
   return stats;
 };
 
-const StatusPill: React.FC<{ live: boolean }> = ({ live }) => (
-  <span
-    className={cn(
-      'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium',
-      live
-        ? 'border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-400'
-        : 'border-border text-muted-foreground'
-    )}
-  >
-    <span className={cn('h-1.5 w-1.5 rounded-full', live ? 'bg-green-500' : 'bg-muted-foreground/60')} />
-    {live ? 'Live' : 'Draft'}
-  </span>
-);
+const StatusPill: React.FC<{ live: boolean }> = ({ live }) => {
+  const t = useT();
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium',
+        live
+          ? 'border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-400'
+          : 'border-border text-muted-foreground'
+      )}
+    >
+      <span className={cn('h-1.5 w-1.5 rounded-full', live ? 'bg-green-500' : 'bg-muted-foreground/60')} />
+      {live ? t('Live') : t('Draft')}
+    </span>
+  );
+};
 
 const ProjectCard: React.FC<{
   project: ProjectSummary;
@@ -81,6 +86,8 @@ const ProjectCard: React.FC<{
   stats?: ProjectStats;
   onOpen: () => void;
 }> = ({ project, table, stats, onOpen }) => {
+  const t = useT();
+  const dateLocale = useDateLocale();
   const live = !!project.published_url;
   const rate = stats?.completions !== undefined && stats.visits > 0
     ? Math.round((stats.completions / stats.visits) * 100)
@@ -94,12 +101,12 @@ const ProjectCard: React.FC<{
     >
       <div className="flex items-start justify-between gap-3">
         <h3 className="font-medium text-foreground truncate group-hover:text-primary">
-          {project.title || 'Untitled'}
+          {project.title || t('Untitled')}
         </h3>
         <StatusPill live={live} />
       </div>
       <p className="mt-1 text-xs text-muted-foreground">
-        Edited {formatDistanceToNow(new Date(project.updated_at), { addSuffix: true })}
+        {t('Edited {time}', { time: formatDistanceToNow(new Date(project.updated_at), { addSuffix: true, locale: dateLocale }) })}
       </p>
 
       <div className="mt-4 flex items-end gap-6">
@@ -107,19 +114,19 @@ const ProjectCard: React.FC<{
           <>
             <div>
               <p className="text-xl font-semibold text-foreground tabular-nums">{stats.visits.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">{table === 'quizzes' ? 'starts' : 'views'}</p>
+              <p className="text-xs text-muted-foreground">{table === 'quizzes' ? t('starts') : t('views')}</p>
             </div>
             {table === 'quizzes' && (
               <div>
                 <p className="text-xl font-semibold text-foreground tabular-nums">{rate === null ? '—' : `${rate}%`}</p>
-                <p className="text-xs text-muted-foreground">completed</p>
+                <p className="text-xs text-muted-foreground">{t('completed')}</p>
               </div>
             )}
           </>
         ) : (
           <Skeleton className="h-10 w-32" />
         )}
-        <p className="ml-auto text-[11px] text-muted-foreground">last {STATS_DAYS} days</p>
+        <p className="ml-auto text-[11px] text-muted-foreground">{t('last {days} days', { days: STATS_DAYS })}</p>
       </div>
     </button>
   );
@@ -132,6 +139,7 @@ const ProjectSection: React.FC<{
   icon: React.ElementType;
   basePath: string;
 }> = ({ table, title, noun, icon: Icon, basePath }) => {
+  const t = useT();
   const navigate = useNavigate();
   const { projects, loading, busy, isAdmin, atLimit, limit, createProject } = useProjects(table);
   const stats = useProjectStats(table, projects);
@@ -148,7 +156,7 @@ const ProjectSection: React.FC<{
           <Icon className="h-4 w-4 text-muted-foreground" />
           <h2 id={`${table}-heading`} className="text-sm font-semibold text-foreground">{title}</h2>
           {!loading && !isAdmin && (
-            <span className="text-xs text-muted-foreground">{projects.length} of {limit} used</span>
+            <span className="text-xs text-muted-foreground">{t('{used} of {limit} used', { used: projects.length, limit })}</span>
           )}
         </div>
         <Button
@@ -156,10 +164,10 @@ const ProjectSection: React.FC<{
           variant="outline"
           onClick={handleCreate}
           disabled={busy || loading || atLimit}
-          title={atLimit ? `You can keep up to ${limit}. Delete one to make room.` : undefined}
+          title={atLimit ? t('You can keep up to {limit}. Delete one to make room.', { limit }) : undefined}
         >
           <Plus className="h-3.5 w-3.5 mr-1" />
-          New {noun}
+          {t('New {noun}', { noun: t(noun as MessageKey) })}
         </Button>
       </div>
 
@@ -169,8 +177,8 @@ const ProjectSection: React.FC<{
         </div>
       ) : projects.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-8 text-center">
-          <p className="text-sm text-foreground font-medium">No {noun}s yet</p>
-          <p className="mt-1 text-xs text-muted-foreground">Create one to start collecting visits.</p>
+          <p className="text-sm text-foreground font-medium">{noun === 'quiz' ? t('No quizzes yet') : t('No advertorials yet')}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{t('Create one to start collecting visits.')}</p>
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -190,6 +198,7 @@ const ProjectSection: React.FC<{
 };
 
 const Home: React.FC = () => {
+  const t = useT();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
 
@@ -199,22 +208,23 @@ const Home: React.FC = () => {
         <BuilderSwitcher />
         <div className="flex items-center gap-2">
           <span className="hidden sm:inline text-xs text-muted-foreground">{user?.email}</span>
-          <Button variant="ghost" size="icon" className="w-8 h-8 text-muted-foreground hover:text-foreground" onClick={signOut} title="Sign out">
+          <LanguageSwitch />
+          <Button variant="ghost" size="icon" className="w-8 h-8 text-muted-foreground hover:text-foreground" onClick={signOut} title={t('Sign out')}>
             <LogOut className="w-4 h-4" />
           </Button>
         </div>
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-10">
-        <h1 className="text-2xl font-semibold text-foreground">Your projects</h1>
+        <h1 className="text-2xl font-semibold text-foreground">{t('Your projects')}</h1>
 
-        <ProjectSection table="quizzes" title="Quizzes" noun="quiz" icon={HelpCircle} basePath="/builder" />
-        <ProjectSection table="advertorials" title="Advertorials" noun="advertorial" icon={Newspaper} basePath="/advertorial-builder" />
+        <ProjectSection table="quizzes" title={t('Quizzes')} noun="quiz" icon={HelpCircle} basePath="/builder" />
+        <ProjectSection table="advertorials" title={t('Advertorials')} noun="advertorial" icon={Newspaper} basePath="/advertorial-builder" />
 
-        <section aria-label="Other tools" className="grid gap-3 sm:grid-cols-2">
+        <section aria-label={t('Other tools')} className="grid gap-3 sm:grid-cols-2">
           {[
-            { label: 'Info', description: 'Classrooms and lessons', icon: BookOpen, path: '/info' },
-            { label: 'Orders', description: 'Order tracking pages', icon: Package, path: '/orders' },
+            { label: t('Info'), description: t('Classrooms and lessons'), icon: BookOpen, path: '/info' },
+            { label: t('Orders'), description: t('Order tracking pages'), icon: Package, path: '/orders' },
           ].map((tool) => (
             <button
               key={tool.path}

@@ -6,6 +6,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
 import { Question, Quiz, QuestionType } from '@/types/quiz';
+import { useT, tr, type MessageKey } from '@/i18n';
 
 interface QuizOverviewProps {
   open: boolean;
@@ -20,7 +21,7 @@ type Step =
   | { kind: 'question'; question: Question }
   | { kind: 'results'; title: string; body: string; cta: string };
 
-const TYPE_LABEL: Record<QuestionType, string> = {
+const TYPE_LABEL: Record<QuestionType, MessageKey> = {
   'multiple-choice': 'Multiple choice',
   'image-selection': 'Image selection',
   'yes-no': 'Yes / No',
@@ -36,15 +37,16 @@ const TYPE_LABEL: Record<QuestionType, string> = {
 
 /** Caption under a card, describing the step's job in the funnel. */
 const stepCaption = (s: Step): string => {
-  if (s.kind === 'welcome') return 'Welcome & hook';
-  if (s.kind === 'results') return 'Results & offer';
+  if (s.kind === 'welcome') return tr('Welcome & hook');
+  if (s.kind === 'results') return tr('Results & offer');
   const q = s.question;
-  const label = TYPE_LABEL[q.type] ?? q.type;
-  return `${label}${q.required ? '' : ' · optional'}`;
+  const label = TYPE_LABEL[q.type] ? tr(TYPE_LABEL[q.type]) : q.type;
+  return q.required ? label : tr('{label} · optional', { label });
 };
 
 /** The body of a card: enough of the page's content to recognise it. */
 const QuestionBody: React.FC<{ question: Question; accent: string }> = ({ question, accent }) => {
+  const t = useT();
   const { type, options } = question;
 
   if (type === 'image-selection') {
@@ -77,7 +79,7 @@ const QuestionBody: React.FC<{ question: Question; accent: string }> = ({ questi
             </div>
           </div>
         ))}
-        {bars.length === 0 && <p className="text-[10px] text-muted-foreground">Loading animation</p>}
+        {bars.length === 0 && <p className="text-[10px] text-muted-foreground">{t('Loading animation')}</p>}
       </div>
     );
   }
@@ -101,7 +103,7 @@ const QuestionBody: React.FC<{ question: Question; accent: string }> = ({ questi
   if (options.length === 0) {
     return (
       <p className="text-[10px] text-muted-foreground">
-        {TYPE_LABEL[type]} page — no answer options
+        {t('{type} page — no answer options', { type: t(TYPE_LABEL[type]) })}
       </p>
     );
   }
@@ -114,12 +116,12 @@ const QuestionBody: React.FC<{ question: Question; accent: string }> = ({ questi
           className="flex items-center gap-1.5 rounded border border-border-subtle px-1.5 py-1"
         >
           {o.icon && <span className="text-[10px] shrink-0">{o.icon}</span>}
-          <span className="text-[10px] text-foreground truncate">{o.text || 'Untitled option'}</span>
+          <span className="text-[10px] text-foreground truncate">{o.text || t('Untitled option')}</span>
         </div>
       ))}
       {options.length > 5 && (
         <p className="text-[9px] text-muted-foreground pl-1">
-          +{options.length - 5} more
+          {t('+{count} more', { count: options.length - 5 })}
         </p>
       )}
     </div>
@@ -129,6 +131,7 @@ const QuestionBody: React.FC<{ question: Question; accent: string }> = ({ questi
 export const QuizOverview: React.FC<QuizOverviewProps> = ({
   open, onOpenChange, quiz, onSelectQuestion,
 }) => {
+  const t = useT();
   const accent = quiz.settings.primaryColor || '#0066FF';
 
   // Welcome and results are pages the respondent sees but the editor lists
@@ -153,18 +156,20 @@ export const QuizOverview: React.FC<QuizOverviewProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[95vw] w-[95vw] max-h-[92vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{quiz.settings.title || 'Untitled quiz'}</DialogTitle>
+          <DialogTitle>{quiz.settings.title || t('Untitled quiz')}</DialogTitle>
           <DialogDescription>
-            {quiz.questions.length} question{quiz.questions.length === 1 ? '' : 's'} ·{' '}
-            {steps.length} pages in the flow. Click a card to edit that page.
+            {t('{questions} · {pages} pages in the flow. Click a card to edit that page.', {
+              questions: quiz.questions.length === 1 ? t('1 question') : t('{count} questions', { count: quiz.questions.length }),
+              pages: steps.length,
+            })}
           </DialogDescription>
         </DialogHeader>
 
         {quiz.questions.length === 0 ? (
           <div className="border border-border-subtle rounded-lg p-12 text-center">
-            <p className="text-sm font-medium text-foreground mb-1">Nothing to map yet</p>
+            <p className="text-sm font-medium text-foreground mb-1">{t('Nothing to map yet')}</p>
             <p className="text-xs text-muted-foreground">
-              Add a question and the flow will appear here.
+              {t('Add a question and the flow will appear here.')}
             </p>
           </div>
         ) : (
@@ -172,7 +177,7 @@ export const QuizOverview: React.FC<QuizOverviewProps> = ({
             {steps.map((s, i) => {
               const clickable = s.kind === 'question';
               const title =
-                s.kind === 'question' ? (s.question.text || 'Untitled question') : s.title;
+                s.kind === 'question' ? (s.question.text || t('Untitled question')) : s.title;
 
               return (
                 <div key={s.kind === 'question' ? s.question.id : s.kind} className="min-w-0">

@@ -1,3 +1,5 @@
+import { tr } from '@/i18n';
+
 // Access code rules, kept in one place so the signup form, the admin creator
 // and the `access-code` edge function agree.
 //
@@ -18,18 +20,18 @@ export const normalizeAccessCode = (raw: string): string => raw.toUpperCase().tr
  * Callers should normalise first.
  */
 export const describeAccessCodeProblem = (code: string): string | null => {
-  if (!code) return 'Please enter an access code';
+  if (!code) return tr('Please enter an access code');
 
   if (code.length < ACCESS_CODE_MIN_LENGTH) {
-    return `Access codes are at least ${ACCESS_CODE_MIN_LENGTH} characters`;
+    return tr('Access codes are at least {count} characters', { count: ACCESS_CODE_MIN_LENGTH });
   }
 
   if (code.length > ACCESS_CODE_MAX_LENGTH) {
-    return `Access codes are at most ${ACCESS_CODE_MAX_LENGTH} characters`;
+    return tr('Access codes are at most {count} characters', { count: ACCESS_CODE_MAX_LENGTH });
   }
 
   if (!ACCESS_CODE_PATTERN.test(code)) {
-    return 'Access codes use letters, numbers and hyphens only';
+    return tr('Access codes use letters, numbers and hyphens only');
   }
 
   return null;

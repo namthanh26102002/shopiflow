@@ -12,6 +12,7 @@ import {
 import {
   QuizAnalyticsData, computeQuizAnalytics, formatDuration, BreakdownRow,
 } from '@/lib/quizAnalytics';
+import { useT, tr, trKnown } from '@/i18n';
 
 interface Props {
   data: QuizAnalyticsData;
@@ -27,14 +28,14 @@ const tooltipStyle = {
 
 const DEVICE_COLORS = ['hsl(var(--primary))', 'hsl(var(--destructive))', 'hsl(var(--muted-foreground))'];
 
-const BarList: React.FC<{ rows: BreakdownRow[]; limit?: number; empty?: string }> = ({ rows, limit = 8, empty = 'No data yet.' }) => {
-  if (rows.length === 0) return <p className="text-xs text-muted-foreground">{empty}</p>;
+const BarList: React.FC<{ rows: BreakdownRow[]; limit?: number; empty?: string }> = ({ rows, limit = 8, empty }) => {
+  if (rows.length === 0) return <p className="text-xs text-muted-foreground">{empty ?? tr('No data yet.')}</p>;
   return (
     <div className="space-y-2">
       {rows.slice(0, limit).map(row => (
         <div key={row.label} className="space-y-1">
           <div className="flex justify-between text-xs">
-            <span className="text-muted-foreground truncate mr-2">{row.label}</span>
+            <span className="text-muted-foreground truncate mr-2">{trKnown(row.label)}</span>
             <span className="text-foreground font-medium whitespace-nowrap">{row.count} · {row.share}%</span>
           </div>
           <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
@@ -47,6 +48,7 @@ const BarList: React.FC<{ rows: BreakdownRow[]; limit?: number; empty?: string }
 };
 
 export const QuizAnalyticsDashboard: React.FC<Props> = ({ data, demo }) => {
+  const t = useT();
   const stats = useMemo(() => computeQuizAnalytics(data), [data]);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
@@ -58,12 +60,12 @@ export const QuizAnalyticsDashboard: React.FC<Props> = ({ data, demo }) => {
     });
 
   const metrics = [
-    { label: 'Total Starts', value: stats.totalStarts, icon: Users },
-    { label: 'Completions', value: stats.totalCompleted, icon: CheckCircle },
-    { label: 'Completion Rate', value: `${stats.completionRate}%`, icon: TrendingDown },
-    { label: 'Avg. Time', value: stats.avgTimeDisplay, icon: Clock },
-    { label: 'Avg. Pages Seen', value: stats.avgQuestions || '—', icon: ListChecks },
-    { label: 'CTA Clicks', value: `${stats.totalCtaClicks} (${stats.ctaClickRate}%)`, icon: MousePointerClick },
+    { label: t('Total Starts'), value: stats.totalStarts, icon: Users },
+    { label: t('Completions'), value: stats.totalCompleted, icon: CheckCircle },
+    { label: t('Completion Rate'), value: `${stats.completionRate}%`, icon: TrendingDown },
+    { label: t('Avg. Time'), value: stats.avgTimeDisplay, icon: Clock },
+    { label: t('Avg. Pages Seen'), value: stats.avgQuestions || '—', icon: ListChecks },
+    { label: t('CTA Clicks'), value: `${stats.totalCtaClicks} (${stats.ctaClickRate}%)`, icon: MousePointerClick },
   ];
 
   const sessions = useMemo(
@@ -75,7 +77,7 @@ export const QuizAnalyticsDashboard: React.FC<Props> = ({ data, demo }) => {
     <div className="space-y-6">
       {demo && (
         <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-xs text-primary">
-          Sample data — this is a preview of how your analytics will look once real visitors take your quiz.
+          {t('Sample data — this is a preview of how your analytics will look once real visitors take your quiz.')}
         </div>
       )}
 
@@ -95,7 +97,7 @@ export const QuizAnalyticsDashboard: React.FC<Props> = ({ data, demo }) => {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <CalendarDays className="w-4 h-4" /> Sessions over time (last 30 days)
+            <CalendarDays className="w-4 h-4" /> {t('Sessions over time (last 30 days)')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -111,8 +113,8 @@ export const QuizAnalyticsDashboard: React.FC<Props> = ({ data, demo }) => {
               <XAxis dataKey="label" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} interval={4} />
               <YAxis allowDecimals={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
               <Tooltip contentStyle={tooltipStyle} />
-              <Area type="monotone" dataKey="starts" name="Starts" stroke="hsl(var(--primary))" fill="url(#quizStartsFill)" strokeWidth={2} />
-              <Area type="monotone" dataKey="completions" name="Completions" stroke="hsl(var(--destructive))" fill="transparent" strokeWidth={2} />
+              <Area type="monotone" dataKey="starts" name={t('Starts')} stroke="hsl(var(--primary))" fill="url(#quizStartsFill)" strokeWidth={2} />
+              <Area type="monotone" dataKey="completions" name={t('Completions')} stroke="hsl(var(--destructive))" fill="transparent" strokeWidth={2} />
             </AreaChart>
           </ResponsiveContainer>
         </CardContent>
@@ -122,7 +124,7 @@ export const QuizAnalyticsDashboard: React.FC<Props> = ({ data, demo }) => {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <TrendingDown className="w-4 h-4" /> Drop-off by page
+            <TrendingDown className="w-4 h-4" /> {t('Drop-off by page')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -132,8 +134,8 @@ export const QuizAnalyticsDashboard: React.FC<Props> = ({ data, demo }) => {
               <XAxis dataKey="label" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} interval={0} height={50} angle={-20} textAnchor="end" />
               <YAxis allowDecimals={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
               <Tooltip contentStyle={tooltipStyle} />
-              <Bar dataKey="reached" name="Reached" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="dropOffs" name="Quit here" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="reached" name={t('Reached')} fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="dropOffs" name={t('Quit here')} fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
 
@@ -142,7 +144,7 @@ export const QuizAnalyticsDashboard: React.FC<Props> = ({ data, demo }) => {
               <div key={row.index} className="flex items-center justify-between text-xs">
                 <span className="text-foreground truncate mr-3">{row.index + 1}. {row.label}</span>
                 <span className="text-muted-foreground whitespace-nowrap">
-                  {row.reached} reached ({row.reachRate}%) · {row.dropOffs} quit
+                  {t('{reached} reached ({rate}%) · {quit} quit', { reached: row.reached, rate: row.reachRate, quit: row.dropOffs })}
                   {row.dropOffs > 0 && <span className="text-destructive"> ({row.dropOffRate}%)</span>}
                 </span>
               </div>
@@ -151,10 +153,10 @@ export const QuizAnalyticsDashboard: React.FC<Props> = ({ data, demo }) => {
 
           {stats.topExitPages.length > 0 && (
             <div className="rounded-lg bg-secondary p-3">
-              <p className="text-xs font-medium text-foreground mb-1">Biggest exit points</p>
+              <p className="text-xs font-medium text-foreground mb-1">{t('Biggest exit points')}</p>
               {stats.topExitPages.map(p => (
                 <p key={p.index} className="text-xs text-muted-foreground">
-                  {p.label} — {p.dropOffs} sessions quit ({p.dropOffRate}% of those who reached it)
+                  {t('{label} — {count} sessions quit ({percent}% of those who reached it)', { label: p.label, count: p.dropOffs, percent: p.dropOffRate })}
                 </p>
               ))}
             </div>
@@ -166,7 +168,7 @@ export const QuizAnalyticsDashboard: React.FC<Props> = ({ data, demo }) => {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <Timer className="w-4 h-4" /> Average time on each page
+            <Timer className="w-4 h-4" /> {t('Average time on each page')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -175,7 +177,7 @@ export const QuizAnalyticsDashboard: React.FC<Props> = ({ data, demo }) => {
               <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
               <XAxis dataKey="label" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} interval={0} height={50} angle={-20} textAnchor="end" />
               <YAxis unit="s" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v}s`, 'Avg. time']} />
+              <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v}s`, t('Avg. time')]} />
               <Bar dataKey="avgSeconds" radius={[4, 4, 0, 0]}>
                 {stats.pageTimes.map(p => (
                   <Cell
@@ -188,7 +190,7 @@ export const QuizAnalyticsDashboard: React.FC<Props> = ({ data, demo }) => {
           </ResponsiveContainer>
           {stats.slowestPage && stats.slowestPage.avgSeconds > 0 && (
             <p className="text-xs text-muted-foreground">
-              Slowest page: <span className="text-foreground font-medium">{stats.slowestPage.label}</span> at {stats.slowestPage.avgSeconds}s average.
+              {t('Slowest page:')} <span className="text-foreground font-medium">{stats.slowestPage.label}</span> {t('at {seconds}s average.', { seconds: stats.slowestPage.avgSeconds })}
             </p>
           )}
         </CardContent>
@@ -198,16 +200,16 @@ export const QuizAnalyticsDashboard: React.FC<Props> = ({ data, demo }) => {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <MapPin className="w-4 h-4" /> Top locations
+            <MapPin className="w-4 h-4" /> {t('Top locations')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {stats.locations.length === 0 ? (
-            <p className="text-xs text-muted-foreground">No location data collected yet.</p>
+            <p className="text-xs text-muted-foreground">{t('No location data collected yet.')}</p>
           ) : (
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <p className="text-xs font-medium text-foreground">By country</p>
+                <p className="text-xs font-medium text-foreground">{t('By country')}</p>
                 {stats.countries.slice(0, 8).map(c => (
                   <div key={c.country} className="space-y-1">
                     <div className="flex justify-between text-xs">
@@ -221,7 +223,7 @@ export const QuizAnalyticsDashboard: React.FC<Props> = ({ data, demo }) => {
                 ))}
               </div>
               <div className="space-y-2">
-                <p className="text-xs font-medium text-foreground">By region</p>
+                <p className="text-xs font-medium text-foreground">{t('By region')}</p>
                 {stats.locations.slice(0, 8).map(l => (
                   <div key={`${l.country}-${l.region}`} className="flex justify-between text-xs">
                     <span className="text-muted-foreground truncate mr-2">{l.region}, {l.country}</span>
@@ -240,29 +242,29 @@ export const QuizAnalyticsDashboard: React.FC<Props> = ({ data, demo }) => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Megaphone className="w-4 h-4" /> Traffic sources
+              <Megaphone className="w-4 h-4" /> {t('Traffic sources')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <BarList rows={stats.sources} />
             {stats.campaigns.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-medium text-foreground">Campaigns</p>
+                <p className="text-xs font-medium text-foreground">{t('Campaigns')}</p>
                 <BarList rows={stats.campaigns} limit={6} />
               </div>
             )}
             {stats.mediums.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-medium text-foreground">Mediums</p>
+                <p className="text-xs font-medium text-foreground">{t('Mediums')}</p>
                 <BarList rows={stats.mediums} limit={5} />
               </div>
             )}
             {stats.sourcePerformance.length > 0 && (
               <div className="rounded-lg bg-secondary p-3 space-y-1">
-                <p className="text-xs font-medium text-foreground">Completion rate by source</p>
+                <p className="text-xs font-medium text-foreground">{t('Completion rate by source')}</p>
                 {stats.sourcePerformance.slice(0, 6).map(s => (
                   <p key={s.label} className="text-xs text-muted-foreground">
-                    {s.label} — {s.completions}/{s.starts} finished ({s.completionRate}%)
+                    {t('{label} — {done}/{total} finished ({percent}%)', { label: trKnown(s.label), done: s.completions, total: s.starts, percent: s.completionRate })}
                   </p>
                 ))}
               </div>
@@ -273,12 +275,12 @@ export const QuizAnalyticsDashboard: React.FC<Props> = ({ data, demo }) => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Smartphone className="w-4 h-4" /> Devices
+              <Smartphone className="w-4 h-4" /> {t('Devices')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {stats.devices.length === 0 ? (
-              <p className="text-xs text-muted-foreground">No device data collected yet.</p>
+              <p className="text-xs text-muted-foreground">{t('No device data collected yet.')}</p>
             ) : (
               <>
                 <ResponsiveContainer width="100%" height={200}>
@@ -311,31 +313,31 @@ export const QuizAnalyticsDashboard: React.FC<Props> = ({ data, demo }) => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Package className="w-4 h-4" /> Result & product breakdown
+              <Package className="w-4 h-4" /> {t('Result & product breakdown')}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <BarList rows={stats.results} empty="No completed sessions with a result yet." />
+            <BarList rows={stats.results} empty={t('No completed sessions with a result yet.')} />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <MousePointerClick className="w-4 h-4" /> Result page CTA clicks
+              <MousePointerClick className="w-4 h-4" /> {t('Result page CTA clicks')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-xs text-muted-foreground">
-              {stats.totalCtaClicks} clicks · {stats.ctaClickRate}% of finishers clicked through
+              {t('{count} clicks · {percent}% of finishers clicked through', { count: stats.totalCtaClicks, percent: stats.ctaClickRate })}
             </p>
             <div className="space-y-2">
-              <p className="text-xs font-medium text-foreground">By button</p>
-              <BarList rows={stats.ctaByButton} limit={6} empty="No CTA clicks yet." />
+              <p className="text-xs font-medium text-foreground">{t('By button')}</p>
+              <BarList rows={stats.ctaByButton} limit={6} empty={t('No CTA clicks yet.')} />
             </div>
             {stats.ctaByProduct.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-medium text-foreground">By product</p>
+                <p className="text-xs font-medium text-foreground">{t('By product')}</p>
                 <BarList rows={stats.ctaByProduct} limit={6} />
               </div>
             )}
@@ -347,7 +349,7 @@ export const QuizAnalyticsDashboard: React.FC<Props> = ({ data, demo }) => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <MessageSquare className="w-4 h-4" /> Answer distribution
+              <MessageSquare className="w-4 h-4" /> {t('Answer distribution')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -384,7 +386,7 @@ export const QuizAnalyticsDashboard: React.FC<Props> = ({ data, demo }) => {
       {/* Sessions */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">Recent sessions ({sessions.length})</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('Recent sessions ({count})', { count: sessions.length })}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-1">
           {sessions.map(r => {
@@ -403,16 +405,16 @@ export const QuizAnalyticsDashboard: React.FC<Props> = ({ data, demo }) => {
                     {r.country && (
                       <span className="text-muted-foreground">{r.region ? `${r.region}, ` : ''}{r.country}</span>
                     )}
-                    <span className="text-muted-foreground">{r.utm_source || r.referrer || 'Direct'}</span>
-                    {r.device_type && <span className="text-muted-foreground">{r.device_type}</span>}
+                    <span className="text-muted-foreground">{r.utm_source || r.referrer || t('Direct')}</span>
+                    {r.device_type && <span className="text-muted-foreground">{trKnown(r.device_type)}</span>}
                     <span className={r.completed_at ? 'text-primary' : 'text-destructive'}>
-                      {r.completed_at ? 'Completed' : `Quit at: ${exitPage?.label || `page ${r.last_question_index + 1}`}`}
+                      {r.completed_at ? t('Completed') : t('Quit at: {page}', { page: exitPage?.label || t('page {number}', { number: r.last_question_index + 1 }) })}
                     </span>
                     {r.result_product_name && (
                       <span className="text-foreground">{r.result_product_name}</span>
                     )}
                     {stats.ctaSessionIds.has(r.id) && (
-                      <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">CTA clicked</span>
+                      <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">{t('CTA clicked')}</span>
                     )}
                     {r.time_to_complete_ms && (
                       <span className="text-muted-foreground">{formatDuration(r.time_to_complete_ms)}</span>
@@ -437,7 +439,7 @@ export const QuizAnalyticsDashboard: React.FC<Props> = ({ data, demo }) => {
                       );
                     })}
                   {rowAnswers.length === 0 && data.pageViews.every(pv => pv.response_id !== r.id) && (
-                    <p className="text-xs text-muted-foreground">No page detail recorded.</p>
+                    <p className="text-xs text-muted-foreground">{t('No page detail recorded.')}</p>
                   )}
                 </CollapsibleContent>
               </Collapsible>

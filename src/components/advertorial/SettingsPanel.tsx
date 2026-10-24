@@ -19,15 +19,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useT, tr, msg, type MessageKey } from '@/i18n';
 
 const ALL_SECTIONS = [
-  { id: 'page-info', label: 'Page Info' },
-  { id: 'branding', label: 'Branding' },
-  { id: 'typography', label: 'Typography' },
-  { id: 'cta-style', label: 'CTA Button Style' },
-  { id: 'sticky-cta', label: 'Sticky Footer CTA' },
-  { id: 'footer', label: 'Footer' },
-  { id: 'analytics-demo', label: 'Analytics Demo' },
+  { id: 'page-info', label: msg('Page Info') },
+  { id: 'branding', label: msg('Branding') },
+  { id: 'typography', label: msg('Typography') },
+  { id: 'cta-style', label: msg('CTA Button Style') },
+  { id: 'sticky-cta', label: msg('Sticky Footer CTA') },
+  { id: 'footer', label: msg('Footer') },
+  { id: 'analytics-demo', label: msg('Analytics Demo') },
 ] as const;
 
 const SettingsSection: React.FC<{
@@ -50,7 +51,8 @@ const SettingsSection: React.FC<{
   </section>
 );
 
-const SettingsSectionNav: React.FC<{ sections: { id: string; label: string }[] }> = ({ sections }) => {
+const SettingsSectionNav: React.FC<{ sections: { id: string; label: MessageKey }[] }> = ({ sections }) => {
+  const t = useT();
   const [active, setActive] = useState<string>(sections[0]?.id);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -77,7 +79,7 @@ const SettingsSectionNav: React.FC<{ sections: { id: string; label: string }[] }
   return (
     <nav className="hidden lg:block w-44 shrink-0 sticky top-0">
       <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        Sections
+        {t('Sections')}
       </p>
       <ul className="space-y-0.5">
         {sections.map(({ id, label }) => (
@@ -96,7 +98,7 @@ const SettingsSectionNav: React.FC<{ sections: { id: string; label: string }[] }
                   : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'
               )}
             >
-              {label}
+                            {t(label)}
             </button>
           </li>
         ))}
@@ -106,6 +108,7 @@ const SettingsSectionNav: React.FC<{ sections: { id: string; label: string }[] }
 };
 
 export const SettingsPanel: React.FC = () => {
+  const t = useT();
   const { advertorial, updateSettings, isLesson } = useAdvertorial();
   const { settings } = advertorial;
   const [uploadingFavicon, setUploadingFavicon] = useState(false);
@@ -113,8 +116,8 @@ export const SettingsPanel: React.FC = () => {
   const handleFaviconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) { toast.error('Please upload an image file'); return; }
-    if (file.size > 1 * 1024 * 1024) { toast.error('Favicon must be less than 1MB'); return; }
+    if (!file.type.startsWith('image/')) { toast.error(tr('Please upload an image file')); return; }
+    if (file.size > 1 * 1024 * 1024) { toast.error(tr('Favicon must be less than 1MB')); return; }
 
     setUploadingFavicon(true);
     try {
@@ -127,10 +130,10 @@ export const SettingsPanel: React.FC = () => {
       if (uploadError) throw uploadError;
       const { data } = supabase.storage.from('quiz-assets').getPublicUrl(filePath);
       updateSettings({ faviconUrl: data.publicUrl });
-      toast.success('Favicon uploaded');
+      toast.success(tr('Favicon uploaded'));
     } catch (error) {
       console.error('Error uploading favicon:', error);
-      toast.error('Failed to upload favicon');
+      toast.error(tr('Failed to upload favicon'));
     } finally {
       setUploadingFavicon(false);
     }
@@ -144,34 +147,34 @@ export const SettingsPanel: React.FC = () => {
 
       <div className="flex-1 min-w-0 grid gap-4 xl:grid-cols-2 items-start">
           {/* Page Info */}
-          <SettingsSection id="page-info" title="Page Info" description="Title, SEO description and favicon" className="space-y-3">
+          <SettingsSection id="page-info" title={t('Page Info')} description={t('Title, SEO description and favicon')} className="space-y-3">
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Page Title</Label>
+              <Label className="text-xs">{t('Page Title')}</Label>
               <Input
                 value={settings.title}
                 onChange={(e) => updateSettings({ title: e.target.value })}
-                placeholder="Enter page title"
+                placeholder={t('Enter page title')}
                 className="h-9 text-sm"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Meta Description</Label>
+              <Label className="text-xs">{t('Meta Description')}</Label>
               <Textarea
                 value={settings.metaDescription}
                 onChange={(e) => updateSettings({ metaDescription: e.target.value })}
-                placeholder="SEO description"
+                placeholder={t('SEO description')}
                 className="text-sm min-h-[80px] resize-none"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Favicon</Label>
+              <Label className="text-xs">{t('Favicon')}</Label>
               {settings.faviconUrl ? (
                 <div className="relative inline-block">
-                  <img src={settings.faviconUrl} alt="Favicon" className="h-10 w-10 object-contain rounded border border-border bg-secondary/50" />
-                  <button aria-label="Remove favicon"
+                  <img src={settings.faviconUrl} alt={t('Favicon')} className="h-10 w-10 object-contain rounded border border-border bg-secondary/50" />
+                  <button aria-label={t('Remove favicon')}
                     onClick={() => updateSettings({ faviconUrl: '' })}
                     className="absolute -top-1.5 -right-1.5 p-0.5 bg-destructive text-destructive-foreground rounded-full hover:opacity-90"
                   >
@@ -181,19 +184,19 @@ export const SettingsPanel: React.FC = () => {
               ) : (
                 <label className="flex flex-col items-center justify-center w-full h-16 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-secondary/30 transition-colors">
                   <Upload className="w-4 h-4 text-muted-foreground mb-1" />
-                  <span className="text-xs text-muted-foreground">{uploadingFavicon ? 'Uploading...' : 'Upload favicon'}</span>
+                  <span className="text-xs text-muted-foreground">{uploadingFavicon ? t('Uploading...') : t('Upload favicon')}</span>
                   <input type="file" accept="image/*" onChange={handleFaviconUpload} disabled={uploadingFavicon} className="hidden" />
                 </label>
               )}
-              <p className="text-xs text-muted-foreground">Max 1MB. Shows in browser tab.</p>
+              <p className="text-xs text-muted-foreground">{t('Max 1MB. Shows in browser tab.')}</p>
             </div>
           </SettingsSection>
 
           {/* Branding */}
-          <SettingsSection id="branding" title="Branding" description="Primary brand color" className="space-y-3">
+          <SettingsSection id="branding" title={t('Branding')} description={t('Primary brand color')} className="space-y-3">
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Brand Color</Label>
+              <Label className="text-xs">{t('Brand Color')}</Label>
               <div className="flex gap-2">
                 <input
                   type="color"
@@ -211,10 +214,10 @@ export const SettingsPanel: React.FC = () => {
           </SettingsSection>
 
           {/* Typography */}
-          <SettingsSection id="typography" title="Typography" description="Headline and body fonts" className="space-y-3">
+          <SettingsSection id="typography" title={t('Typography')} description={t('Headline and body fonts')} className="space-y-3">
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Headline Font</Label>
+              <Label className="text-xs">{t('Headline Font')}</Label>
               <Select
                 value={settings.headlineFont}
                 onValueChange={(value) => updateSettings({ headlineFont: value })}
@@ -223,7 +226,7 @@ export const SettingsPanel: React.FC = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="system-ui">System (Default)</SelectItem>
+                  <SelectItem value="system-ui">{t('System (Default)')}</SelectItem>
                   <SelectItem value="'Inter', sans-serif">Inter</SelectItem>
                   <SelectItem value="Georgia, serif">Georgia</SelectItem>
                   <SelectItem value="'Times New Roman', serif">Times New Roman</SelectItem>
@@ -233,7 +236,7 @@ export const SettingsPanel: React.FC = () => {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Body Font</Label>
+              <Label className="text-xs">{t('Body Font')}</Label>
               <Select
                 value={settings.bodyFont}
                 onValueChange={(value) => updateSettings({ bodyFont: value })}
@@ -242,7 +245,7 @@ export const SettingsPanel: React.FC = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="system-ui">System (Default)</SelectItem>
+                  <SelectItem value="system-ui">{t('System (Default)')}</SelectItem>
                   <SelectItem value="'Inter', sans-serif">Inter</SelectItem>
                   <SelectItem value="Georgia, serif">Georgia</SelectItem>
                   <SelectItem value="'Times New Roman', serif">Times New Roman</SelectItem>
@@ -253,10 +256,10 @@ export const SettingsPanel: React.FC = () => {
           </SettingsSection>
 
           {/* CTA Style */}
-          <SettingsSection id="cta-style" title="CTA Button Style" description="Shape and size of call-to-action buttons" className="space-y-3">
+          <SettingsSection id="cta-style" title={t('CTA Button Style')} description={t('Shape and size of call-to-action buttons')} className="space-y-3">
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Button Shape</Label>
+              <Label className="text-xs">{t('Button Shape')}</Label>
               <Select
                 value={settings.ctaButtonStyle}
                 onValueChange={(value: 'rounded' | 'square' | 'pill') => updateSettings({ ctaButtonStyle: value })}
@@ -265,15 +268,15 @@ export const SettingsPanel: React.FC = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="square">Square</SelectItem>
-                  <SelectItem value="rounded">Rounded</SelectItem>
-                  <SelectItem value="pill">Pill</SelectItem>
+                  <SelectItem value="square">{t('Square')}</SelectItem>
+                  <SelectItem value="rounded">{t('Rounded')}</SelectItem>
+                  <SelectItem value="pill">{t('Pill')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Button Size</Label>
+              <Label className="text-xs">{t('Button Size')}</Label>
               <Select
                 value={settings.ctaButtonSize}
                 onValueChange={(value: 'small' | 'medium' | 'large') => updateSettings({ ctaButtonSize: value })}
@@ -282,9 +285,9 @@ export const SettingsPanel: React.FC = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="small">Small</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="large">Large</SelectItem>
+                  <SelectItem value="small">{t('Small')}</SelectItem>
+                  <SelectItem value="medium">{t('Medium')}</SelectItem>
+                  <SelectItem value="large">{t('Large')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -292,10 +295,10 @@ export const SettingsPanel: React.FC = () => {
 
           {/* Sticky Footer CTA - only for advertorials, not lessons */}
           {!isLesson && (
-            <SettingsSection id="sticky-cta" title="Sticky Footer CTA" description="Persistent bottom conversion bar" className="space-y-3">
+            <SettingsSection id="sticky-cta" title={t('Sticky Footer CTA')} description={t('Persistent bottom conversion bar')} className="space-y-3">
 
               <div className="flex items-center justify-between">
-                <Label className="text-xs">Enable Sticky CTA</Label>
+                <Label className="text-xs">{t('Enable Sticky CTA')}</Label>
                 <Switch
                   checked={settings.stickyCtaEnabled || false}
                   onCheckedChange={(checked) => updateSettings({ stickyCtaEnabled: checked })}
@@ -305,7 +308,7 @@ export const SettingsPanel: React.FC = () => {
               {settings.stickyCtaEnabled && (
                 <>
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Button Text</Label>
+                    <Label className="text-xs">{t('Button Text')}</Label>
                     <Input
                       value={settings.stickyCtaText || 'Shop Now'}
                       onChange={(e) => updateSettings({ stickyCtaText: e.target.value })}
@@ -315,7 +318,7 @@ export const SettingsPanel: React.FC = () => {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Button URL</Label>
+                    <Label className="text-xs">{t('Button URL')}</Label>
                     <Input
                       value={settings.stickyCtaUrl || ''}
                       onChange={(e) => updateSettings({ stickyCtaUrl: e.target.value })}
@@ -325,7 +328,7 @@ export const SettingsPanel: React.FC = () => {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Button Color</Label>
+                    <Label className="text-xs">{t('Button Color')}</Label>
                     <div className="flex gap-2">
                       <input
                         type="color"
@@ -346,33 +349,33 @@ export const SettingsPanel: React.FC = () => {
           )}
 
           {/* Footer */}
-          <SettingsSection id="footer" title="Footer" description="Disclaimer shown at the bottom of the page" className="space-y-3">
+          <SettingsSection id="footer" title={t('Footer')} description={t('Disclaimer shown at the bottom of the page')} className="space-y-3">
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Footer Text / Disclaimer</Label>
+              <Label className="text-xs">{t('Footer Text / Disclaimer')}</Label>
               <Textarea
                 value={settings.footerText}
                 onChange={(e) => updateSettings({ footerText: e.target.value })}
-                placeholder="Add footer disclaimer text"
+                placeholder={t('Add footer disclaimer text')}
                 className="text-sm min-h-[110px] resize-none"
               />
             </div>
           </SettingsSection>
 
           {/* Analytics demo */}
-          <SettingsSection id="analytics-demo" title="Analytics Demo" description="Preview the report with sample data" className="space-y-3">
+          <SettingsSection id="analytics-demo" title={t('Analytics Demo')} description={t('Preview the report with sample data')} className="space-y-3">
             <p className="text-xs text-muted-foreground">
-              Preview the analytics report with sample data before you have real traffic.
+              {t('Preview the analytics report with sample data before you have real traffic.')}
             </p>
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
-                  <BarChart3 className="w-4 h-4 mr-1" /> Open demo dashboard
+                  <BarChart3 className="w-4 h-4 mr-1" /> {t('Open demo dashboard')}
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Analytics demo (sample data)</DialogTitle>
+                  <DialogTitle>{t('Analytics demo (sample data)')}</DialogTitle>
                 </DialogHeader>
                 <AdvertorialAnalyticsPanel
                   demo

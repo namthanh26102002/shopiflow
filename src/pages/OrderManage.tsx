@@ -12,8 +12,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { useT, tr, useDateLocale } from '@/i18n';
 
 const OrderManage: React.FC = () => {
+  const t = useT();
+  const dateLocale = useDateLocale();
   const navigate = useNavigate();
   const { isAdmin, loading: adminLoading } = useAdmin();
   const { orders, isLoading, createOrder, updateOrder, deleteOrder } = useOrders();
@@ -37,41 +40,41 @@ const OrderManage: React.FC = () => {
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <Button variant="ghost" className="gap-2 text-muted-foreground" onClick={() => navigate('/orders')}>
-            <ArrowLeft className="w-4 h-4" /> Back
+            <ArrowLeft className="w-4 h-4" /> {t('Back')}
           </Button>
           <Button className="gap-2" onClick={() => { setEditing(null); setShowForm(true); }}>
-            <Plus className="w-4 h-4" /> Add Order
+            <Plus className="w-4 h-4" /> {t('Add Order')}
           </Button>
         </div>
 
-        <h1 className="text-xl font-bold text-foreground">Manage Orders</h1>
+        <h1 className="text-xl font-bold text-foreground">{t('Manage Orders')}</h1>
 
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
           </div>
         ) : orders.length === 0 ? (
-          <p className="text-center py-12 text-muted-foreground">No orders yet. Create your first one!</p>
+          <p className="text-center py-12 text-muted-foreground">{t('No orders yet. Create your first one!')}</p>
         ) : (
           <div className="space-y-3">
             {orders.map(order => (
               <Card key={order.id}>
                 <CardContent className="p-4 flex items-center gap-4">
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-foreground truncate">{order.order_number || 'Untitled'}</p>
+                    <p className="font-medium text-foreground truncate">{order.order_number || t('Untitled')}</p>
                     <p className="text-xs text-muted-foreground">
-                      {format(new Date(order.order_date), 'MMM dd, yyyy')} · ${Number(order.total).toFixed(2)}
+                      {format(new Date(order.order_date), 'PP', { locale: dateLocale })} · ${Number(order.total).toFixed(2)}
                     </p>
                   </div>
                   <Badge variant={order.published ? 'default' : 'secondary'} className="gap-1 shrink-0">
                     {order.published ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                    {order.published ? 'Live' : 'Draft'}
+                    {order.published ? t('Live') : t('Draft')}
                   </Badge>
                   <div className="flex gap-1 shrink-0">
-                    <Button variant="ghost" size="icon" className="w-8 h-8" title="Share tracking link" onClick={async () => {
+                    <Button variant="ghost" size="icon" className="w-8 h-8" title={t('Share tracking link')} onClick={async () => {
                       const normalizedOrderNumber = (order.order_number || '').trim();
                       if (!normalizedOrderNumber) {
-                        toast({ title: 'Missing order number', description: 'Please add an order number before sharing.', variant: 'destructive' });
+                        toast({ title: tr('Missing order number'), description: tr('Please add an order number before sharing.'), variant: 'destructive' });
                         return;
                       }
                       // Sharing needs the order public, so say so when this click is what publishes it.
@@ -80,28 +83,28 @@ const OrderManage: React.FC = () => {
                       const url = `${window.location.origin}/order/${encodeURIComponent(normalizedOrderNumber)}`;
                       navigator.clipboard.writeText(url);
                       toast(wasPublished
-                        ? { title: 'Tracking link copied' }
-                        : { title: 'Order published and link copied', description: 'Anyone with the link can now see this order’s tracking page.' });
+                        ? { title: tr('Tracking link copied') }
+                        : { title: tr('Order published and link copied'), description: tr('Anyone with the link can now see this order’s tracking page.') });
                     }}>
                       <Share2 className="w-3.5 h-3.5" />
                     </Button>
-                    <Button aria-label="Edit order" variant="ghost" size="icon" className="w-8 h-8" onClick={() => { setEditing(order); setShowForm(true); }}>
+                    <Button aria-label={t('Edit order')} variant="ghost" size="icon" className="w-8 h-8" onClick={() => { setEditing(order); setShowForm(true); }}>
                       <Pencil className="w-3.5 h-3.5" />
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button aria-label="Delete order" variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive">
+                        <Button aria-label={t('Delete order')} variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive">
                           <Trash2 className="w-3.5 h-3.5" />
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Delete order?</AlertDialogTitle>
-                          <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+                          <AlertDialogTitle>{t('Delete order?')}</AlertDialogTitle>
+                          <AlertDialogDescription>{t('This action cannot be undone.')}</AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => deleteOrder.mutate(order.id)}>Delete</AlertDialogAction>
+                          <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => deleteOrder.mutate(order.id)}>{t('Delete')}</AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
@@ -115,7 +118,7 @@ const OrderManage: React.FC = () => {
         <Dialog open={showForm} onOpenChange={setShowForm}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>{editing ? 'Edit Order' : 'Add Order'}</DialogTitle>
+              <DialogTitle>{editing ? t('Edit Order') : t('Add Order')}</DialogTitle>
             </DialogHeader>
             <OrderForm
               order={editing ?? undefined}

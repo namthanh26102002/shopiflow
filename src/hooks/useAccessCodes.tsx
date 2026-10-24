@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { tr } from '@/i18n';
 
 interface AccessCode {
   id: string;
@@ -54,7 +55,7 @@ export const useAccessCodes = () => {
   };
 
   const createCode = async (customCode?: string, trialDays?: number | null): Promise<{ success: boolean; error?: string }> => {
-    if (!user) return { success: false, error: 'Not authenticated' };
+    if (!user) return { success: false, error: tr('Not authenticated') };
 
     const code = customCode?.toUpperCase().trim() || generateCode();
 
@@ -69,7 +70,7 @@ export const useAccessCodes = () => {
 
       if (error) {
         if (error.code === '23505') {
-          return { success: false, error: 'This code already exists' };
+          return { success: false, error: tr('This code already exists') };
         }
         return { success: false, error: error.message };
       }
@@ -77,7 +78,7 @@ export const useAccessCodes = () => {
       await fetchCodes();
       return { success: true };
     } catch (err) {
-      return { success: false, error: 'Failed to create code' };
+      return { success: false, error: tr('Failed to create code') };
     }
   };
 
@@ -95,7 +96,7 @@ export const useAccessCodes = () => {
       await fetchCodes();
       return { success: true };
     } catch (err) {
-      return { success: false, error: 'Failed to update code' };
+      return { success: false, error: tr('Failed to update code') };
     }
   };
 
@@ -113,7 +114,7 @@ export const useAccessCodes = () => {
       await fetchCodes();
       return { success: true };
     } catch (err) {
-      return { success: false, error: 'Failed to delete code' };
+      return { success: false, error: tr('Failed to delete code') };
     }
   };
 

@@ -13,6 +13,7 @@ import { BlockEditor } from '@/components/advertorial/BlockEditor';
 import { LivePreview } from '@/components/advertorial/LivePreview';
 import { PreviewDrawer } from '@/components/shared/PreviewDrawer';
 import { AdvertorialAnalyticsPanel } from '@/components/advertorial/AdvertorialAnalyticsPanel';
+import { tr } from '@/i18n';
 
 const AdvertorialBuilderContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AdvertorialTab>('components');
@@ -21,7 +22,7 @@ const AdvertorialBuilderContent: React.FC = () => {
   // Deleted (possibly in another tab), or someone else's. Say why before
   // sending them back, rather than ejecting silently.
   useEffect(() => {
-    if (notFound) toast.error('That advertorial project no longer exists.');
+    if (notFound) toast.error(tr('That advertorial project no longer exists.'));
   }, [notFound]);
 
   if (notFound) return <Navigate to="/advertorial-builder" replace />;

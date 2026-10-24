@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
+import { tr } from '@/i18n';
 
 export interface OrderProduct {
   product_id: string;
@@ -125,9 +126,9 @@ export const useOrders = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
-      toast({ title: 'Order created' });
+      toast({ title: tr('Order created') });
     },
-    onError: (e: any) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
+    onError: (e: any) => toast({ title: tr('Error'), description: e.message, variant: 'destructive' }),
   });
 
   const updateOrder = useMutation({
@@ -139,9 +140,9 @@ export const useOrders = () => {
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['orders', vars.id] });
-      toast({ title: 'Order updated' });
+      toast({ title: tr('Order updated') });
     },
-    onError: (e: any) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
+    onError: (e: any) => toast({ title: tr('Error'), description: e.message, variant: 'destructive' }),
   });
 
   const deleteOrder = useMutation({
@@ -151,9 +152,9 @@ export const useOrders = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
-      toast({ title: 'Order deleted' });
+      toast({ title: tr('Order deleted') });
     },
-    onError: (e: any) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
+    onError: (e: any) => toast({ title: tr('Error'), description: e.message, variant: 'destructive' }),
   });
 
   // Timeline mutations
@@ -165,7 +166,7 @@ export const useOrders = () => {
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ['order-timeline', vars.order_id] });
     },
-    onError: (e: any) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
+    onError: (e: any) => toast({ title: tr('Error'), description: e.message, variant: 'destructive' }),
   });
 
   const updateTimelineEvent = useMutation({
@@ -176,7 +177,7 @@ export const useOrders = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['order-timeline'] });
     },
-    onError: (e: any) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
+    onError: (e: any) => toast({ title: tr('Error'), description: e.message, variant: 'destructive' }),
   });
 
   const deleteTimelineEvent = useMutation({
@@ -187,7 +188,7 @@ export const useOrders = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['order-timeline'] });
     },
-    onError: (e: any) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
+    onError: (e: any) => toast({ title: tr('Error'), description: e.message, variant: 'destructive' }),
   });
 
   return {

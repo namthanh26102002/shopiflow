@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { Order, useOrders } from '@/hooks/useOrders';
+import { useT, tr } from '@/i18n';
 
 interface OrderPublishDialogProps {
   open: boolean;
@@ -13,6 +14,7 @@ interface OrderPublishDialogProps {
 }
 
 export const OrderPublishDialog: React.FC<OrderPublishDialogProps> = ({ open, onOpenChange, order }) => {
+  const t = useT();
   const { updateOrder } = useOrders();
   const [copied, setCopied] = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -24,13 +26,13 @@ export const OrderPublishDialog: React.FC<OrderPublishDialogProps> = ({ open, on
   const handleCopy = async () => {
     await navigator.clipboard.writeText(liveUrl);
     setCopied(true);
-    toast({ title: 'Link copied to clipboard' });
+    toast({ title: tr('Link copied to clipboard') });
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handlePublish = async () => {
     if (!orderNumber) {
-      toast({ title: 'Missing order number', description: 'Please add an order number before publishing.', variant: 'destructive' });
+      toast({ title: tr('Missing order number'), description: tr('Please add an order number before publishing.'), variant: 'destructive' });
       return;
     }
     setPublishing(true);
@@ -38,10 +40,10 @@ export const OrderPublishDialog: React.FC<OrderPublishDialogProps> = ({ open, on
       await updateOrder.mutateAsync({ id: order.id, published: true, order_number: orderNumber });
       await navigator.clipboard.writeText(liveUrl);
       setCopied(true);
-      toast({ title: 'Order published!', description: 'Public link copied to clipboard.' });
+      toast({ title: tr('Order published!'), description: tr('Public link copied to clipboard.') });
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast({ title: 'Failed to publish', variant: 'destructive' });
+      toast({ title: tr('Failed to publish'), variant: 'destructive' });
     } finally {
       setPublishing(false);
     }
@@ -50,9 +52,9 @@ export const OrderPublishDialog: React.FC<OrderPublishDialogProps> = ({ open, on
   const handleUnpublish = async () => {
     try {
       await updateOrder.mutateAsync({ id: order.id, published: false });
-      toast({ title: 'Order unpublished' });
+      toast({ title: tr('Order unpublished') });
     } catch {
-      toast({ title: 'Failed to unpublish', variant: 'destructive' });
+      toast({ title: tr('Failed to unpublish'), variant: 'destructive' });
     }
   };
 
@@ -60,27 +62,27 @@ export const OrderPublishDialog: React.FC<OrderPublishDialogProps> = ({ open, on
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Publish Order</DialogTitle>
+          <DialogTitle>{t('Publish Order')}</DialogTitle>
         </DialogHeader>
 
         {!isPublished ? (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Publishing this order will make it accessible via a public tracking link.
+              {t('Publishing this order will make it accessible via a public tracking link.')}
             </p>
             {!orderNumber && (
-              <p className="text-sm text-destructive">Please add an order number before publishing.</p>
+              <p className="text-sm text-destructive">{t('Please add an order number before publishing.')}</p>
             )}
             <Button className="w-full gap-2" onClick={handlePublish} disabled={publishing || !orderNumber}>
               <Globe className="w-4 h-4" />
-              {publishing ? 'Publishing...' : 'Publish Order'}
+              {publishing ? t('Publishing...') : t('Publish Order')}
             </Button>
           </div>
         ) : (
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-sm font-medium text-foreground">Live</span>
+              <span className="text-sm font-medium text-foreground">{t('Live')}</span>
             </div>
             <div className="flex gap-2">
               <Input value={liveUrl} readOnly className="text-xs" />
@@ -90,10 +92,10 @@ export const OrderPublishDialog: React.FC<OrderPublishDialogProps> = ({ open, on
             </div>
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1 gap-2" onClick={() => window.open(liveUrl, '_blank')}>
-                <ExternalLink className="w-4 h-4" /> View Live
+                <ExternalLink className="w-4 h-4" /> {t('View Live')}
               </Button>
               <Button variant="ghost" className="text-destructive" onClick={handleUnpublish}>
-                Unpublish
+                {t('Unpublish')}
               </Button>
             </div>
           </div>

@@ -15,6 +15,7 @@ import { OrderPublishDialog } from '@/components/orders/OrderPublishDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { useT, useDateLocale, trKnown } from '@/i18n';
 
 const statusColor: Record<string, string> = {
   Completed: 'bg-green-100 text-green-700 border-green-200',
@@ -28,6 +29,8 @@ interface OrderDetailProps {
 }
 
 const OrderDetail: React.FC<OrderDetailProps> = ({ overrideId }) => {
+  const t = useT();
+  const dateLocale = useDateLocale();
   const { orderId: paramId } = useParams<{ orderId: string }>();
   const orderId = overrideId || paramId;
   const navigate = useNavigate();
@@ -55,7 +58,7 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ overrideId }) => {
   if (!order) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Order not found</p>
+        <p className="text-muted-foreground">{t('Order not found')}</p>
       </div>
     );
   }
@@ -68,34 +71,34 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ overrideId }) => {
         <div className="flex items-center justify-between">
           {!isPublicView && (
             <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground -ml-2" onClick={() => navigate('/orders')}>
-              <ArrowLeft className="w-4 h-4" /> <span className="hidden sm:inline">Back to Orders</span><span className="sm:hidden">Back</span>
+              <ArrowLeft className="w-4 h-4" /> <span className="hidden sm:inline">{t('Back to Orders')}</span><span className="sm:hidden">{t('Back')}</span>
             </Button>
           )}
           {!isPublicView && <div className="flex gap-2">
             {isAdmin && (
               <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setShowEditForm(true)}>
                 <Pencil className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Edit</span>
+                <span className="hidden sm:inline">{t('Edit')}</span>
               </Button>
             )}
             <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setShowPublishDialog(true)}>
               <Share2 className="w-3.5 h-3.5" />
-              {order.published ? 'Published' : 'Publish'}
+              {order.published ? t('Published') : t('Publish')}
             </Button>
           </div>}
         </div>
 
         {/* Header */}
         <div className="flex items-start sm:items-center gap-2 sm:gap-3 flex-wrap">
-          <h1 className="text-lg sm:text-xl font-bold">{order.order_number || 'Order'}</h1>
-          <Badge className={statusColor[order.status] || 'bg-secondary text-secondary-foreground'}>{order.status}</Badge>
-          <span className="text-xs sm:text-sm text-muted-foreground w-full sm:w-auto">{format(new Date(order.order_date), 'MMM dd, yyyy · hh:mm a')}</span>
+          <h1 className="text-lg sm:text-xl font-bold">{order.order_number || t('Order')}</h1>
+          <Badge className={statusColor[order.status] || 'bg-secondary text-secondary-foreground'}>{trKnown(order.status)}</Badge>
+          <span className="text-xs sm:text-sm text-muted-foreground w-full sm:w-auto">{format(new Date(order.order_date), 'PP · p', { locale: dateLocale })}</span>
         </div>
 
         <div className="space-y-6">
             {/* Order Details */}
             <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
-              <h3 className="text-sm font-semibold text-foreground mb-3 sm:mb-4">Order Details</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-3 sm:mb-4">{t('Order Details')}</h3>
               <OrderProductsTable products={products} onChange={() => {}} />
             </div>
 
@@ -119,7 +122,7 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ overrideId }) => {
           <Dialog open={showEditForm} onOpenChange={setShowEditForm}>
             <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Edit Order</DialogTitle>
+                <DialogTitle>{t('Edit Order')}</DialogTitle>
               </DialogHeader>
               <OrderForm
                 order={order}

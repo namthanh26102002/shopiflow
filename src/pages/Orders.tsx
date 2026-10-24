@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
+import { useT, useDateLocale } from '@/i18n';
 
 const statusColor: Record<string, string> = {
   Completed: 'bg-green-100 text-green-700 border-green-200',
@@ -18,6 +19,8 @@ const statusColor: Record<string, string> = {
 };
 
 const Orders: React.FC = () => {
+  const t = useT();
+  const dateLocale = useDateLocale();
   const { signOut, user } = useAuth();
   const { isAdmin } = useAdmin();
   const { orders, isLoading } = useOrders();
@@ -35,15 +38,15 @@ const Orders: React.FC = () => {
               <span className="text-xs text-muted-foreground">{user.email}</span>
               {isAdmin && (
                 <Button variant="outline" size="sm" className="gap-1.5 h-8" onClick={() => navigate('/orders/manage')}>
-                  <Settings className="w-3.5 h-3.5" /> Manage
+                  <Settings className="w-3.5 h-3.5" /> {t('Manage')}
                 </Button>
               )}
-              <Button variant="ghost" size="icon" className="w-8 h-8 text-muted-foreground hover:text-foreground" onClick={signOut} title="Sign out">
+              <Button variant="ghost" size="icon" className="w-8 h-8 text-muted-foreground hover:text-foreground" onClick={signOut} title={t('Sign out')}>
                 <LogOut className="w-4 h-4" />
               </Button>
             </>
           ) : (
-            <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>Sign In</Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>{t('Sign In')}</Button>
           )}
         </div>
       </header>
@@ -54,18 +57,18 @@ const Orders: React.FC = () => {
             <Package className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-foreground">Orders</h1>
-            <p className="text-sm text-muted-foreground">Tracking simulation orders</p>
+            <h1 className="text-xl font-bold text-foreground">{t('Orders')}</h1>
+            <p className="text-sm text-muted-foreground">{t('Tracking simulation orders')}</p>
           </div>
         </div>
 
         {/* Table header */}
         <div className="flex items-center gap-4 px-3 py-2 text-xs text-muted-foreground font-medium border-b border-border mb-2">
-          <div className="min-w-[140px] flex-1">Order #</div>
-          <div className="hidden sm:block w-[120px]">Date</div>
-          <div className="w-[100px]">Status</div>
-          <div className="hidden md:block w-[140px]">Customer</div>
-          <div className="w-[80px] text-right">Total</div>
+          <div className="min-w-[140px] flex-1">{t('Order #')}</div>
+          <div className="hidden sm:block w-[120px]">{t('Date')}</div>
+          <div className="w-[100px]">{t('Status')}</div>
+          <div className="hidden md:block w-[140px]">{t('Customer')}</div>
+          <div className="w-[80px] text-right">{t('Total')}</div>
         </div>
 
         {isLoading ? (
@@ -75,7 +78,7 @@ const Orders: React.FC = () => {
         ) : orders.length === 0 ? (
           <div className="text-center py-20 text-muted-foreground">
             <Package className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p>No orders yet</p>
+            <p>{t('No orders yet')}</p>
           </div>
         ) : (
           <div className="space-y-1">
@@ -86,10 +89,10 @@ const Orders: React.FC = () => {
                 onClick={() => navigate(`/orders/${order.id}`)}
               >
                 <div className="min-w-[140px] flex-1">
-                  <p className="text-sm font-medium text-foreground">{order.order_number || 'Untitled'}</p>
+                  <p className="text-sm font-medium text-foreground">{order.order_number || t('Untitled')}</p>
                 </div>
                 <div className="hidden sm:block w-[120px] text-xs text-muted-foreground">
-                  {format(new Date(order.order_date), 'MMM dd, yyyy')}
+                  {format(new Date(order.order_date), 'PP', { locale: dateLocale })}
                 </div>
                 <div className="w-[100px]">
                   <Badge className={statusColor[order.status] || 'bg-secondary text-secondary-foreground'}>

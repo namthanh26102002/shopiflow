@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Pencil, Trash2, Plus, User, Check, X, MessageCircle, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useT } from '@/i18n';
 
 interface FacebookCommentsEditorProps {
   block: FacebookCommentsBlock;
@@ -39,6 +40,7 @@ interface CommentFormData {
 }
 
 export const FacebookCommentsEditor: React.FC<FacebookCommentsEditorProps> = ({ block, updateBlock }) => {
+  const t = useT();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingParentId, setEditingParentId] = useState<string | null>(null);
   const [formData, setFormData] = useState<CommentFormData | null>(null);
@@ -230,7 +232,7 @@ export const FacebookCommentsEditor: React.FC<FacebookCommentsEditorProps> = ({ 
   return (
     <div className="space-y-4 pb-4 pr-1">
       <div className="space-y-2">
-        <Label className="text-xs font-semibold">Comments</Label>
+        <Label className="text-xs font-semibold">{t('Comments')}</Label>
         <div className="space-y-2 pr-2">
           {block.comments.map((comment) => (
             <div key={comment.id} className="space-y-1">
@@ -250,11 +252,11 @@ export const FacebookCommentsEditor: React.FC<FacebookCommentsEditorProps> = ({ 
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold truncate">{comment.name || 'Unnamed'}</p>
-                  <p className="text-xs text-muted-foreground truncate">{comment.text || 'No text...'}</p>
+                  <p className="text-xs font-semibold truncate">{comment.name || t('Unnamed')}</p>
+                  <p className="text-xs text-muted-foreground truncate">{comment.text || t('No text...')}</p>
                 </div>
                 <div className="flex gap-1">
-                  <Button aria-label="Edit comment"
+                  <Button aria-label={t('Edit comment')}
                     variant="ghost"
                     size="icon"
                     className="h-6 w-6"
@@ -262,7 +264,7 @@ export const FacebookCommentsEditor: React.FC<FacebookCommentsEditorProps> = ({ 
                   >
                     <Pencil className="w-3 h-3" />
                   </Button>
-                  <Button aria-label="Delete comment"
+                  <Button aria-label={t('Delete comment')}
                     variant="ghost"
                     size="icon"
                     className="h-6 w-6 text-destructive hover:text-destructive"
@@ -293,11 +295,11 @@ export const FacebookCommentsEditor: React.FC<FacebookCommentsEditorProps> = ({ 
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-semibold truncate">{reply.name || 'Unnamed'}</p>
-                        <p className="text-[10px] text-muted-foreground truncate">{reply.text || 'No text...'}</p>
+                        <p className="text-[10px] font-semibold truncate">{reply.name || t('Unnamed')}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">{reply.text || t('No text...')}</p>
                       </div>
                       <div className="flex gap-1">
-                        <Button aria-label="Edit reply"
+                        <Button aria-label={t('Edit reply')}
                           variant="ghost"
                           size="icon"
                           className="h-5 w-5"
@@ -305,7 +307,7 @@ export const FacebookCommentsEditor: React.FC<FacebookCommentsEditorProps> = ({ 
                         >
                           <Pencil className="w-2.5 h-2.5" />
                         </Button>
-                        <Button aria-label="Delete reply"
+                        <Button aria-label={t('Delete reply')}
                           variant="ghost"
                           size="icon"
                           className="h-5 w-5 text-destructive hover:text-destructive"
@@ -328,7 +330,7 @@ export const FacebookCommentsEditor: React.FC<FacebookCommentsEditorProps> = ({ 
                   onClick={() => handleAddReply(comment.id)}
                 >
                   <MessageCircle className="w-3 h-3 mr-1" />
-                  Add Reply
+                  {t('Add Reply')}
                 </Button>
               )}
             </div>
@@ -342,7 +344,7 @@ export const FacebookCommentsEditor: React.FC<FacebookCommentsEditorProps> = ({ 
           onClick={handleAddComment}
         >
           <Plus className="w-3 h-3 mr-1" />
-          Add Comment
+          {t('Add Comment')}
         </Button>
       </div>
 
@@ -353,13 +355,13 @@ export const FacebookCommentsEditor: React.FC<FacebookCommentsEditorProps> = ({ 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label className="text-xs font-semibold">
-                Editing: {formData.name || 'New Comment'}
-                {editingParentId && <span className="text-muted-foreground ml-1">(Reply)</span>}
+                {t('Editing:')} {formData.name || t('New Comment')}
+                {editingParentId && <span className="text-muted-foreground ml-1">{t('(Reply)')}</span>}
               </Label>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Avatar Image</Label>
+              <Label className="text-xs">{t('Avatar Image')}</Label>
               <input
                 ref={avatarInputRef}
                 type="file"
@@ -375,12 +377,12 @@ export const FacebookCommentsEditor: React.FC<FacebookCommentsEditorProps> = ({ 
                 onClick={() => avatarInputRef.current?.click()}
               >
                 <Upload className="w-4 h-4 mr-2" />
-                {formData.avatarUrl ? 'Change Avatar' : 'Upload Avatar'}
+                {formData.avatarUrl ? t('Change Avatar') : t('Upload Avatar')}
               </Button>
               {formData.avatarUrl && (
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full overflow-hidden border border-border">
-                    <img src={formData.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    <img src={formData.avatarUrl} alt={t('Avatar')} className="w-full h-full object-cover" />
                   </div>
                   <Button
                     variant="ghost"
@@ -388,14 +390,14 @@ export const FacebookCommentsEditor: React.FC<FacebookCommentsEditorProps> = ({ 
                     className="h-6 text-xs text-destructive"
                     onClick={() => setFormData({ ...formData, avatarUrl: '' })}
                   >
-                    Remove
+                    {t('Remove')}
                   </Button>
                 </div>
               )}
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Name</Label>
+              <Label className="text-xs">{t('Name')}</Label>
               <Input
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -405,17 +407,17 @@ export const FacebookCommentsEditor: React.FC<FacebookCommentsEditorProps> = ({ 
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Comment Text</Label>
+              <Label className="text-xs">{t('Comment Text')}</Label>
               <Textarea
                 value={formData.text}
                 onChange={(e) => setFormData({ ...formData, text: e.target.value })}
-                placeholder="Write a comment..."
+                placeholder={t('Write a comment...')}
                 className="text-sm min-h-[80px] resize-none"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Comment Image (Optional)</Label>
+              <Label className="text-xs">{t('Comment Image (Optional)')}</Label>
               <input
                 ref={imageInputRef}
                 type="file"
@@ -431,12 +433,12 @@ export const FacebookCommentsEditor: React.FC<FacebookCommentsEditorProps> = ({ 
                 onClick={() => imageInputRef.current?.click()}
               >
                 <Upload className="w-4 h-4 mr-2" />
-                {formData.imageUrl ? 'Change Image' : 'Upload Image'}
+                {formData.imageUrl ? t('Change Image') : t('Upload Image')}
               </Button>
               {formData.imageUrl && (
                 <div className="space-y-1">
                   <div className="rounded-md border border-border overflow-hidden">
-                    <img src={formData.imageUrl} alt="Comment" className="w-full h-20 object-cover" />
+                    <img src={formData.imageUrl} alt={t('Comment')} className="w-full h-20 object-cover" />
                   </div>
                   <Button
                     variant="ghost"
@@ -444,14 +446,14 @@ export const FacebookCommentsEditor: React.FC<FacebookCommentsEditorProps> = ({ 
                     className="h-6 text-xs text-destructive"
                     onClick={() => setFormData({ ...formData, imageUrl: '' })}
                   >
-                    Remove Image
+                    {t('Remove Image')}
                   </Button>
                 </div>
               )}
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Timestamp</Label>
+              <Label className="text-xs">{t('Timestamp')}</Label>
               <Input
                 value={formData.timestamp}
                 onChange={(e) => setFormData({ ...formData, timestamp: e.target.value })}
@@ -461,7 +463,7 @@ export const FacebookCommentsEditor: React.FC<FacebookCommentsEditorProps> = ({ 
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">👍 Like Count</Label>
+              <Label className="text-xs">{t('👍 Like Count')}</Label>
               <Input
                 type="number"
                 min={0}
@@ -478,7 +480,7 @@ export const FacebookCommentsEditor: React.FC<FacebookCommentsEditorProps> = ({ 
                 onClick={handleSaveComment}
               >
                 <Check className="w-3 h-3 mr-1" />
-                Done
+                {t('Done')}
               </Button>
               <Button 
                 variant="outline"
@@ -487,7 +489,7 @@ export const FacebookCommentsEditor: React.FC<FacebookCommentsEditorProps> = ({ 
                 onClick={handleCancelEdit}
               >
                 <X className="w-3 h-3 mr-1" />
-                Cancel
+                {t('Cancel')}
               </Button>
               <Button 
                 variant="destructive"
@@ -496,7 +498,7 @@ export const FacebookCommentsEditor: React.FC<FacebookCommentsEditorProps> = ({ 
                 onClick={() => handleDeleteComment(editingId)}
               >
                 <Trash2 className="w-3 h-3 mr-1" />
-                Delete
+                {t('Delete')}
               </Button>
             </div>
           </div>

@@ -5,8 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { generateId } from '@/types/quiz';
+import { useT } from '@/i18n';
 
 export const ProductsPanel: React.FC = () => {
+  const t = useT();
   const { quiz, addProduct, updateProduct, deleteProduct } = useQuiz();
 
   const handleAddProduct = () => {
@@ -24,8 +26,8 @@ export const ProductsPanel: React.FC = () => {
     <div className="space-y-6 animate-fade-in-up">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-foreground">Products</h3>
-          <p className="text-xs text-muted-foreground mt-0.5">Products to recommend based on quiz answers</p>
+          <h3 className="text-sm font-semibold text-foreground">{t('Products')}</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">{t('Products to recommend based on quiz answers')}</p>
         </div>
         <Button
           variant="ghost"
@@ -34,7 +36,7 @@ export const ProductsPanel: React.FC = () => {
           className="text-primary hover:text-primary hover:bg-primary-light h-8"
         >
           <Plus className="w-4 h-4 mr-1" />
-          Add
+          {t('Add')}
         </Button>
       </div>
 
@@ -44,28 +46,28 @@ export const ProductsPanel: React.FC = () => {
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 space-y-3">
                 <div>
-                  <Label className="text-xs text-muted-foreground">Name</Label>
+                  <Label className="text-xs text-muted-foreground">{t('Name')}</Label>
                   <Input
                     value={product.name}
                     onChange={(e) => updateProduct(product.id, { name: e.target.value })}
-                    placeholder="Product name"
+                    placeholder={t('Product name')}
                     className="mt-1 input-clean"
                   />
                 </div>
 
                 <div>
-                  <Label className="text-xs text-muted-foreground">Description</Label>
+                  <Label className="text-xs text-muted-foreground">{t('Description')}</Label>
                   <Input
                     value={product.description}
                     onChange={(e) => updateProduct(product.id, { description: e.target.value })}
-                    placeholder="Short description"
+                    placeholder={t('Short description')}
                     className="mt-1 input-clean"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <Label className="text-xs text-muted-foreground">Price</Label>
+                    <Label className="text-xs text-muted-foreground">{t('Price')}</Label>
                     <Input
                       value={product.price}
                       onChange={(e) => updateProduct(product.id, { price: e.target.value })}
@@ -74,7 +76,7 @@ export const ProductsPanel: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <Label className="text-xs text-muted-foreground">Image URL</Label>
+                    <Label className="text-xs text-muted-foreground">{t('Image URL')}</Label>
                     <Input
                       value={product.imageUrl}
                       onChange={(e) => updateProduct(product.id, { imageUrl: e.target.value })}
@@ -85,7 +87,7 @@ export const ProductsPanel: React.FC = () => {
                 </div>
 
                 <div>
-                  <Label className="text-xs text-muted-foreground">Product URL</Label>
+                  <Label className="text-xs text-muted-foreground">{t('Product URL')}</Label>
                   <div className="flex gap-2 mt-1">
                     <Input
                       value={product.url}
@@ -115,7 +117,7 @@ export const ProductsPanel: React.FC = () => {
                   className="text-xs text-muted-foreground hover:text-destructive transition-colors flex items-center gap-1"
                 >
                   <Trash2 className="w-3 h-3" />
-                  Remove product
+                  {t('Remove product')}
                 </button>
               </div>
             )}

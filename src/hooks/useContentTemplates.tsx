@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdmin } from '@/hooks/useAdmin';
 import { toast } from 'sonner';
+import { tr } from '@/i18n';
 
 export type TemplateType = 'quiz' | 'advertorial';
 
@@ -78,11 +79,11 @@ export const buildProjectRow = (
 /** A one-line summary for the gallery card, per builder. */
 export const describeTemplate = (t: ContentTemplate): string => {
   if (t.content_type === 'quiz') {
-    const n = Array.isArray(t.content?.questions) ? t.content.questions.length : 0;
-    return `${n} question${n === 1 ? '' : 's'}`;
+        const n = Array.isArray(t.content?.questions) ? t.content.questions.length : 0;
+    return n === 1 ? tr('1 question') : tr('{count} questions', { count: n });
   }
-  const n = Array.isArray(t.content?.blocks) ? t.content.blocks.length : 0;
-  return `${n} block${n === 1 ? '' : 's'}`;
+    const n = Array.isArray(t.content?.blocks) ? t.content.blocks.length : 0;
+  return n === 1 ? tr('1 block') : tr('{count} blocks', { count: n });
 };
 
 export const useContentTemplates = (contentType: TemplateType) => {
@@ -109,7 +110,7 @@ export const useContentTemplates = (contentType: TemplateType) => {
       setTemplates((data ?? []) as unknown as ContentTemplate[]);
     } catch (err) {
       console.error('Error loading templates:', err);
-      toast.error('Failed to load templates');
+      toast.error(tr('Failed to load templates'));
     } finally {
       setLoading(false);
     }
@@ -132,17 +133,17 @@ export const useContentTemplates = (contentType: TemplateType) => {
 
       if (error) {
         if (error.message?.includes(LIMIT_MARKER)) {
-          toast.error('You have reached your project limit. Delete one to make room.');
+          toast.error(tr('You have reached your project limit. Delete one to make room.'));
           return null;
         }
         throw error;
       }
 
-      toast.success(`Created a new project from "${t.title}"`);
+      toast.success(tr('Created a new project from "{title}"', { title: t.title }));
       return (data as { id: string }).id;
     } catch (err) {
       console.error('Error importing template:', err);
-      toast.error('Failed to import the template');
+      toast.error(tr('Failed to import the template'));
       return null;
     } finally {
       setBusyId(null);
@@ -164,12 +165,12 @@ export const useContentTemplates = (contentType: TemplateType) => {
         content: content as never,
       });
       if (error) throw error;
-      toast.success('Template saved');
+      toast.success(tr('Template saved'));
       await load();
       return true;
     } catch (err) {
       console.error('Error creating template:', err);
-      toast.error('Failed to save the template');
+      toast.error(tr('Failed to save the template'));
       return false;
     } finally {
       setBusyId(null);
@@ -187,12 +188,12 @@ export const useContentTemplates = (contentType: TemplateType) => {
         .update({ content: content as never })
         .eq('id', id);
       if (error) throw error;
-      toast.success('Template updated');
+      toast.success(tr('Template updated'));
       await load();
       return true;
     } catch (err) {
       console.error('Error updating template:', err);
-      toast.error('Failed to update the template');
+      toast.error(tr('Failed to update the template'));
       return false;
     } finally {
       setBusyId(null);
@@ -211,7 +212,7 @@ export const useContentTemplates = (contentType: TemplateType) => {
       await load();
     } catch (err) {
       console.error('Error updating template:', err);
-      toast.error('Failed to update the template');
+      toast.error(tr('Failed to update the template'));
     } finally {
       setBusyId(null);
     }
@@ -231,11 +232,11 @@ export const useContentTemplates = (contentType: TemplateType) => {
         is_published: false,
       });
       if (error) throw error;
-      toast.success('Template duplicated as a draft');
+      toast.success(tr('Template duplicated as a draft'));
       await load();
     } catch (err) {
       console.error('Error duplicating template:', err);
-      toast.error('Failed to duplicate the template');
+      toast.error(tr('Failed to duplicate the template'));
     } finally {
       setBusyId(null);
     }
@@ -246,11 +247,11 @@ export const useContentTemplates = (contentType: TemplateType) => {
     try {
       const { error } = await supabase.from('content_templates').delete().eq('id', t.id);
       if (error) throw error;
-      toast.success('Template deleted');
+      toast.success(tr('Template deleted'));
       await load();
     } catch (err) {
       console.error('Error deleting template:', err);
-      toast.error('Failed to delete the template');
+      toast.error(tr('Failed to delete the template'));
     } finally {
       setBusyId(null);
     }

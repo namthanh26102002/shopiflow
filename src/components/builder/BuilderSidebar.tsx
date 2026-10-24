@@ -1,6 +1,7 @@
 import React from 'react';
 import { Settings, ListChecks, BarChart3, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { msg, useT } from '@/i18n';
 
 export type BuilderTab = 'questions' | 'products' | 'settings' | 'analytics' | 'domain';
 
@@ -10,13 +11,14 @@ interface BuilderSidebarProps {
 }
 
 const tabs = [
-  { id: 'questions' as BuilderTab, label: 'Questions', icon: ListChecks },
-  { id: 'settings' as BuilderTab, label: 'Settings', icon: Settings },
-  { id: 'analytics' as BuilderTab, label: 'Analytics', icon: BarChart3 },
-  { id: 'domain' as BuilderTab, label: 'Domain', icon: Globe },
+  { id: 'questions' as BuilderTab, label: msg('Questions'), icon: ListChecks },
+  { id: 'settings' as BuilderTab, label: msg('Settings'), icon: Settings },
+  { id: 'analytics' as BuilderTab, label: msg('Analytics'), icon: BarChart3 },
+  { id: 'domain' as BuilderTab, label: msg('Domain'), icon: Globe },
 ];
 
 export const BuilderSidebar: React.FC<BuilderSidebarProps> = ({ activeTab, onTabChange }) => {
+  const t = useT();
   return (
     <aside className="w-16 border-r border-border-subtle bg-card flex flex-col items-center py-4 gap-1">
       {tabs.map((tab) => (
@@ -32,7 +34,7 @@ export const BuilderSidebar: React.FC<BuilderSidebarProps> = ({ activeTab, onTab
           )}
         >
           <tab.icon className="w-5 h-5" />
-          <span className="text-[10px] font-medium">{tab.label}</span>
+          <span className="text-[10px] font-medium">{t(tab.label)}</span>
         </button>
       ))}
     </aside>

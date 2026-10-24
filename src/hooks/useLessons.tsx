@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
+import { tr } from '@/i18n';
 
 export interface Lesson {
   id: string;
@@ -53,9 +54,9 @@ export const useLessons = (classroomId: string | undefined, publishedOnly = fals
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lessons', classroomId] });
-      toast.success('Lesson created');
+      toast.success(tr('Lesson created'));
     },
-    onError: () => toast.error('Failed to create lesson'),
+    onError: () => toast.error(tr('Failed to create lesson')),
   });
 
   const updateLesson = useMutation({
@@ -64,7 +65,7 @@ export const useLessons = (classroomId: string | undefined, publishedOnly = fals
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['lessons', classroomId] }),
-    onError: () => toast.error('Failed to update lesson'),
+    onError: () => toast.error(tr('Failed to update lesson')),
   });
 
   const deleteLesson = useMutation({
@@ -74,9 +75,9 @@ export const useLessons = (classroomId: string | undefined, publishedOnly = fals
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lessons', classroomId] });
-      toast.success('Lesson deleted');
+      toast.success(tr('Lesson deleted'));
     },
-    onError: () => toast.error('Failed to delete lesson'),
+    onError: () => toast.error(tr('Failed to delete lesson')),
   });
 
   return { lessons, isLoading, createLesson, updateLesson, deleteLesson };

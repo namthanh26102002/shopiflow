@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { OrderProductsTable } from './OrderProductsTable';
 import { toLocalDatetime } from '@/lib/localDatetime';
+import { useT, trKnown } from '@/i18n';
 
 interface Props {
   order?: Order;
@@ -20,6 +21,7 @@ const STATUSES = ['Pending', 'Processing', 'Completed', 'Cancelled'];
 const PAYMENT_METHODS = ['Cash on delivery', 'PayPal', 'Credit card'];
 
 export const OrderForm: React.FC<Props> = ({ order, onSubmit, isSubmitting }) => {
+  const t = useT();
   const { user } = useAuth();
   const [orderNumber, setOrderNumber] = useState(order?.order_number || '');
   const [status, setStatus] = useState(order?.status || 'Pending');
@@ -60,54 +62,54 @@ export const OrderForm: React.FC<Props> = ({ order, onSubmit, isSubmitting }) =>
     <form onSubmit={handleSubmit} className="space-y-5 max-h-[70vh] overflow-y-auto pr-1">
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label>Order Number</Label>
-          <Input value={orderNumber} onChange={e => setOrderNumber(e.target.value)} placeholder="e.g. SPRITE-100063" />
+          <Label>{t('Order Number')}</Label>
+          <Input value={orderNumber} onChange={e => setOrderNumber(e.target.value)} placeholder={t('e.g. SPRITE-100063')} />
         </div>
         <div>
-          <Label>Status</Label>
+          <Label>{t('Status')}</Label>
           <Select value={status} onValueChange={setStatus}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              {STATUSES.map(s => <SelectItem key={s} value={s}>{trKnown(s)}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
       </div>
 
       <div>
-        <Label>Order Date & Time</Label>
+        <Label>{t('Order Date & Time')}</Label>
         <Input type="datetime-local" value={orderDate} onChange={e => setOrderDate(e.target.value)} />
       </div>
 
       <div>
-        <Label className="mb-2 block">Products</Label>
+        <Label className="mb-2 block">{t('Products')}</Label>
         <OrderProductsTable products={products} onChange={setProducts} editable onUploadImage={uploadImage} />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label>Shipping Cost</Label>
+          <Label>{t('Shipping Cost')}</Label>
           <Input type="number" step="0.01" value={shipping} onChange={e => setShipping(Number(e.target.value))} />
         </div>
         <div>
-          <Label>Shipping Method</Label>
-          <Input value={shippingMethod} onChange={e => setShippingMethod(e.target.value)} placeholder="e.g. DHL Express" />
+          <Label>{t('Shipping Method')}</Label>
+          <Input value={shippingMethod} onChange={e => setShippingMethod(e.target.value)} placeholder={t('e.g. DHL Express')} />
         </div>
       </div>
 
       <div className="text-sm text-muted-foreground space-y-1 p-3 rounded-lg bg-secondary/50">
-        <div className="flex justify-between"><span>Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
-        <div className="flex justify-between"><span>Shipping</span><span>${Number(shipping).toFixed(2)}</span></div>
-        <div className="flex justify-between font-semibold text-foreground"><span>Total</span><span>${total.toFixed(2)}</span></div>
+        <div className="flex justify-between"><span>{t('Subtotal')}</span><span>${subtotal.toFixed(2)}</span></div>
+        <div className="flex justify-between"><span>{t('Shipping')}</span><span>${Number(shipping).toFixed(2)}</span></div>
+        <div className="flex justify-between font-semibold text-foreground"><span>{t('Total')}</span><span>${total.toFixed(2)}</span></div>
       </div>
 
       <div className="flex items-center gap-3">
         <Switch checked={published} onCheckedChange={setPublished} />
-        <Label>Published</Label>
+        <Label>{t('Published')}</Label>
       </div>
 
       <Button type="submit" className="w-full" disabled={isSubmitting || !orderNumber}>
-        {isSubmitting ? 'Saving...' : order ? 'Update Order' : 'Create Order'}
+        {isSubmitting ? t('Saving...') : order ? t('Update Order') : t('Create Order')}
       </Button>
     </form>
   );

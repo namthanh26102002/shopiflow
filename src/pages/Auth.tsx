@@ -12,7 +12,10 @@ import {
   describeAccessCodeProblem,
 } from '@/lib/accessCode';
 
+import { useT, tr, trKnown } from '@/i18n';
+import { LanguageSwitch } from '@/components/shared/LanguageSwitch';
 const Auth: React.FC = () => {
+  const t = useT();
   const {
     user, loading, signIn, signUp, signInWithGoogle,
     accessCodeClaimed, claimAccessCode,
@@ -62,19 +65,19 @@ const Auth: React.FC = () => {
     e.preventDefault();
     
     if (!email.trim() || !password.trim()) {
-      toast.error('Please enter email and password');
+      toast.error(tr('Please enter email and password'));
       return;
     }
 
     if (password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+      toast.error(tr('Password must be at least 6 characters'));
       return;
     }
 
     if (isSignUp) {
       const problem = describeAccessCodeProblem(normalizeAccessCode(accessCode));
       if (problem) {
-        toast.error(problem);
+        toast.error(trKnown(problem));
         return;
       }
     }
@@ -85,16 +88,16 @@ const Auth: React.FC = () => {
       if (isSignUp) {
         const { error } = await signUp(email, password, accessCode);
         if (error) {
-          toast.error(error.message);
+          toast.error(trKnown(error.message));
         } else {
-          toast.success('Account created! You are now signed in.');
+          toast.success(tr('Account created! You are now signed in.'));
         }
       } else {
         const { error } = await signIn(email, password);
         if (error) {
-          toast.error(error.message);
+          toast.error(trKnown(error.message));
         } else {
-          toast.success('Welcome back!');
+          toast.success(tr('Welcome back!'));
         }
       }
     } finally {
@@ -106,18 +109,19 @@ const Auth: React.FC = () => {
   if (user && !recoveryMode && claimCheckFailed) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="fixed top-3 right-3"><LanguageSwitch /></div>
         <div className="w-full max-w-sm text-center">
           <h1 className="text-2xl font-bold text-foreground mb-2">
-            Could not verify your account
+            {t('Could not verify your account')}
           </h1>
           <p className="text-sm text-muted-foreground mb-6">
-            We could not check your account just now. This is usually temporary.
+            {t('We could not check your account just now. This is usually temporary.')}
           </p>
           <Button className="w-full mb-2" onClick={() => window.location.reload()}>
-            Try again
+            {t('Try again')}
           </Button>
           <Button variant="ghost" className="w-full" onClick={signOut}>
-            Sign out
+            {t('Sign out')}
           </Button>
         </div>
       </div>
@@ -128,11 +132,12 @@ const Auth: React.FC = () => {
   if (recoveryMode) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="fixed top-3 right-3"><LanguageSwitch /></div>
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-foreground mb-2">Choose a new password</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-2">{t('Choose a new password')}</h1>
             <p className="text-sm text-muted-foreground">
-              You followed a reset link. Set a new password to finish.
+              {t('You followed a reset link. Set a new password to finish.')}
             </p>
           </div>
           <form
@@ -140,18 +145,18 @@ const Auth: React.FC = () => {
             onSubmit={async (e) => {
               e.preventDefault();
               if (newPassword.length < 6) {
-                toast.error('Password must be at least 6 characters');
+                toast.error(tr('Password must be at least 6 characters'));
                 return;
               }
               setIsSubmitting(true);
               const { error } = await updatePassword(newPassword);
               setIsSubmitting(false);
-              if (error) toast.error(error.message);
-              else toast.success('Password updated. You are signed in.');
+              if (error) toast.error(trKnown(error.message));
+              else toast.success(tr('Password updated. You are signed in.'));
             }}
           >
             <div className="space-y-2">
-              <Label htmlFor="newPassword">New password</Label>
+              <Label htmlFor="newPassword">{t('New password')}</Label>
               <Input
                 id="newPassword"
                 type="password"
@@ -159,11 +164,11 @@ const Auth: React.FC = () => {
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="input-clean"
                 autoComplete="new-password"
-                placeholder="At least 6 characters"
+                placeholder={t('At least 6 characters')}
               />
             </div>
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Update password'}
+              {isSubmitting ? t('Saving...') : t('Update password')}
             </Button>
           </form>
         </div>
@@ -175,12 +180,12 @@ const Auth: React.FC = () => {
   if (needsAccessCode) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="fixed top-3 right-3"><LanguageSwitch /></div>
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-foreground mb-2">One more step</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-2">{t('One more step')}</h1>
             <p className="text-sm text-muted-foreground">
-              Signed in as {user?.email}. Enter your access code to finish setting
-              up your account.
+              {t('Signed in as {email}. Enter your access code to finish setting up your account.', { email: user?.email ?? '' })}
             </p>
           </div>
           <form
@@ -188,35 +193,35 @@ const Auth: React.FC = () => {
             onSubmit={async (e) => {
               e.preventDefault();
               const problem = describeAccessCodeProblem(normalizeAccessCode(accessCode));
-              if (problem) { toast.error(problem); return; }
+              if (problem) { toast.error(trKnown(problem)); return; }
               setIsSubmitting(true);
               const { error } = await claimAccessCode(accessCode);
               setIsSubmitting(false);
-              if (error) toast.error(error.message);
-              else toast.success('Access code accepted.');
+              if (error) toast.error(trKnown(error.message));
+              else toast.success(tr('Access code accepted.'));
             }}
           >
             <div className="space-y-2">
-              <Label htmlFor="claimCode">Access Code</Label>
+              <Label htmlFor="claimCode">{t('Access Code')}</Label>
               <Input
                 id="claimCode"
                 value={accessCode}
                 onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
                 className="input-clean font-mono"
                 maxLength={ACCESS_CODE_MAX_LENGTH}
-                placeholder="Enter your access code"
+                placeholder={t('Enter your access code')}
               />
               <p className="text-xs text-muted-foreground">
                 {accessCodeProblem && accessCode
                   ? accessCodeProblem
-                  : 'Every account needs a valid access code'}
+                  : t('Every account needs a valid access code')}
               </p>
             </div>
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? 'Checking...' : 'Continue'}
+              {isSubmitting ? t('Checking...') : t('Continue')}
             </Button>
             <Button type="button" variant="ghost" className="w-full" onClick={signOut}>
-              Sign out
+              {t('Sign out')}
             </Button>
           </form>
         </div>
@@ -228,29 +233,30 @@ const Auth: React.FC = () => {
   if (mode === 'forgot') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="fixed top-3 right-3"><LanguageSwitch /></div>
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-foreground mb-2">Reset your password</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-2">{t('Reset your password')}</h1>
             <p className="text-sm text-muted-foreground">
-              We&apos;ll email you a link to choose a new one.
+              {t("We'll email you a link to choose a new one.")}
             </p>
           </div>
           <form
             className="space-y-4"
             onSubmit={async (e) => {
               e.preventDefault();
-              if (!email.trim()) { toast.error('Please enter your email'); return; }
+              if (!email.trim()) { toast.error(tr('Please enter your email')); return; }
               setIsSubmitting(true);
               const { error } = await requestPasswordReset(email);
               setIsSubmitting(false);
               // Deliberately the same message either way, so this cannot be
               // used to discover which emails have accounts.
-              if (error) toast.error(error.message);
-              else toast.success('If that email has an account, a reset link is on its way.');
+              if (error) toast.error(trKnown(error.message));
+              else toast.success(tr('If that email has an account, a reset link is on its way.'));
             }}
           >
             <div className="space-y-2">
-              <Label htmlFor="resetEmail">Email</Label>
+              <Label htmlFor="resetEmail">{t('Email')}</Label>
               <Input
                 id="resetEmail"
                 type="email"
@@ -262,10 +268,10 @@ const Auth: React.FC = () => {
               />
             </div>
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? 'Sending...' : 'Send reset link'}
+              {isSubmitting ? t('Sending...') : t('Send reset link')}
             </Button>
             <Button type="button" variant="ghost" className="w-full" onClick={() => setMode('signin')}>
-              Back to sign in
+              {t('Back to sign in')}
             </Button>
           </form>
         </div>
@@ -275,33 +281,34 @@ const Auth: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="fixed top-3 right-3"><LanguageSwitch /></div>
       <div className="w-full max-w-sm">
         {trialExpired && (
           <div className="mb-6 p-4 rounded-lg border border-destructive/50 bg-destructive/10 text-sm">
             <div className="flex items-center gap-2 text-destructive font-medium mb-1">
               <AlertTriangle className="w-4 h-4" />
-              Trial Expired
+              {t('Trial Expired')}
             </div>
             <p className="text-muted-foreground">
-              Your free trial has expired. Please contact support to continue accessing your account.
+              {t('Your free trial has expired. Please contact support to continue accessing your account.')}
             </p>
           </div>
         )}
 
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-foreground mb-2">
-            {isSignUp ? 'Create Account' : 'Welcome Back'}
+            {isSignUp ? t('Create Account') : t('Welcome Back')}
           </h1>
           <p className="text-sm text-muted-foreground">
             {isSignUp 
-              ? 'Sign up to save your quizzes' 
-              : 'Sign in to access your quizzes'}
+              ? t('Sign up to save your quizzes') 
+              : t('Sign in to access your quizzes')}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t('Email')}</Label>
             <Input
               id="email"
               type="email"
@@ -314,7 +321,7 @@ const Auth: React.FC = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t('Password')}</Label>
             <Input
               id="password"
               type="password"
@@ -328,11 +335,11 @@ const Auth: React.FC = () => {
 
           {isSignUp && (
             <div className="space-y-2">
-              <Label htmlFor="accessCode">Access Code</Label>
+              <Label htmlFor="accessCode">{t('Access Code')}</Label>
               <Input
                 id="accessCode"
                 type="text"
-                placeholder="Enter your access code"
+                placeholder={t('Enter your access code')}
                 value={accessCode}
                 onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
                 className="input-clean font-mono"
@@ -341,7 +348,7 @@ const Auth: React.FC = () => {
               <p className="text-xs text-muted-foreground">
                 {accessCodeProblem && accessCode
                   ? accessCodeProblem
-                  : 'You need a valid access code to create an account'}
+                  : t('You need a valid access code to create an account')}
               </p>
             </div>
           )}
@@ -351,7 +358,7 @@ const Auth: React.FC = () => {
             className="w-full"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Please wait...' : isSignUp ? 'Sign Up' : 'Sign In'}
+            {isSubmitting ? t('Please wait...') : isSignUp ? t('Sign Up') : t('Sign In')}
           </Button>
 
           {!isSignUp && (
@@ -360,14 +367,14 @@ const Auth: React.FC = () => {
               onClick={() => setMode('forgot')}
               className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              Forgot your password?
+              {t('Forgot your password?')}
             </button>
           )}
         </form>
 
         <div className="my-6 flex items-center gap-3">
           <span className="h-px flex-1 bg-border" />
-          <span className="text-xs text-muted-foreground">or</span>
+          <span className="text-xs text-muted-foreground">{t('or')}</span>
           <span className="h-px flex-1 bg-border" />
         </div>
 
@@ -380,7 +387,7 @@ const Auth: React.FC = () => {
             setIsSubmitting(true);
             const { error } = await signInWithGoogle();
             // On success the browser leaves for Google, so only failures land here.
-            if (error) { toast.error(error.message); setIsSubmitting(false); }
+            if (error) { toast.error(trKnown(error.message)); setIsSubmitting(false); }
           }}
         >
           <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" aria-hidden="true">
@@ -389,11 +396,11 @@ const Auth: React.FC = () => {
             <path fill="#FBBC05" d="M5.84 14.11a6.6 6.6 0 0 1 0-4.22V7.05H2.18a11 11 0 0 0 0 9.9l3.66-2.84z"/>
             <path fill="#EA4335" d="M12 4.75c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.46 14.97.5 12 .5A11 11 0 0 0 2.18 7.05l3.66 2.84c.87-2.6 3.3-4.14 6.16-4.14z"/>
           </svg>
-          Continue with Google
+          {t('Continue with Google')}
         </Button>
 
         <p className="mt-3 text-center text-xs text-muted-foreground">
-          You&apos;ll be asked for your access code after signing in with Google.
+          {t("You'll be asked for your access code after signing in with Google.")}
         </p>
 
         <div className="mt-6 text-center">
@@ -403,8 +410,8 @@ const Auth: React.FC = () => {
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             {isSignUp 
-              ? 'Already have an account? Sign in' 
-              : "Don't have an account? Sign up"}
+              ? t('Already have an account? Sign in') 
+              : t("Don't have an account? Sign up")}
           </button>
         </div>
       </div>

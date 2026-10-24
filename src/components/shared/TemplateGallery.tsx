@@ -19,6 +19,7 @@ import {
 import {
   useContentTemplates, ContentTemplate, TemplateType, describeTemplate,
 } from '@/hooks/useContentTemplates';
+import { useT, type MessageKey } from '@/i18n';
 
 interface TemplateGalleryProps {
   open: boolean;
@@ -33,6 +34,8 @@ interface TemplateGalleryProps {
 export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
   open, onOpenChange, contentType, basePath, noun,
 }) => {
+    const t = useT();
+  const nounText = t(noun as MessageKey);
   const navigate = useNavigate();
   const {
     templates, loading, busyId, isAdmin,
@@ -50,23 +53,23 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
   const [draftTitle, setDraftTitle] = useState('');
   const [draftDescription, setDraftDescription] = useState('');
 
-  const handleUse = async (t: ContentTemplate) => {
-    const id = await importTemplate(t);
+  const handleUse = async (tpl: ContentTemplate) => {
+    const id = await importTemplate(tpl);
     if (id) {
       onOpenChange(false);
       navigate(`${basePath}/${id}`);
     }
   };
 
-  const startEdit = (t: ContentTemplate) => {
-    setEditingId(t.id);
-    setDraftTitle(t.title);
-    setDraftDescription(t.description);
+  const startEdit = (tpl: ContentTemplate) => {
+    setEditingId(tpl.id);
+    setDraftTitle(tpl.title);
+    setDraftDescription(tpl.description);
   };
 
   const commitEdit = async (id: string) => {
     await updateTemplateMeta(id, {
-      title: draftTitle.trim() || 'Untitled Template',
+      title: draftTitle.trim() || t('Untitled Template'),
       description: draftDescription.trim(),
     });
     setEditingId(null);
@@ -79,54 +82,53 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <LayoutTemplate className="w-4 h-4" />
-              {noun === 'quiz' ? 'Quiz' : 'Advertorial'} templates
+              {noun === 'quiz' ? t('Quiz templates') : t('Advertorial templates')}
             </DialogTitle>
             <DialogDescription>
-              Start from a ready-made {noun}. Importing creates your own copy —
-              editing it never changes the template.
+              {t('Start from a ready-made {noun}. Importing creates your own copy — editing it never changes the template.', { noun: nounText })}
             </DialogDescription>
           </DialogHeader>
 
           {loading ? (
             <div className="py-10 flex flex-col items-center gap-2">
               <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Loading templates…</p>
+              <p className="text-sm text-muted-foreground">{t('Loading templates…')}</p>
             </div>
           ) : templates.length === 0 ? (
             <div className="border border-border-subtle rounded-lg p-10 text-center">
               <p className="text-sm font-medium text-foreground mb-1">
-                No templates available yet
+                {t('No templates available yet')}
               </p>
               <p className="text-xs text-muted-foreground">
                 {isAdmin
-                  ? `Open a ${noun} and choose "Save as template" to create the first one.`
-                  : 'Check back later — templates are published by the Shopiflow team.'}
+                  ? t('Open a {noun} and choose "Save as template" to create the first one.', { noun: nounText })
+                  : t('Check back later — templates are published by the Shopiflow team.')}
               </p>
             </div>
           ) : (
             <div className="space-y-3">
-              {templates.map((t) => (
-                <div key={t.id} className="border border-border-subtle rounded-lg p-4">
-                  {editingId === t.id ? (
+              {templates.map((tpl) => (
+                <div key={tpl.id} className="border border-border-subtle rounded-lg p-4">
+                  {editingId === tpl.id ? (
                     <div className="space-y-2">
                       <Input
                         value={draftTitle}
                         onChange={(e) => setDraftTitle(e.target.value)}
-                        placeholder="Template name"
+                        placeholder={t('Template name')}
                         autoFocus
                       />
                       <Textarea
                         value={draftDescription}
                         onChange={(e) => setDraftDescription(e.target.value)}
-                        placeholder="What is this template for?"
+                        placeholder={t('What is this template for?')}
                         rows={2}
                       />
                       <div className="flex gap-2">
-                        <Button size="sm" onClick={() => commitEdit(t.id)}>
-                          <Check className="w-3.5 h-3.5 mr-1.5" />Save
+                        <Button size="sm" onClick={() => commitEdit(tpl.id)}>
+                          <Check className="w-3.5 h-3.5 mr-1.5" />{t('Save')}
                         </Button>
                         <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
-                          <X className="w-3.5 h-3.5 mr-1.5" />Cancel
+                          <X className="w-3.5 h-3.5 mr-1.5" />{t('Cancel')}
                         </Button>
                       </div>
                     </div>
@@ -134,66 +136,66 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-medium text-foreground">{t.title}</span>
-                          {!t.is_published && (
+                          <span className="text-sm font-medium text-foreground">{tpl.title}</span>
+                          {!tpl.is_published && (
                             <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600">
-                              Draft
+                              {t('Draft')}
                             </span>
                           )}
                         </div>
-                        {t.description && (
-                          <p className="text-xs text-muted-foreground mt-1">{t.description}</p>
+                        {tpl.description && (
+                          <p className="text-xs text-muted-foreground mt-1">{tpl.description}</p>
                         )}
                         <p className="text-xs text-muted-foreground mt-1">
-                          {describeTemplate(t)}
+                          {describeTemplate(tpl)}
                         </p>
                       </div>
 
                       <Button
                         size="sm"
-                        onClick={() => handleUse(t)}
-                        disabled={busyId === t.id}
+                        onClick={() => handleUse(tpl)}
+                        disabled={busyId === tpl.id}
                         className="shrink-0"
                       >
-                        {busyId === t.id
+                        {busyId === tpl.id
                           ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          : <>Use this<ArrowRight className="w-3.5 h-3.5 ml-1.5" /></>}
+                          : <>{t('Use this')}<ArrowRight className="w-3.5 h-3.5 ml-1.5" /></>}
                       </Button>
                     </div>
                   )}
 
-                  {isAdmin && editingId !== t.id && (
-                    <div className="flex items-center gap-1 mt-3 pt-3 border-t border-border-subtle">
-                      <span className="text-xs text-muted-foreground mr-auto">Admin</span>
+                  {isAdmin && editingId !== tpl.id && (
+                    <div className="flex items-center gap-1 mt-3 pt-3 border-tpl border-border-subtle">
+                      <span className="text-xs text-muted-foreground mr-auto">{t('Admin')}</span>
                       <Button
                         variant="ghost" size="sm" className="h-7 text-xs"
-                        onClick={() => updateTemplateMeta(t.id, { is_published: !t.is_published })}
-                        disabled={busyId === t.id}
+                        onClick={() => updateTemplateMeta(tpl.id, { is_published: !tpl.is_published })}
+                        disabled={busyId === tpl.id}
                       >
-                        {t.is_published
-                          ? <><EyeOff className="w-3.5 h-3.5 mr-1.5" />Unpublish</>
-                          : <><Eye className="w-3.5 h-3.5 mr-1.5" />Publish</>}
+                        {tpl.is_published
+                          ? <><EyeOff className="w-3.5 h-3.5 mr-1.5" />{t('Unpublish')}</>
+                          : <><Eye className="w-3.5 h-3.5 mr-1.5" />{t('Publish')}</>}
                       </Button>
                       <Button
                         variant="ghost" size="icon" className="w-7 h-7"
-                        title="Rename or edit description"
-                        onClick={() => startEdit(t)}
+                        title={t('Rename or edit description')}
+                        onClick={() => startEdit(tpl)}
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </Button>
                       <Button
                         variant="ghost" size="icon" className="w-7 h-7"
-                        title="Duplicate as draft"
-                        onClick={() => duplicateTemplate(t)}
-                        disabled={busyId === t.id}
+                        title={t('Duplicate as draft')}
+                        onClick={() => duplicateTemplate(tpl)}
+                        disabled={busyId === tpl.id}
                       >
                         <Copy className="w-3.5 h-3.5" />
                       </Button>
                       <Button
                         variant="ghost" size="icon" className="w-7 h-7 text-destructive"
-                        title="Delete template"
-                        onClick={() => setPendingDelete(t)}
-                        disabled={busyId === t.id}
+                        title={t('Delete template')}
+                        onClick={() => setPendingDelete(tpl)}
+                        disabled={busyId === tpl.id}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
@@ -206,9 +208,8 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
 
           {isAdmin && (
             <p className="text-xs text-muted-foreground">
-              To change a template&apos;s content: use it to create a {noun}, edit
-              that {noun}, then choose <strong>Save as template</strong> and
-              overwrite this one.
+              {t("To change a template's content: use it to create a {noun}, edit that {noun}, then choose", { noun: nounText })}{' '}
+              <strong>{t('Save as template')}</strong>{' '}{t('and overwrite this one.')}
             </p>
           )}
         </DialogContent>
@@ -217,21 +218,20 @@ export const TemplateGallery: React.FC<TemplateGalleryProps> = ({
       <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete “{pendingDelete?.title}”?</AlertDialogTitle>
+            <AlertDialogTitle>{t('Delete “{title}”?', { title: pendingDelete?.title ?? '' })}</AlertDialogTitle>
             <AlertDialogDescription>
-              This removes the template for everyone. Quizzes already created from
-              it are unaffected — they are independent copies. This cannot be undone.
+              {t('This removes the template for everyone. Quizzes already created from it are unaffected — they are independent copies. This cannot be undone.')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (pendingDelete) deleteTemplate(pendingDelete);
                 setPendingDelete(null);
               }}
             >
-              Delete
+              {t('Delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

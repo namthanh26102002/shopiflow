@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
+import { tr } from '@/i18n';
 
 export interface Classroom {
   id: string;
@@ -50,9 +51,9 @@ export const useClassrooms = (publishedOnly = false) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['classrooms'] });
-      toast.success('Classroom created');
+      toast.success(tr('Classroom created'));
     },
-    onError: () => toast.error('Failed to create classroom'),
+    onError: () => toast.error(tr('Failed to create classroom')),
   });
 
   const updateClassroom = useMutation({
@@ -61,7 +62,7 @@ export const useClassrooms = (publishedOnly = false) => {
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['classrooms'] }),
-    onError: () => toast.error('Failed to update classroom'),
+    onError: () => toast.error(tr('Failed to update classroom')),
   });
 
   const deleteClassroom = useMutation({
@@ -71,9 +72,9 @@ export const useClassrooms = (publishedOnly = false) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['classrooms'] });
-      toast.success('Classroom deleted');
+      toast.success(tr('Classroom deleted'));
     },
-    onError: () => toast.error('Failed to delete classroom'),
+    onError: () => toast.error(tr('Failed to delete classroom')),
   });
 
   const reorderClassrooms = useMutation({
@@ -101,7 +102,7 @@ export const useClassrooms = (publishedOnly = false) => {
     },
     onError: (_e, _v, ctx) => {
       ctx?.previous.forEach(([key, data]) => queryClient.setQueryData(key, data));
-      toast.error('Failed to reorder');
+      toast.error(tr('Failed to reorder'));
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['classrooms'] }),
   });
@@ -124,7 +125,7 @@ export const useClassrooms = (publishedOnly = false) => {
     },
     onError: (_e, _v, ctx) => {
       ctx?.previous.forEach(([key, data]) => queryClient.setQueryData(key, data));
-      toast.error('Failed to update cover ratio');
+      toast.error(tr('Failed to update cover ratio'));
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['classrooms'] }),
   });

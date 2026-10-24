@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { sanitizeSvg } from '@/lib/sanitize';
+import { useT } from '@/i18n';
 
 interface IconPickerProps {
   value?: string;
@@ -12,6 +13,7 @@ interface IconPickerProps {
 }
 
 export const IconPicker: React.FC<IconPickerProps> = ({ value, onChange }) => {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [svgInput, setSvgInput] = useState(value || '');
 
@@ -59,7 +61,7 @@ export const IconPicker: React.FC<IconPickerProps> = ({ value, onChange }) => {
       <PopoverContent className="w-72 p-3" align="start">
         <div className="space-y-3">
           <div>
-            <label className="text-sm font-medium mb-1.5 block">Paste SVG Code</label>
+            <label className="text-sm font-medium mb-1.5 block">{t('Paste SVG Code')}</label>
             <Textarea
               placeholder='<svg xmlns="http://www.w3.org/2000/svg" ...>'
               value={svgInput}
@@ -67,13 +69,13 @@ export const IconPicker: React.FC<IconPickerProps> = ({ value, onChange }) => {
               className="min-h-[100px] text-xs font-mono"
             />
             <p className="text-xs text-muted-foreground mt-1.5">
-              Copy SVG from <a href="https://lucide.dev/icons" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">lucide.dev</a> or any icon library
+              {t('Copy SVG from')} <a href="https://lucide.dev/icons" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">lucide.dev</a> {t('or any icon library')}
             </p>
           </div>
 
           {svgInput.trim().startsWith('<svg') && (
             <div className="flex items-center gap-2 p-2 bg-secondary/50 rounded-md">
-              <span className="text-xs text-muted-foreground">Preview:</span>
+              <span className="text-xs text-muted-foreground">{t('Preview:')}</span>
               <div 
                 className="w-6 h-6 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full"
                 dangerouslySetInnerHTML={{ __html: sanitizeSvg(svgInput) }}
@@ -83,10 +85,10 @@ export const IconPicker: React.FC<IconPickerProps> = ({ value, onChange }) => {
 
           <div className="flex items-center gap-2">
             <Button size="sm" onClick={handleSave} className="flex-1">
-              Save
+              {t('Save')}
             </Button>
             {value && (
-              <Button aria-label="Remove icon"
+              <Button aria-label={t('Remove icon')}
                 variant="ghost"
                 size="sm"
                 onClick={handleClear}

@@ -14,8 +14,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
+import { useT, tr } from '@/i18n';
 
 const InfoClassroom: React.FC = () => {
+  const t = useT();
   const { classroomId } = useParams<{ classroomId: string }>();
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
@@ -46,11 +48,11 @@ const InfoClassroom: React.FC = () => {
 
   const handleTogglePublish = (id: string, current: boolean) => {
     updateLesson.mutate({ id, published: !current });
-    toast.success(!current ? 'Published' : 'Unpublished');
+    toast.success(!current ? tr('Published') : tr('Unpublished'));
   };
 
   const handleDelete = (id: string, name: string) => {
-    if (confirm(`Delete "${name}"?`)) {
+    if (confirm(tr('Delete "{name}"?', { name }))) {
       deleteLesson.mutate(id);
     }
   };
@@ -66,12 +68,12 @@ const InfoClassroom: React.FC = () => {
           {user ? (
             <>
               <span className="text-xs" style={{ color: colors.textMuted }}>{user.email}</span>
-              <Button variant="ghost" size="icon" className="w-8 h-8" style={{ color: colors.textMuted }} onClick={signOut} title="Sign out">
+              <Button variant="ghost" size="icon" className="w-8 h-8" style={{ color: colors.textMuted }} onClick={signOut} title={t('Sign out')}>
                 <LogOut className="w-4 h-4" />
               </Button>
             </>
           ) : (
-            <Button variant="outline" size="sm" style={{ borderColor: colors.border, color: colors.text }} onClick={() => navigate('/auth')}>Sign In</Button>
+            <Button variant="outline" size="sm" style={{ borderColor: colors.border, color: colors.text }} onClick={() => navigate('/auth')}>{t('Sign In')}</Button>
           )}
         </div>
       </header>
@@ -81,7 +83,7 @@ const InfoClassroom: React.FC = () => {
         <div className="w-72 flex-shrink-0 flex flex-col" style={{ borderRight: `1px solid ${colors.border}`, backgroundColor: colors.card }}>
           <div className="p-4" style={{ borderBottom: `1px solid ${colors.border}` }}>
             <button onClick={() => navigate('/info')} className="flex items-center gap-1.5 text-sm mb-3 transition-colors" style={{ color: colors.textMuted }}>
-              <ArrowLeft className="w-4 h-4" /> Back
+              <ArrowLeft className="w-4 h-4" /> {t('Back')}
             </button>
             {classroom && <h2 className="text-sm font-bold" style={{ color: colors.text }}>{classroom.name}</h2>}
           </div>
@@ -93,7 +95,7 @@ const InfoClassroom: React.FC = () => {
             ) : lessons.length === 0 && !isAdmin ? (
               <div className="p-4 text-center text-sm" style={{ color: colors.textMuted }}>
                 <FileText className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                <p>No lessons yet.</p>
+                <p>{t('No lessons yet.')}</p>
               </div>
             ) : (
               <div className="p-2 space-y-0.5">
@@ -115,8 +117,8 @@ const InfoClassroom: React.FC = () => {
                           style={{ backgroundColor: colors.bg, color: colors.text, borderColor: colors.border }}
                           autoFocus
                         />
-                        <button aria-label="Save name" onClick={() => handleRename(lesson.id)} style={{ color: colors.accent }}><Check className="w-3.5 h-3.5" /></button>
-                        <button aria-label="Cancel" onClick={() => setEditingId(null)} style={{ color: colors.textMuted }}><X className="w-3.5 h-3.5" /></button>
+                        <button aria-label={t('Save name')} onClick={() => handleRename(lesson.id)} style={{ color: colors.accent }}><Check className="w-3.5 h-3.5" /></button>
+                        <button aria-label={t('Cancel')} onClick={() => setEditingId(null)} style={{ color: colors.textMuted }}><X className="w-3.5 h-3.5" /></button>
                       </div>
                     ) : (
                       <>
@@ -127,22 +129,22 @@ const InfoClassroom: React.FC = () => {
                         >
                           <span className="truncate">{lesson.name}</span>
                           {isAdmin && !lesson.published && (
-                            <Badge variant="secondary" className="text-[9px] px-1 py-0 shrink-0" style={{ backgroundColor: colors.accentMuted, color: colors.accent }}>Draft</Badge>
+                            <Badge variant="secondary" className="text-[9px] px-1 py-0 shrink-0" style={{ backgroundColor: colors.accentMuted, color: colors.accent }}>{t('Draft')}</Badge>
                           )}
                         </button>
 
                         {isAdmin && (
                           <div className="flex items-center gap-0.5 pr-2 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                            <button onClick={() => navigate(`/info/lesson/${lesson.id}`)} className="w-6 h-6 flex items-center justify-center rounded" style={{ color: colors.textMuted }} title="Edit content">
+                            <button onClick={() => navigate(`/info/lesson/${lesson.id}`)} className="w-6 h-6 flex items-center justify-center rounded" style={{ color: colors.textMuted }} title={t('Edit content')}>
                               <ExternalLink className="w-3 h-3" />
                             </button>
-                            <button onClick={() => { setEditingId(lesson.id); setEditName(lesson.name); }} className="w-6 h-6 flex items-center justify-center rounded" style={{ color: colors.textMuted }} title="Rename">
+                            <button onClick={() => { setEditingId(lesson.id); setEditName(lesson.name); }} className="w-6 h-6 flex items-center justify-center rounded" style={{ color: colors.textMuted }} title={t('Rename')}>
                               <Pencil className="w-3 h-3" />
                             </button>
-                            <button onClick={() => handleTogglePublish(lesson.id, lesson.published)} className="w-6 h-6 flex items-center justify-center rounded" style={{ color: colors.textMuted }} title={lesson.published ? 'Unpublish' : 'Publish'}>
+                            <button onClick={() => handleTogglePublish(lesson.id, lesson.published)} className="w-6 h-6 flex items-center justify-center rounded" style={{ color: colors.textMuted }} title={lesson.published ? t('Unpublish') : t('Publish')}>
                               {lesson.published ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
                             </button>
-                            <button onClick={() => handleDelete(lesson.id, lesson.name)} className="w-6 h-6 flex items-center justify-center rounded" style={{ color: '#ef4444' }} title="Delete">
+                            <button onClick={() => handleDelete(lesson.id, lesson.name)} className="w-6 h-6 flex items-center justify-center rounded" style={{ color: '#ef4444' }} title={t('Delete')}>
                               <Trash2 className="w-3 h-3" />
                             </button>
                           </div>
@@ -162,14 +164,14 @@ const InfoClassroom: React.FC = () => {
                     <Input
                       value={newLessonName}
                       onChange={(e) => setNewLessonName(e.target.value)}
-                      placeholder="Lesson name..."
+                      placeholder={t('Lesson name...')}
                       onKeyDown={(e) => { if (e.key === 'Enter') handleCreateLesson(); if (e.key === 'Escape') { setCreatingLesson(false); setNewLessonName(''); } }}
                       className="h-7 text-sm flex-1"
                       style={{ backgroundColor: colors.bg, color: colors.text, borderColor: colors.border }}
                       autoFocus
                     />
-                    <button aria-label="Save name" onClick={handleCreateLesson} style={{ color: colors.accent }}><Check className="w-4 h-4" /></button>
-                    <button aria-label="Cancel" onClick={() => { setCreatingLesson(false); setNewLessonName(''); }} style={{ color: colors.textMuted }}><X className="w-4 h-4" /></button>
+                    <button aria-label={t('Save name')} onClick={handleCreateLesson} style={{ color: colors.accent }}><Check className="w-4 h-4" /></button>
+                    <button aria-label={t('Cancel')} onClick={() => { setCreatingLesson(false); setNewLessonName(''); }} style={{ color: colors.textMuted }}><X className="w-4 h-4" /></button>
                   </div>
                 ) : (
                   <button
@@ -180,7 +182,7 @@ const InfoClassroom: React.FC = () => {
                     onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
                     <Plus className="w-4 h-4" />
-                    Add Lesson
+                    {t('Add Lesson')}
                   </button>
                 )}
               </div>
@@ -193,13 +195,13 @@ const InfoClassroom: React.FC = () => {
           {lessons.length > 0 ? (
             <div className="text-center" style={{ color: colors.textMuted }}>
               <FileText className="w-12 h-12 mx-auto mb-3 opacity-40" />
-              <p className="font-medium" style={{ color: colors.text }}>Select a lesson to start</p>
-              <p className="text-sm mt-1">Choose from the sidebar on the left</p>
+              <p className="font-medium" style={{ color: colors.text }}>{t('Select a lesson to start')}</p>
+              <p className="text-sm mt-1">{t('Choose from the sidebar on the left')}</p>
             </div>
           ) : !isLoading ? (
             <div className="text-center" style={{ color: colors.textMuted }}>
               <FileText className="w-12 h-12 mx-auto mb-3 opacity-40" />
-              <p>No lessons available yet.</p>
+              <p>{t('No lessons available yet.')}</p>
             </div>
           ) : null}
         </div>

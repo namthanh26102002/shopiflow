@@ -17,6 +17,7 @@ import { ThemePicker } from './ThemePicker';
 import { generateDemoQuizAnalytics } from '@/lib/quizAnalytics';
 import { VISITOR_LANGUAGES, VisitorLanguage } from '@/lib/visitorText';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useT, tr, msg } from '@/i18n';
 
 const colorPresets = [
   '#0066FF', // Blue
@@ -56,14 +57,14 @@ const fontColorPresets = [
 ];
 
 const SETTINGS_SECTIONS = [
-  { id: 'branding', label: 'Store Branding' },
-  { id: 'favicon', label: 'Favicon' },
-  { id: 'colors', label: 'Colors' },
-  { id: 'next-button', label: 'Next Button' },
-  { id: 'typography', label: 'Typography' },
-  { id: 'text-sizes', label: 'Text Sizes' },
-  { id: 'behaviour', label: 'Behaviour' },
-  { id: 'analytics-demo', label: 'Analytics Demo' },
+  { id: 'branding', label: msg('Store Branding') },
+  { id: 'favicon', label: msg('Favicon') },
+  { id: 'colors', label: msg('Colors') },
+  { id: 'next-button', label: msg('Next Button') },
+  { id: 'typography', label: msg('Typography') },
+  { id: 'text-sizes', label: msg('Text Sizes') },
+  { id: 'behaviour', label: msg('Behaviour') },
+  { id: 'analytics-demo', label: msg('Analytics Demo') },
 ] as const;
 
 type SettingsSectionId = (typeof SETTINGS_SECTIONS)[number]['id'];
@@ -94,6 +95,7 @@ const SettingsSection: React.FC<{
 );
 
 const SettingsSectionNav: React.FC = () => {
+  const t = useT();
   const [active, setActive] = useState<string>(SETTINGS_SECTIONS[0].id);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -120,7 +122,7 @@ const SettingsSectionNav: React.FC = () => {
   return (
     <nav className="hidden lg:block w-44 shrink-0 sticky top-0">
       <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        Sections
+        {t('Sections')}
       </p>
       <ul className="space-y-0.5">
         {SETTINGS_SECTIONS.map(({ id, label }) => (
@@ -139,7 +141,7 @@ const SettingsSectionNav: React.FC = () => {
                   : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'
               )}
             >
-              {label}
+                            {t(label)}
             </button>
           </li>
         ))}
@@ -149,6 +151,7 @@ const SettingsSectionNav: React.FC = () => {
 };
 
 export const SettingsPanel: React.FC = () => {
+  const t = useT();
   const { quiz, updateSettings } = useQuiz();
   const [uploading, setUploading] = useState(false);
 
@@ -158,13 +161,13 @@ export const SettingsPanel: React.FC = () => {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
+      toast.error(tr('Please upload an image file'));
       return;
     }
 
     // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
-      toast.error('Image must be less than 2MB');
+      toast.error(tr('Image must be less than 2MB'));
       return;
     }
 
@@ -184,10 +187,10 @@ export const SettingsPanel: React.FC = () => {
 
       const { data } = supabase.storage.from('quiz-assets').getPublicUrl(filePath);
       updateSettings({ logoUrl: data.publicUrl });
-      toast.success('Logo uploaded successfully');
+      toast.success(tr('Logo uploaded successfully'));
     } catch (error) {
       console.error('Error uploading logo:', error);
-      toast.error('Failed to upload logo');
+      toast.error(tr('Failed to upload logo'));
     } finally {
       setUploading(false);
     }
@@ -196,8 +199,8 @@ export const SettingsPanel: React.FC = () => {
   const handleFaviconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) { toast.error('Please upload an image file'); return; }
-    if (file.size > 1 * 1024 * 1024) { toast.error('Favicon must be less than 1MB'); return; }
+    if (!file.type.startsWith('image/')) { toast.error(tr('Please upload an image file')); return; }
+    if (file.size > 1 * 1024 * 1024) { toast.error(tr('Favicon must be less than 1MB')); return; }
 
     setUploading(true);
     try {
@@ -210,10 +213,10 @@ export const SettingsPanel: React.FC = () => {
       if (uploadError) throw uploadError;
       const { data } = supabase.storage.from('quiz-assets').getPublicUrl(filePath);
       updateSettings({ faviconUrl: data.publicUrl });
-      toast.success('Favicon uploaded');
+      toast.success(tr('Favicon uploaded'));
     } catch (error) {
       console.error('Error uploading favicon:', error);
-      toast.error('Failed to upload favicon');
+      toast.error(tr('Failed to upload favicon'));
     } finally {
       setUploading(false);
     }
@@ -236,18 +239,18 @@ export const SettingsPanel: React.FC = () => {
 
       <div className="flex-1 min-w-0 grid gap-4 xl:grid-cols-2 items-start">
       {/* Store Branding Section */}
-      <SettingsSection id="branding" title="Store Branding" description="Logo, store name and placement" className="space-y-4">
+      <SettingsSection id="branding" title={t('Store Branding')} description={t('Logo, store name and placement')} className="space-y-4">
         <div>
-          <Label className="text-sm font-medium text-foreground">Store Logo</Label>
+          <Label className="text-sm font-medium text-foreground">{t('Store Logo')}</Label>
           <div className="mt-2">
             {quiz.settings.logoUrl ? (
               <div className="relative inline-block">
                 <img
                   src={quiz.settings.logoUrl}
-                  alt="Store logo"
+                  alt={t('Store logo')}
                   className="h-16 w-16 object-contain rounded-lg border border-border-subtle bg-secondary/50"
                 />
-                <button aria-label="Remove logo"
+                <button aria-label={t('Remove logo')}
                   onClick={handleRemoveLogo}
                   className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:opacity-90"
                 >
@@ -258,7 +261,7 @@ export const SettingsPanel: React.FC = () => {
               <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-border-subtle rounded-lg cursor-pointer hover:bg-secondary/30 transition-colors">
                 <Upload className="w-6 h-6 text-muted-foreground mb-2" />
                 <span className="text-xs text-muted-foreground">
-                  {uploading ? 'Uploading...' : 'Click to upload logo'}
+                  {uploading ? t('Uploading...') : t('Click to upload logo')}
                 </span>
                 <input
                   type="file"
@@ -270,21 +273,21 @@ export const SettingsPanel: React.FC = () => {
               </label>
             )}
           </div>
-          <p className="text-xs text-muted-foreground mt-1.5">Max 2MB. Displayed above progress bar.</p>
+          <p className="text-xs text-muted-foreground mt-1.5">{t('Max 2MB. Displayed above progress bar.')}</p>
         </div>
 
         <div>
-          <Label className="text-sm font-medium text-foreground">Store Name</Label>
+          <Label className="text-sm font-medium text-foreground">{t('Store Name')}</Label>
           <Input
             value={quiz.settings.storeName || ''}
             onChange={(e) => updateSettings({ storeName: e.target.value })}
-            placeholder="Your Store Name"
+            placeholder={t('Your Store Name')}
             className="mt-1.5 input-clean"
           />
         </div>
 
         <div>
-          <Label className="text-sm font-medium text-foreground">Logo Layout</Label>
+          <Label className="text-sm font-medium text-foreground">{t('Logo Layout')}</Label>
           <div className="mt-2 flex gap-2">
             <Button
               type="button"
@@ -293,7 +296,7 @@ export const SettingsPanel: React.FC = () => {
               onClick={() => updateSettings({ logoLayout: 'horizontal' })}
               className="flex-1"
             >
-              Horizontal
+              {t('Horizontal')}
             </Button>
             <Button
               type="button"
@@ -302,13 +305,13 @@ export const SettingsPanel: React.FC = () => {
               onClick={() => updateSettings({ logoLayout: 'vertical' })}
               className="flex-1"
             >
-              Vertical
+              {t('Vertical')}
             </Button>
           </div>
         </div>
 
         <div>
-          <Label className="text-sm font-medium text-foreground">Logo Size</Label>
+          <Label className="text-sm font-medium text-foreground">{t('Logo Size')}</Label>
           <div className="mt-2 flex gap-2">
             {(['small', 'medium', 'large'] as const).map((size) => (
               <Button
@@ -327,12 +330,12 @@ export const SettingsPanel: React.FC = () => {
       </SettingsSection>
 
       {/* Favicon Section */}
-      <SettingsSection id="favicon" title="Favicon" description="Icon shown in the browser tab">
+      <SettingsSection id="favicon" title={t('Favicon')} description={t('Icon shown in the browser tab')}>
         <div>
           {quiz.settings.faviconUrl ? (
             <div className="relative inline-block">
-              <img src={quiz.settings.faviconUrl} alt="Favicon" className="h-10 w-10 object-contain rounded border border-border-subtle bg-secondary/50" />
-              <button aria-label="Remove favicon"
+              <img src={quiz.settings.faviconUrl} alt={t('Favicon')} className="h-10 w-10 object-contain rounded border border-border-subtle bg-secondary/50" />
+              <button aria-label={t('Remove favicon')}
                 onClick={handleRemoveFavicon}
                 className="absolute -top-1.5 -right-1.5 p-0.5 bg-destructive text-destructive-foreground rounded-full hover:opacity-90"
               >
@@ -342,23 +345,23 @@ export const SettingsPanel: React.FC = () => {
           ) : (
             <label className="flex flex-col items-center justify-center w-full h-16 border-2 border-dashed border-border-subtle rounded-lg cursor-pointer hover:bg-secondary/30 transition-colors">
               <Upload className="w-4 h-4 text-muted-foreground mb-1" />
-              <span className="text-xs text-muted-foreground">{uploading ? 'Uploading...' : 'Upload favicon'}</span>
+              <span className="text-xs text-muted-foreground">{uploading ? t('Uploading...') : t('Upload favicon')}</span>
               <input type="file" accept="image/*" onChange={handleFaviconUpload} disabled={uploading} className="hidden" />
             </label>
           )}
-          <p className="text-xs text-muted-foreground mt-1.5">Max 1MB. Shows in browser tab.</p>
+          <p className="text-xs text-muted-foreground mt-1.5">{t('Max 1MB. Shows in browser tab.')}</p>
         </div>
       </SettingsSection>
 
-      <SettingsSection id="colors" title="Colors" description="Theme, brand, background and text colors">
+      <SettingsSection id="colors" title={t('Colors')} description={t('Theme, brand, background and text colors')}>
         <div className="pb-6 mb-6 border-b border-border-subtle">
           <ThemePicker />
         </div>
 
         <div className="space-y-4">
           <div>
-            <Label className="text-sm font-medium text-foreground">Brand Color</Label>
-            <p className="text-xs text-muted-foreground mb-2">Used for buttons and accents</p>
+            <Label className="text-sm font-medium text-foreground">{t('Brand Color')}</Label>
+            <p className="text-xs text-muted-foreground mb-2">{t('Used for buttons and accents')}</p>
             <div className="flex flex-wrap gap-2">
               {colorPresets.map((color) => (
                 <button
@@ -390,8 +393,8 @@ export const SettingsPanel: React.FC = () => {
           </div>
 
           <div>
-            <Label className="text-sm font-medium text-foreground">Background Color</Label>
-            <p className="text-xs text-muted-foreground mb-2">Quiz page background</p>
+            <Label className="text-sm font-medium text-foreground">{t('Background Color')}</Label>
+            <p className="text-xs text-muted-foreground mb-2">{t('Quiz page background')}</p>
             <div className="flex flex-wrap gap-2">
               {bgColorPresets.map((color) => (
                 <button
@@ -423,8 +426,8 @@ export const SettingsPanel: React.FC = () => {
           </div>
 
           <div>
-            <Label className="text-sm font-medium text-foreground">Font Color</Label>
-            <p className="text-xs text-muted-foreground mb-2">Text color on the quiz</p>
+            <Label className="text-sm font-medium text-foreground">{t('Font Color')}</Label>
+            <p className="text-xs text-muted-foreground mb-2">{t('Text color on the quiz')}</p>
             <div className="flex flex-wrap gap-2">
               {fontColorPresets.map((color) => (
                 <button
@@ -458,21 +461,21 @@ export const SettingsPanel: React.FC = () => {
       </SettingsSection>
 
       {/* Next Button Customization */}
-      <SettingsSection id="next-button" title="Next Button Style" description="Label, color, size and corners">
+      <SettingsSection id="next-button" title={t('Next Button Style')} description={t('Label, color, size and corners')}>
         <div className="space-y-4">
           <div>
-            <Label className="text-sm font-medium text-foreground">Button Text</Label>
+            <Label className="text-sm font-medium text-foreground">{t('Button Text')}</Label>
             <Input
               value={quiz.settings.nextButtonText || 'Next'}
               onChange={(e) => updateSettings({ nextButtonText: e.target.value })}
-              placeholder="Next"
+              placeholder={t('Next')}
               className="mt-1.5 input-clean"
             />
           </div>
 
           <div>
-            <Label className="text-sm font-medium text-foreground">Button Color</Label>
-            <p className="text-xs text-muted-foreground mb-2">Leave empty to use brand color</p>
+            <Label className="text-sm font-medium text-foreground">{t('Button Color')}</Label>
+            <p className="text-xs text-muted-foreground mb-2">{t('Leave empty to use brand color')}</p>
             <div className="flex items-center gap-2">
               <Input
                 type="color"
@@ -483,11 +486,11 @@ export const SettingsPanel: React.FC = () => {
               <Input
                 value={quiz.settings.nextButtonColor || ''}
                 onChange={(e) => updateSettings({ nextButtonColor: e.target.value || undefined })}
-                placeholder="Use brand color"
+                placeholder={t('Use brand color')}
                 className="flex-1 input-clean font-mono text-sm"
               />
               {quiz.settings.nextButtonColor && (
-                <Button aria-label="Use brand color"
+                <Button aria-label={t('Use brand color')}
                   variant="ghost"
                   size="sm"
                   onClick={() => updateSettings({ nextButtonColor: undefined })}
@@ -500,7 +503,7 @@ export const SettingsPanel: React.FC = () => {
           </div>
 
           <div>
-            <Label className="text-sm font-medium text-foreground">Button Size</Label>
+            <Label className="text-sm font-medium text-foreground">{t('Button Size')}</Label>
             <div className="mt-2 flex gap-2">
               {(['small', 'medium', 'large'] as ButtonSize[]).map((size) => (
                 <Button
@@ -518,14 +521,14 @@ export const SettingsPanel: React.FC = () => {
           </div>
 
           <div>
-            <Label className="text-sm font-medium text-foreground">Button Corners</Label>
+            <Label className="text-sm font-medium text-foreground">{t('Button Corners')}</Label>
             <div className="mt-2 flex gap-2 flex-wrap">
               {([
-                { value: 'none', label: 'Square' },
-                { value: 'small', label: 'Sm' },
-                { value: 'medium', label: 'Md' },
-                { value: 'large', label: 'Lg' },
-                { value: 'full', label: 'Full' },
+                { value: 'none', label: t('Square') },
+                { value: 'small', label: t('Sm') },
+                { value: 'medium', label: t('Md') },
+                { value: 'large', label: t('Lg') },
+                { value: 'full', label: t('Full') },
               ] as { value: ButtonRadius; label: string }[]).map(({ value, label }) => (
                 <Button
                   key={value}
@@ -544,15 +547,15 @@ export const SettingsPanel: React.FC = () => {
       </SettingsSection>
 
       {/* Typography Section */}
-      <SettingsSection id="typography" title="Typography" description="Font weights for quiz text">
+      <SettingsSection id="typography" title={t('Typography')} description={t('Font weights for quiz text')}>
         <div className="space-y-4">
           <div>
-            <Label className="text-sm font-medium text-foreground">Sub-text Weight</Label>
+            <Label className="text-sm font-medium text-foreground">{t('Sub-text Weight')}</Label>
             <div className="mt-2 flex gap-2">
               {([
-                { value: 'normal', label: 'Normal' },
-                { value: 'medium', label: 'Medium' },
-                { value: 'semibold', label: 'Semi-bold' },
+                { value: 'normal', label: t('Normal') },
+                { value: 'medium', label: t('Medium') },
+                { value: 'semibold', label: t('Semi-bold') },
               ] as { value: FontWeight; label: string }[]).map(({ value, label }) => (
                 <Button
                   key={value}
@@ -569,12 +572,12 @@ export const SettingsPanel: React.FC = () => {
           </div>
 
           <div>
-            <Label className="text-sm font-medium text-foreground">Answer Options Weight</Label>
+            <Label className="text-sm font-medium text-foreground">{t('Answer Options Weight')}</Label>
             <div className="mt-2 flex gap-2">
               {([
-                { value: 'normal', label: 'Normal' },
-                { value: 'medium', label: 'Medium' },
-                { value: 'semibold', label: 'Semi-bold' },
+                { value: 'normal', label: t('Normal') },
+                { value: 'medium', label: t('Medium') },
+                { value: 'semibold', label: t('Semi-bold') },
               ] as { value: FontWeight; label: string }[]).map(({ value, label }) => (
                 <Button
                   key={value}
@@ -595,8 +598,8 @@ export const SettingsPanel: React.FC = () => {
       {/* Text Sizes */}
       <SettingsSection
         id="text-sizes"
-        title="Text Sizes"
-        description="Applies to every quiz page, including blank/info pages"
+        title={t('Text Sizes')}
+        description={t('Applies to every quiz page, including blank/info pages')}
         className="xl:col-span-2"
       >
           <div>
@@ -607,7 +610,7 @@ export const SettingsPanel: React.FC = () => {
                 size="sm"
                 onClick={() => updateSettings({ textSizes: { ...DEFAULT_TEXT_SIZES } })}
               >
-                Reset to defaults
+                {t('Reset to defaults')}
               </Button>
             </div>
 
@@ -618,8 +621,8 @@ export const SettingsPanel: React.FC = () => {
                   <div key={key}>
                     <div className="flex items-baseline justify-between gap-2">
                       <div>
-                        <span className="text-sm font-medium text-foreground">{label}</span>
-                        <p className="text-xs text-muted-foreground">{description}</p>
+                        <span className="text-sm font-medium text-foreground">{t(label)}</span>
+                        <p className="text-xs text-muted-foreground">{t(description)}</p>
                       </div>
                       <span className="text-xs font-medium text-muted-foreground tabular-nums">{current}px</span>
                     </div>
@@ -646,12 +649,12 @@ export const SettingsPanel: React.FC = () => {
       </SettingsSection>
 
       {/* Behaviour */}
-      <SettingsSection id="behaviour" title="Behaviour" description="Language, navigation and skip options" className="space-y-4">
+      <SettingsSection id="behaviour" title={t('Behaviour')} description={t('Language, navigation and skip options')} className="space-y-4">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <Label htmlFor="visitor-language" className="text-sm font-medium text-foreground">Visitor language</Label>
+            <Label htmlFor="visitor-language" className="text-sm font-medium text-foreground">{t('Visitor language')}</Label>
             <p className="text-xs text-muted-foreground mt-0.5">
-              For the text the quiz supplies, like "Next" and "Select all that apply". Your own text is never changed.
+              {t('For the text the quiz supplies, like "Next" and "Select all that apply". Your own text is never changed.')}
             </p>
           </div>
           <Select
@@ -672,9 +675,9 @@ export const SettingsPanel: React.FC = () => {
         <div className="pt-4 border-t border-border-subtle">
           <div className="flex items-center justify-between">
             <div>
-              <Label className="text-sm font-medium text-foreground">Auto-advance single-answer</Label>
+              <Label className="text-sm font-medium text-foreground">{t('Auto-advance single-answer')}</Label>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Automatically move to the next question when a single answer is selected
+                {t('Automatically move to the next question when a single answer is selected')}
               </p>
             </div>
             <Switch
@@ -688,9 +691,9 @@ export const SettingsPanel: React.FC = () => {
         <div className="pt-4 border-t border-border-subtle space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <Label className="text-sm font-medium text-foreground">Show Skip Button on First Step</Label>
+              <Label className="text-sm font-medium text-foreground">{t('Show Skip Button on First Step')}</Label>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Display a skip link on the first question that redirects to an external URL
+                {t('Display a skip link on the first question that redirects to an external URL')}
               </p>
             </div>
             <Switch
@@ -701,7 +704,7 @@ export const SettingsPanel: React.FC = () => {
           {quiz.settings.showSkipButton && (
             <div className="space-y-3 pl-1">
               <div>
-                <Label className="text-xs text-muted-foreground">Button Text</Label>
+                <Label className="text-xs text-muted-foreground">{t('Button Text')}</Label>
                 <Input
                   value={quiz.settings.skipButtonText ?? 'Skip Quiz'}
                   onChange={(e) => updateSettings({ skipButtonText: e.target.value })}
@@ -710,7 +713,7 @@ export const SettingsPanel: React.FC = () => {
                 />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Destination URL</Label>
+                <Label className="text-xs text-muted-foreground">{t('Destination URL')}</Label>
                 <Input
                   value={quiz.settings.skipButtonUrl ?? ''}
                   onChange={(e) => updateSettings({ skipButtonUrl: e.target.value })}
@@ -726,18 +729,18 @@ export const SettingsPanel: React.FC = () => {
       {/* Analytics demo */}
       <SettingsSection
         id="analytics-demo"
-        title="Analytics Demo"
-        description="Preview the full analytics report with sample data — locations, time on each page and drop-off points."
+        title={t('Analytics Demo')}
+        description={t('Preview the full analytics report with sample data — locations, time on each page and drop-off points.')}
       >
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm">
-                <BarChart3 className="w-4 h-4 mr-1" /> Open demo dashboard
+                <BarChart3 className="w-4 h-4 mr-1" /> {t('Open demo dashboard')}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Analytics demo (sample data)</DialogTitle>
+                <DialogTitle>{t('Analytics demo (sample data)')}</DialogTitle>
               </DialogHeader>
               <QuizAnalyticsDashboard data={generateDemoQuizAnalytics()} demo />
             </DialogContent>

@@ -11,8 +11,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { QuestionsListSkeleton } from './BuilderSkeleton';
+import { useT } from '@/i18n';
 
 export const QuestionsList: React.FC = () => {
+  const t = useT();
   const { quiz, selectedQuestionId, setSelectedQuestionId, addQuestion, deleteQuestion, reorderQuestions, loading } = useQuiz();
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
@@ -42,58 +44,58 @@ export const QuestionsList: React.FC = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-foreground">Questions</h3>
+        <h3 className="text-sm font-semibold text-foreground">{t('Questions')}</h3>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="text-primary hover:text-primary hover:bg-primary-light h-8">
               <Plus className="w-4 h-4 mr-1" />
-              Add
+              {t('Add')}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuItem onClick={() => handleAddQuestion('blank')}>
               <FileText className="w-4 h-4 mr-2" />
-              Blank / Info
+              {t('Blank / Info')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleAddQuestion('multiple-choice')}>
               <List className="w-4 h-4 mr-2" />
-              Multiple Choice
+              {t('Multiple Choice')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleAddQuestion('image-selection')}>
               <Image className="w-4 h-4 mr-2" />
-              Image Selection
+              {t('Image Selection')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleAddQuestion('yes-no')}>
               <ToggleLeft className="w-4 h-4 mr-2" />
-              Yes / No
+              {t('Yes / No')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleAddQuestion('analyzing')}>
               <Loader className="w-4 h-4 mr-2" />
-              Analyzing
+              {t('Analyzing')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleAddQuestion('chart')}>
               <LineChart className="w-4 h-4 mr-2" />
-              Chart
+              {t('Chart')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleAddQuestion('summary')}>
               <FileText className="w-4 h-4 mr-2" />
-              Summary
+              {t('Summary')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleAddQuestion('result')}>
               <Trophy className="w-4 h-4 mr-2" />
-              Result
+              {t('Result')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleAddQuestion('score-slider')}>
               <SlidersHorizontal className="w-4 h-4 mr-2" />
-              Score Slider
+              {t('Score Slider')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleAddQuestion('feedback')}>
               <MessageSquare className="w-4 h-4 mr-2" />
-              Feedback
+              {t('Feedback')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleAddQuestion('warning')}>
               <AlertTriangle className="w-4 h-4 mr-2" />
-              Warning
+              {t('Warning')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -104,59 +106,59 @@ export const QuestionsList: React.FC = () => {
           <div className="w-12 h-12 rounded-full bg-secondary mx-auto mb-3 flex items-center justify-center">
             <Plus className="w-6 h-6 text-muted-foreground" />
           </div>
-          <p className="text-sm font-medium text-foreground mb-1">No questions yet</p>
-          <p className="text-xs text-muted-foreground mb-4">Add your first question to get started</p>
+          <p className="text-sm font-medium text-foreground mb-1">{t('No questions yet')}</p>
+          <p className="text-xs text-muted-foreground mb-4">{t('Add your first question to get started')}</p>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button size="sm" className="bg-primary hover:bg-primary/90">
                 <Plus className="w-4 h-4 mr-1" />
-                Add Question
+                {t('Add Question')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="center" className="w-48">
               <DropdownMenuItem onClick={() => handleAddQuestion('blank')}>
                 <FileText className="w-4 h-4 mr-2" />
-                Blank / Info
+                {t('Blank / Info')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleAddQuestion('multiple-choice')}>
                 <List className="w-4 h-4 mr-2" />
-                Multiple Choice
+                {t('Multiple Choice')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleAddQuestion('image-selection')}>
                 <Image className="w-4 h-4 mr-2" />
-                Image Selection
+                {t('Image Selection')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleAddQuestion('yes-no')}>
                 <ToggleLeft className="w-4 h-4 mr-2" />
-                Yes / No
+                {t('Yes / No')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleAddQuestion('analyzing')}>
                 <Loader className="w-4 h-4 mr-2" />
-                Analyzing
+                {t('Analyzing')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleAddQuestion('chart')}>
                 <LineChart className="w-4 h-4 mr-2" />
-                Chart
+                {t('Chart')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleAddQuestion('summary')}>
                 <FileText className="w-4 h-4 mr-2" />
-                Summary
+                {t('Summary')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleAddQuestion('result')}>
                 <Trophy className="w-4 h-4 mr-2" />
-                Result
+                {t('Result')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleAddQuestion('score-slider')}>
                 <SlidersHorizontal className="w-4 h-4 mr-2" />
-                Score Slider
+                {t('Score Slider')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleAddQuestion('feedback')}>
                 <MessageSquare className="w-4 h-4 mr-2" />
-                Feedback
+                {t('Feedback')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleAddQuestion('warning')}>
                 <AlertTriangle className="w-4 h-4 mr-2" />
-                Warning
+                {t('Warning')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

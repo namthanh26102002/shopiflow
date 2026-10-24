@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { TIMELINE_TEMPLATES } from '@/constants/timelineTemplates';
 import { format } from 'date-fns';
 import { toLocalDatetime } from '@/lib/localDatetime';
+import { useT, useDateLocale } from '@/i18n';
 
 interface Props {
   events: TimelineEvent[];
@@ -20,6 +21,8 @@ interface Props {
 const CUSTOM_VALUE = '__custom__';
 
 export const OrderTimeline: React.FC<Props> = ({ events, editable = false, orderDate, onAdd, onUpdate, onDelete }) => {
+  const t = useT();
+  const dateLocale = useDateLocale();
   const [selectedTemplate, setSelectedTemplate] = useState<string>(CUSTOM_VALUE);
   const [variableValues, setVariableValues] = useState<Record<string, string>>({});
   const [customDesc, setCustomDesc] = useState('');
@@ -90,7 +93,7 @@ export const OrderTimeline: React.FC<Props> = ({ events, editable = false, order
 
   return (
     <div className="rounded-xl border border-border bg-card p-5">
-      <h3 className="text-sm font-semibold text-foreground mb-4">Order Timeline</h3>
+      <h3 className="text-sm font-semibold text-foreground mb-4">{t('Order Timeline')}</h3>
 
       <div className="relative ml-3">
         {events.length > 0 && (
@@ -112,8 +115,8 @@ export const OrderTimeline: React.FC<Props> = ({ events, editable = false, order
                     <div className="space-y-1">
                       <div className="flex items-center gap-1">
                         <Input value={editDesc} onChange={e => setEditDesc(e.target.value)} className="h-7 text-xs" />
-                        <Button aria-label="Save event" variant="ghost" size="icon" className="w-6 h-6 text-green-600" onClick={saveEdit}><Check className="w-3 h-3" /></Button>
-                        <Button aria-label="Cancel editing" variant="ghost" size="icon" className="w-6 h-6 text-muted-foreground" onClick={() => setEditingId(null)}><X className="w-3 h-3" /></Button>
+                        <Button aria-label={t('Save event')} variant="ghost" size="icon" className="w-6 h-6 text-green-600" onClick={saveEdit}><Check className="w-3 h-3" /></Button>
+                        <Button aria-label={t('Cancel editing')} variant="ghost" size="icon" className="w-6 h-6 text-muted-foreground" onClick={() => setEditingId(null)}><X className="w-3 h-3" /></Button>
                       </div>
                       <input type="datetime-local" value={editDate} onChange={e => setEditDate(e.target.value)} className="h-7 text-xs rounded-md border border-input bg-background px-2 text-muted-foreground" />
                     </div>
@@ -123,20 +126,20 @@ export const OrderTimeline: React.FC<Props> = ({ events, editable = false, order
                         <p className="text-sm text-foreground">{event.description}</p>
                         {isFuture && editable && (
                           <span className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
-                            <Clock className="w-2.5 h-2.5" /> Scheduled
+                            <Clock className="w-2.5 h-2.5" /> {t('Scheduled')}
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground">{format(new Date(event.event_date), 'MMM dd, yyyy · hh:mm a')}</p>
+                      <p className="text-xs text-muted-foreground">{format(new Date(event.event_date), 'PP · p', { locale: dateLocale })}</p>
                     </>
                   )}
                 </div>
                 {editable && editingId !== event.id && (
                   <div className="flex gap-0.5 shrink-0">
-                    <Button aria-label="Edit event" variant="ghost" size="icon" className="w-6 h-6 text-muted-foreground hover:text-foreground" onClick={() => startEdit(event)}>
+                    <Button aria-label={t('Edit event')} variant="ghost" size="icon" className="w-6 h-6 text-muted-foreground hover:text-foreground" onClick={() => startEdit(event)}>
                       <Pencil className="w-3 h-3" />
                     </Button>
-                    <Button aria-label="Delete event" variant="ghost" size="icon" className="w-6 h-6 text-destructive hover:text-destructive" onClick={() => onDelete?.(event.id)}>
+                    <Button aria-label={t('Delete event')} variant="ghost" size="icon" className="w-6 h-6 text-destructive hover:text-destructive" onClick={() => onDelete?.(event.id)}>
                       <Trash2 className="w-3 h-3" />
                     </Button>
                   </div>
@@ -152,12 +155,12 @@ export const OrderTimeline: React.FC<Props> = ({ events, editable = false, order
           {/* Template selector */}
           <Select value={selectedTemplate} onValueChange={handleTemplateChange}>
             <SelectTrigger className="h-8 text-sm">
-              <SelectValue placeholder="Select a template..." />
+              <SelectValue placeholder={t('Select a template...')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={CUSTOM_VALUE}>Custom event</SelectItem>
-              {TIMELINE_TEMPLATES.map((t, i) => (
-                <SelectItem key={i} value={String(i)}>{t.label}</SelectItem>
+              <SelectItem value={CUSTOM_VALUE}>{t('Custom event')}</SelectItem>
+              {TIMELINE_TEMPLATES.map((tmpl, i) => (
+                <SelectItem key={i} value={String(i)}>{tmpl.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -182,7 +185,7 @@ export const OrderTimeline: React.FC<Props> = ({ events, editable = false, order
             <Input
               value={customDesc}
               onChange={(e) => setCustomDesc(e.target.value)}
-              placeholder="Add timeline event..."
+              placeholder={t('Add timeline event...')}
               className="h-8 text-sm"
               onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
             />
@@ -191,7 +194,7 @@ export const OrderTimeline: React.FC<Props> = ({ events, editable = false, order
           {/* Preview */}
           {resolvedDescription && !resolvedDescription.includes('{') && (
             <p className="text-xs text-muted-foreground italic px-1">
-              Preview: {resolvedDescription}
+              {t('Preview:')} {resolvedDescription}
             </p>
           )}
 
@@ -201,7 +204,7 @@ export const OrderTimeline: React.FC<Props> = ({ events, editable = false, order
           </div>
 
           <Button size="sm" className="h-8 gap-1 shrink-0" onClick={handleAdd} disabled={!canAdd}>
-            <Plus className="w-3.5 h-3.5" /> Add
+            <Plus className="w-3.5 h-3.5" /> {t('Add')}
           </Button>
         </div>
       )}

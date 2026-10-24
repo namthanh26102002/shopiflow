@@ -10,6 +10,7 @@ import { useAdmin } from '@/hooks/useAdmin';
 import { createDefaultQuiz } from '@/types/quiz';
 import { createDefaultAdvertorial } from '@/types/advertorial';
 import { toast } from 'sonner';
+import { tr } from '@/i18n';
 
 export const PROJECT_LIMIT = 2;
 
@@ -73,7 +74,7 @@ export const useProjects = (table: ProjectTable) => {
       setProjects((data ?? []) as ProjectSummary[]);
     } catch (err) {
       console.error(`Error loading ${table}:`, err);
-      toast.error('Failed to load your projects');
+      toast.error(tr('Failed to load your projects'));
     } finally {
       setLoading(false);
     }
@@ -101,8 +102,8 @@ export const useProjects = (table: ProjectTable) => {
         // Surfaced when the database trigger rejects the insert, which also
         // covers the case where another tab used up the last slot.
         if (error.message?.includes(LIMIT_MARKER)) {
-          toast.error(
-            `You can keep up to ${PROJECT_LIMIT} projects here. Delete one to make room.`
+                    toast.error(
+            tr('You can keep up to {limit} projects here. Delete one to make room.', { limit: PROJECT_LIMIT })
           );
           await load();
           return null;
@@ -114,7 +115,7 @@ export const useProjects = (table: ProjectTable) => {
       return data?.id ?? null;
     } catch (err) {
       console.error(`Error creating ${table} project:`, err);
-      toast.error('Failed to create the project');
+      toast.error(tr('Failed to create the project'));
       return null;
     } finally {
       setBusy(false);
@@ -126,11 +127,11 @@ export const useProjects = (table: ProjectTable) => {
     try {
       const { error } = await supabase.from(table).delete().eq('id', id);
       if (error) throw error;
-      toast.success('Project deleted');
+      toast.success(tr('Project deleted'));
       await load();
     } catch (err) {
       console.error(`Error deleting ${table} project:`, err);
-      toast.error('Failed to delete the project');
+      toast.error(tr('Failed to delete the project'));
     } finally {
       setBusy(false);
     }
@@ -146,7 +147,7 @@ export const useProjects = (table: ProjectTable) => {
       await load();
     } catch (err) {
       console.error(`Error renaming ${table} project:`, err);
-      toast.error('Failed to rename the project');
+      toast.error(tr('Failed to rename the project'));
     }
   }, [table, load]);
 

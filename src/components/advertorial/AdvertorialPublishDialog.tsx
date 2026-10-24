@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useT } from '@/i18n';
 
 interface AdvertorialPublishDialogProps {
   open: boolean;
@@ -16,6 +17,7 @@ interface AdvertorialPublishDialogProps {
 }
 
 export const AdvertorialPublishDialog: React.FC<AdvertorialPublishDialogProps> = ({ open, onOpenChange }) => {
+  const t = useT();
   const { advertorial, publishAdvertorial, updatePublishedAdvertorial } = useAdvertorial();
   const [copied, setCopied] = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -52,7 +54,7 @@ export const AdvertorialPublishDialog: React.FC<AdvertorialPublishDialogProps> =
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">Publish Advertorial</DialogTitle>
+          <DialogTitle className="text-xl font-semibold">{t('Publish Advertorial')}</DialogTitle>
         </DialogHeader>
 
         <div className="mt-4 space-y-4">
@@ -61,9 +63,9 @@ export const AdvertorialPublishDialog: React.FC<AdvertorialPublishDialogProps> =
               <div className="w-16 h-16 rounded-full bg-secondary mx-auto mb-4 flex items-center justify-center">
                 <Link className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h3 className="font-semibold text-foreground mb-2">Ready to publish?</h3>
+              <h3 className="font-semibold text-foreground mb-2">{t('Ready to publish?')}</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Once published, your advertorial will be accessible via a public link.
+                {t('Once published, your advertorial will be accessible via a public link.')}
               </p>
               <Button
                 onClick={handlePublish}
@@ -73,24 +75,24 @@ export const AdvertorialPublishDialog: React.FC<AdvertorialPublishDialogProps> =
                 {publishing ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Publishing...
+                    {t('Publishing...')}
                   </>
                 ) : (
-                  'Publish Advertorial'
+                  t('Publish Advertorial')
                 )}
               </Button>
               {advertorial.blocks.length === 0 && (
-                <p className="text-xs text-destructive mt-2">Add blocks before publishing</p>
+                <p className="text-xs text-destructive mt-2">{t('Add blocks before publishing')}</p>
               )}
             </div>
           ) : (
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-sm font-medium text-green-600">Live</span>
+                <span className="text-sm font-medium text-green-600">{t('Live')}</span>
               </div>
               <p className="text-sm text-muted-foreground mb-3">
-                Your advertorial is live. Share this link or update it with your latest changes.
+                {t('Your advertorial is live. Share this link or update it with your latest changes.')}
               </p>
               <div className="flex gap-2">
                 <Input
@@ -119,7 +121,7 @@ export const AdvertorialPublishDialog: React.FC<AdvertorialPublishDialogProps> =
                   className="flex-1"
                 >
                   <ExternalLink className="w-4 h-4 mr-1.5" />
-                  View Live
+                  {t('View Live')}
                 </Button>
                 <Button
                   onClick={handleUpdate}
@@ -129,10 +131,10 @@ export const AdvertorialPublishDialog: React.FC<AdvertorialPublishDialogProps> =
                   {publishing ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Updating...
+                      {t('Updating...')}
                     </>
                   ) : (
-                    'Update Live Page'
+                    t('Update Live Page')
                   )}
                 </Button>
               </div>
@@ -142,7 +144,7 @@ export const AdvertorialPublishDialog: React.FC<AdvertorialPublishDialogProps> =
 
         <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+            {t('Close')}
           </Button>
         </div>
       </DialogContent>

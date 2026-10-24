@@ -2,6 +2,7 @@ import React from 'react';
 import { GripVertical, Image, List, ToggleLeft, Trash2, FileText, Loader, LineChart, ClipboardList, Trophy, SlidersHorizontal, MessageSquare, AlertTriangle } from 'lucide-react';
 import { Question, QuestionType } from '@/types/quiz';
 import { cn } from '@/lib/utils';
+import { useT, type MessageKey } from '@/i18n';
 
 interface QuestionCardProps {
   question: Question;
@@ -26,7 +27,7 @@ const questionTypeIcons: Record<QuestionType, React.ReactNode> = {
   'warning': <AlertTriangle className="w-4 h-4" />,
 };
 
-const questionTypeLabels: Record<QuestionType, string> = {
+const questionTypeLabels: Record<QuestionType, MessageKey> = {
   'blank': 'Blank / Info',
   'multiple-choice': 'Multiple Choice',
   'image-selection': 'Image Selection',
@@ -48,6 +49,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   onDelete,
   isDragging = false,
 }) => {
+  const t = useT();
   return (
     <div
       className={cn(
@@ -66,41 +68,41 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           <span className="text-xs font-medium text-muted-foreground">Q{index + 1}</span>
           <div className="flex items-center gap-1 text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
             {questionTypeIcons[question.type]}
-            <span>{questionTypeLabels[question.type]}</span>
+            <span>{t(questionTypeLabels[question.type])}</span>
           </div>
         </div>
         
         <p className="text-sm font-medium text-foreground truncate">
-          {question.text || 'Untitled question'}
+          {question.text || t('Untitled question')}
         </p>
         
         {question.type !== 'blank' && question.type !== 'analyzing' && question.type !== 'chart' && question.type !== 'summary' && question.type !== 'result' && (
           <p className="text-xs text-muted-foreground mt-1">
-            {question.options.length} options
+            {t('{count} options', { count: question.options.length })}
           </p>
         )}
         {question.type === 'blank' && (
-          <p className="text-xs text-muted-foreground mt-1">Info page</p>
+          <p className="text-xs text-muted-foreground mt-1">{t('Info page')}</p>
         )}
         {question.type === 'analyzing' && (
           <p className="text-xs text-muted-foreground mt-1">
-            {question.analyzingBars?.length || 0} progress bars
+            {t('{count} progress bars', { count: question.analyzingBars?.length || 0 })}
           </p>
         )}
         {question.type === 'chart' && (
           <p className="text-xs text-muted-foreground mt-1">
-            {question.chartConfig?.points?.length || 0} chart points
+            {t('{count} chart points', { count: question.chartConfig?.points?.length || 0 })}
           </p>
         )}
         {question.type === 'summary' && (
-          <p className="text-xs text-muted-foreground mt-1">Summary page</p>
+          <p className="text-xs text-muted-foreground mt-1">{t('Summary page')}</p>
         )}
         {question.type === 'result' && (
-          <p className="text-xs text-muted-foreground mt-1">Result page</p>
+          <p className="text-xs text-muted-foreground mt-1">{t('Result page')}</p>
         )}
       </div>
       
-      <button aria-label="Delete question"
+      <button aria-label={t('Delete question')}
         onClick={(e) => {
           e.stopPropagation();
           onDelete();

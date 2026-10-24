@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useT, tr } from '@/i18n';
 
 interface PublishDialogProps {
   open: boolean;
@@ -19,6 +20,7 @@ interface PublishDialogProps {
 }
 
 export const PublishDialog: React.FC<PublishDialogProps> = ({ open, onOpenChange }) => {
+  const t = useT();
   const { quiz, saveQuiz, refreshQuiz } = useQuiz();
   const [copied, setCopied] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
@@ -76,7 +78,7 @@ export const PublishDialog: React.FC<PublishDialogProps> = ({ open, onOpenChange
   const handlePublish = async () => {
     // Validate quiz has questions
     if (quiz.questions.length === 0) {
-      toast.error('Add at least one question before publishing');
+      toast.error(tr('Add at least one question before publishing'));
       return;
     }
 
@@ -95,7 +97,7 @@ export const PublishDialog: React.FC<PublishDialogProps> = ({ open, onOpenChange
       // Refresh quiz to get updated publishedUrl
       await refreshQuiz();
 
-      toast.success('Quiz published successfully!');
+      toast.success(tr('Quiz published successfully!'));
       
       // Copy link to clipboard
       await navigator.clipboard.writeText(quizUrl);
@@ -103,7 +105,7 @@ export const PublishDialog: React.FC<PublishDialogProps> = ({ open, onOpenChange
       setTimeout(() => setCopied(null), 2000);
     } catch (error) {
       console.error('Error publishing quiz:', error);
-      toast.error('Failed to publish quiz');
+      toast.error(tr('Failed to publish quiz'));
     } finally {
       setPublishing(false);
     }
@@ -113,10 +115,10 @@ export const PublishDialog: React.FC<PublishDialogProps> = ({ open, onOpenChange
     setPublishing(true);
     try {
       await saveQuiz();
-      toast.success('Live quiz updated successfully!');
+      toast.success(tr('Live quiz updated successfully!'));
     } catch (error) {
       console.error('Error updating quiz:', error);
-      toast.error('Failed to update live quiz');
+      toast.error(tr('Failed to update live quiz'));
     } finally {
       setPublishing(false);
     }
@@ -133,10 +135,10 @@ export const PublishDialog: React.FC<PublishDialogProps> = ({ open, onOpenChange
       if (error) throw error;
 
       await refreshQuiz();
-      toast.success('Quiz unpublished');
+      toast.success(tr('Quiz unpublished'));
     } catch (error) {
       console.error('Error unpublishing quiz:', error);
-      toast.error('Failed to unpublish quiz');
+      toast.error(tr('Failed to unpublish quiz'));
     } finally {
       setPublishing(false);
     }
@@ -146,22 +148,22 @@ export const PublishDialog: React.FC<PublishDialogProps> = ({ open, onOpenChange
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">Publish Quiz</DialogTitle>
+          <DialogTitle className="text-xl font-semibold">{t('Publish Quiz')}</DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="share" className="mt-4">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="share" className="flex items-center gap-1.5">
               <Link className="w-4 h-4" />
-              Share
+              {t('Share')}
             </TabsTrigger>
             <TabsTrigger value="embed" className="flex items-center gap-1.5">
               <Code className="w-4 h-4" />
-              Embed
+              {t('Embed')}
             </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-1.5">
               <BarChart3 className="w-4 h-4" />
-              Analytics
+              {t('Analytics')}
             </TabsTrigger>
           </TabsList>
 
@@ -171,9 +173,9 @@ export const PublishDialog: React.FC<PublishDialogProps> = ({ open, onOpenChange
                 <div className="w-16 h-16 rounded-full bg-secondary mx-auto mb-4 flex items-center justify-center">
                   <Link className="w-8 h-8 text-muted-foreground" />
                 </div>
-                <h3 className="font-semibold text-foreground mb-2">Ready to publish?</h3>
+                <h3 className="font-semibold text-foreground mb-2">{t('Ready to publish?')}</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Once published, your quiz will be accessible via a public link.
+                  {t('Once published, your quiz will be accessible via a public link.')}
                 </p>
                 <Button
                   onClick={handlePublish}
@@ -184,24 +186,24 @@ export const PublishDialog: React.FC<PublishDialogProps> = ({ open, onOpenChange
                   {publishing ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Publishing...
+                      {t('Publishing...')}
                     </>
                   ) : (
-                    'Publish Quiz'
+                    t('Publish Quiz')
                   )}
                 </Button>
                 {quiz.questions.length === 0 && (
-                  <p className="text-xs text-destructive mt-2">Add questions to publish</p>
+                  <p className="text-xs text-destructive mt-2">{t('Add questions to publish')}</p>
                 )}
               </div>
             ) : (
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  <span className="text-sm font-medium text-green-600">Live</span>
+                  <span className="text-sm font-medium text-green-600">{t('Live')}</span>
                 </div>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Share this link with your customers to start the quiz.
+                  {t('Share this link with your customers to start the quiz.')}
                 </p>
                 <div className="flex gap-2">
                   <Input 
@@ -233,10 +235,10 @@ export const PublishDialog: React.FC<PublishDialogProps> = ({ open, onOpenChange
                     {publishing ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Updating...
+                        {t('Updating...')}
                       </>
                     ) : (
-                      'Update Live Quiz'
+                      t('Update Live Quiz')
                     )}
                   </Button>
                   <div className="flex gap-2">
@@ -245,7 +247,7 @@ export const PublishDialog: React.FC<PublishDialogProps> = ({ open, onOpenChange
                       onClick={() => window.open(quizUrl, '_blank')}
                       className="flex-1"
                     >
-                      Preview Quiz
+                      {t('Preview Quiz')}
                     </Button>
                     <Button
                       variant="ghost"
@@ -253,7 +255,7 @@ export const PublishDialog: React.FC<PublishDialogProps> = ({ open, onOpenChange
                       disabled={publishing}
                       className="text-destructive hover:text-destructive"
                     >
-                      Unpublish
+                      {t('Unpublish')}
                     </Button>
                   </div>
                 </div>
@@ -261,9 +263,9 @@ export const PublishDialog: React.FC<PublishDialogProps> = ({ open, onOpenChange
             )}
 
             <div className="p-4 bg-secondary/50 rounded-xl">
-              <p className="text-sm font-medium text-foreground mb-1">Pro tip</p>
+              <p className="text-sm font-medium text-foreground mb-1">{t('Pro tip')}</p>
               <p className="text-xs text-muted-foreground">
-                Add UTM parameters to track where your quiz traffic comes from.
+                {t('Add UTM parameters to track where your quiz traffic comes from.')}
               </p>
             </div>
           </TabsContent>
@@ -272,13 +274,13 @@ export const PublishDialog: React.FC<PublishDialogProps> = ({ open, onOpenChange
             {!isPublished ? (
               <div className="text-center py-6">
                 <p className="text-sm text-muted-foreground">
-                  Publish your quiz first to get the embed code.
+                  {t('Publish your quiz first to get the embed code.')}
                 </p>
               </div>
             ) : (
               <div>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Paste this code on your website to embed the quiz.
+                  {t('Paste this code on your website to embed the quiz.')}
                 </p>
                 <div className="relative">
                   <pre className="p-3 bg-secondary/50 rounded-xl text-xs font-mono overflow-x-auto whitespace-pre-wrap break-all">
@@ -293,12 +295,12 @@ export const PublishDialog: React.FC<PublishDialogProps> = ({ open, onOpenChange
                     {copied === 'embed' ? (
                       <>
                         <Check className="w-3 h-3 mr-1 text-green-500" />
-                        Copied
+                        {t('Copied')}
                       </>
                     ) : (
                       <>
                         <Copy className="w-3 h-3 mr-1" />
-                        Copy
+                        {t('Copy')}
                       </>
                     )}
                   </Button>
@@ -311,11 +313,11 @@ export const PublishDialog: React.FC<PublishDialogProps> = ({ open, onOpenChange
             <div className="grid grid-cols-2 gap-4">
               <div className="card-elevated p-4 text-center">
                 <p className="text-3xl font-bold text-foreground">{starts}</p>
-                <p className="text-sm text-muted-foreground">Quiz Starts</p>
+                <p className="text-sm text-muted-foreground">{t('Quiz Starts')}</p>
               </div>
               <div className="card-elevated p-4 text-center">
                 <p className="text-3xl font-bold text-foreground">{completions}</p>
-                <p className="text-sm text-muted-foreground">Completions</p>
+                <p className="text-sm text-muted-foreground">{t('Completions')}</p>
               </div>
             </div>
 
@@ -324,12 +326,12 @@ export const PublishDialog: React.FC<PublishDialogProps> = ({ open, onOpenChange
                 <p className="text-3xl font-bold text-foreground">
                   {Math.round((completions / starts) * 100)}%
                 </p>
-                <p className="text-sm text-muted-foreground">Completion Rate</p>
+                <p className="text-sm text-muted-foreground">{t('Completion Rate')}</p>
               </div>
             )}
 
             <div className="card-elevated p-4">
-              <p className="text-sm font-medium text-foreground mb-3">Top Results</p>
+              <p className="text-sm font-medium text-foreground mb-3">{t('Top Results')}</p>
               {stats && stats.topResults.length > 0 ? (
                 <div className="space-y-2">
                   {stats.topResults.slice(0, 5).map((item, index) => (
@@ -342,17 +344,17 @@ export const PublishDialog: React.FC<PublishDialogProps> = ({ open, onOpenChange
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No data yet</p>
+                <p className="text-sm text-muted-foreground">{t('No data yet')}</p>
               )}
             </div>
 
             {!isPublished && (
               <div className="p-4 bg-primary/10 rounded-xl">
                 <p className="text-sm font-medium text-foreground mb-1">
-                  Publish to see analytics
+                  {t('Publish to see analytics')}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Analytics will populate once your quiz is published and receiving responses.
+                  {t('Analytics will populate once your quiz is published and receiving responses.')}
                 </p>
               </div>
             )}
@@ -361,7 +363,7 @@ export const PublishDialog: React.FC<PublishDialogProps> = ({ open, onOpenChange
 
         <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border-subtle">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+            {t('Close')}
           </Button>
         </div>
       </DialogContent>

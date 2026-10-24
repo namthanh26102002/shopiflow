@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import QuizPublic from './QuizPublic';
 import AdvertorialPublic from './AdvertorialPublic';
-import OrderDetail from './OrderDetail';
-import NotFound from './NotFound';
+// Loaded on demand: both carry the dashboard's translations, which quiz and
+// advertorial visitors on a custom domain never need.
+const OrderDetail = lazy(() => import('./OrderDetail'));
+const NotFound = lazy(() => import('./NotFound'));
 
 interface DomainMapping {
   content_type: string;
@@ -67,7 +69,7 @@ const SlugResolver: React.FC = () => {
   }
 
   if (notFound || !mapping) {
-    return <NotFound />;
+    return <Suspense fallback={null}><NotFound /></Suspense>;
   }
 
   if (mapping.content_type === 'quiz') {
@@ -79,10 +81,10 @@ const SlugResolver: React.FC = () => {
   }
 
   if (mapping.content_type === 'order') {
-    return <OrderDetail overrideId={mapping.content_id} />;
+    return <Suspense fallback={null}><OrderDetail overrideId={mapping.content_id} /></Suspense>;
   }
 
-  return <NotFound />;
+  return <Suspense fallback={null}><NotFound /></Suspense>;
 };
 
 export default SlugResolver;

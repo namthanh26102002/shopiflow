@@ -14,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useT, tr } from '@/i18n';
 
 interface UserInfo {
   id: string;
@@ -24,6 +25,7 @@ interface UserInfo {
 }
 
 const AdminUsers: React.FC = () => {
+  const t = useT();
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, loading: adminLoading } = useAdmin();
   const navigate = useNavigate();
@@ -61,7 +63,7 @@ const AdminUsers: React.FC = () => {
       if (!response.ok) throw new Error(data.error);
       setUsers(data.users || []);
     } catch (err: any) {
-      toast.error('Failed to load users: ' + err.message);
+      toast.error(tr('Failed to load users: {reason}', { reason: err.message }));
     } finally {
       setLoading(false);
     }
@@ -94,12 +96,12 @@ const AdminUsers: React.FC = () => {
         await navigator.clipboard.writeText(data.resetLink);
         setCopiedLink(email);
         setTimeout(() => setCopiedLink(null), 3000);
-        toast.success('Password reset link copied to clipboard! Share it with the user.');
+        toast.success(tr('Password reset link copied to clipboard! Share it with the user.'));
       } else {
         toast.success(data.message);
       }
     } catch (err: any) {
-      toast.error('Failed to reset password: ' + err.message);
+      toast.error(tr('Failed to reset password: {reason}', { reason: err.message }));
     } finally {
       setResetting(null);
     }
@@ -117,15 +119,15 @@ const AdminUsers: React.FC = () => {
     <div className="min-h-screen bg-background">
       <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4">
         <div className="flex items-center gap-3">
-          <Button aria-label="Back" variant="ghost" size="icon" className="w-8 h-8" onClick={() => navigate('/home')}>
+          <Button aria-label={t('Back')} variant="ghost" size="icon" className="w-8 h-8" onClick={() => navigate('/home')}>
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <Users className="w-5 h-5 text-primary" />
-          <h1 className="text-sm font-semibold text-foreground">User Management</h1>
+          <h1 className="text-sm font-semibold text-foreground">{t('User Management')}</h1>
         </div>
         <Button variant="outline" size="sm" onClick={fetchUsers} disabled={loading}>
           <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
+          {t('Refresh')}
         </Button>
       </header>
 
@@ -134,24 +136,24 @@ const AdminUsers: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Email</TableHead>
-                <TableHead>Signed Up</TableHead>
-                <TableHead>Last Sign In</TableHead>
-                <TableHead>Verified</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t('Email')}</TableHead>
+                <TableHead>{t('Signed Up')}</TableHead>
+                <TableHead>{t('Last Sign In')}</TableHead>
+                <TableHead>{t('Verified')}</TableHead>
+                <TableHead className="text-right">{t('Actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    Loading users...
+                    {t('Loading users...')}
                   </TableCell>
                 </TableRow>
               ) : users.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    No users found
+                    {t('No users found')}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -166,7 +168,7 @@ const AdminUsers: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <span className={`text-xs px-2 py-0.5 rounded-full ${u.email_confirmed_at ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
-                        {u.email_confirmed_at ? 'Yes' : 'No'}
+                        {u.email_confirmed_at ? t('Yes') : t('No')}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
@@ -183,7 +185,7 @@ const AdminUsers: React.FC = () => {
                         ) : (
                           <KeyRound className="w-3.5 h-3.5 mr-1.5" />
                         )}
-                        {copiedLink === u.email ? 'Link Copied!' : 'Reset Password'}
+                        {copiedLink === u.email ? t('Link Copied!') : t('Reset Password')}
                       </Button>
                     </TableCell>
                   </TableRow>

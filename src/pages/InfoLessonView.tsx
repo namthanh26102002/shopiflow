@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { LessonDocumentEditor } from '@/components/info/LessonDocumentEditor';
+import { useT, tr } from '@/i18n';
 
 // Legacy block renderers for backward compatibility (non-admin viewing old content)
 
@@ -93,36 +94,40 @@ const LessonSidebar: React.FC<{
   onSelectLesson: (id: string) => void;
   onBack: () => void;
   themeColors: InfoThemeColors;
-}> = ({ classroomName, lessons, currentLessonId, onSelectLesson, onBack, themeColors }) => (
-  <div className="h-full flex flex-col" style={{ backgroundColor: themeColors.card, borderRight: `1px solid ${themeColors.border}` }}>
-    <div className="p-4" style={{ borderBottom: `1px solid ${themeColors.border}` }}>
-      <button onClick={onBack} className="flex items-center gap-1.5 text-sm mb-3" style={{ color: themeColors.textMuted }}>
-        <ArrowLeft className="w-4 h-4" /> Back
-      </button>
-      <h2 className="text-sm font-bold" style={{ color: themeColors.text }}>{classroomName}</h2>
-    </div>
-    <ScrollArea className="flex-1">
-      <div className="p-2 space-y-0.5">
-        {lessons.map((lesson) => (
-          <button
-            key={lesson.id}
-            onClick={() => onSelectLesson(lesson.id)}
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left text-sm transition-colors"
-            style={{
-              color: lesson.id === currentLessonId ? themeColors.accent : themeColors.text,
-              backgroundColor: lesson.id === currentLessonId ? themeColors.accentMuted : 'transparent',
-              fontWeight: lesson.id === currentLessonId ? 500 : 400,
-            }}
-          >
-            <span className="truncate">{lesson.name}</span>
-          </button>
-        ))}
+}> = ({ classroomName, lessons, currentLessonId, onSelectLesson, onBack, themeColors }) => {
+  const t = useT();
+  return (
+    <div className="h-full flex flex-col" style={{ backgroundColor: themeColors.card, borderRight: `1px solid ${themeColors.border}` }}>
+      <div className="p-4" style={{ borderBottom: `1px solid ${themeColors.border}` }}>
+        <button onClick={onBack} className="flex items-center gap-1.5 text-sm mb-3" style={{ color: themeColors.textMuted }}>
+          <ArrowLeft className="w-4 h-4" /> {t('Back')}
+        </button>
+        <h2 className="text-sm font-bold" style={{ color: themeColors.text }}>{classroomName}</h2>
       </div>
-    </ScrollArea>
-  </div>
-);
+      <ScrollArea className="flex-1">
+        <div className="p-2 space-y-0.5">
+          {lessons.map((lesson) => (
+            <button
+              key={lesson.id}
+              onClick={() => onSelectLesson(lesson.id)}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left text-sm transition-colors"
+              style={{
+                color: lesson.id === currentLessonId ? themeColors.accent : themeColors.text,
+                backgroundColor: lesson.id === currentLessonId ? themeColors.accentMuted : 'transparent',
+                fontWeight: lesson.id === currentLessonId ? 500 : 400,
+              }}
+            >
+              <span className="truncate">{lesson.name}</span>
+            </button>
+          ))}
+        </div>
+      </ScrollArea>
+    </div>
+  );
+};
 
 const InfoLessonView: React.FC = () => {
+  const t = useT();
   const { lessonId } = useParams<{ lessonId: string }>();
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
@@ -192,23 +197,23 @@ const InfoLessonView: React.FC = () => {
   const handleSaveTitle = async () => {
     if (!titleDraft.trim() || !lessonId) return;
     const { error } = await supabase.from('lessons').update({ name: titleDraft.trim() }).eq('id', lessonId);
-    if (error) { toast.error('Failed to rename'); return; }
+    if (error) { toast.error(tr('Failed to rename')); return; }
     setLesson(prev => prev ? { ...prev, name: titleDraft.trim() } : prev);
     setEditingTitle(false);
-    toast.success('Renamed');
+    toast.success(tr('Renamed'));
   };
 
   const handleTogglePublish = async () => {
     if (!lesson || !lessonId) return;
     const newVal = !lesson.published;
     const { error } = await supabase.from('lessons').update({ published: newVal }).eq('id', lessonId);
-    if (error) { toast.error('Failed'); return; }
+    if (error) { toast.error(tr('Failed')); return; }
     setLesson(prev => prev ? { ...prev, published: newVal } : prev);
-    toast.success(newVal ? 'Published' : 'Unpublished');
+    toast.success(newVal ? tr('Published') : tr('Unpublished'));
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: colors.bg }}><div className="animate-pulse" style={{ color: colors.textMuted }}>Loading...</div></div>;
-  if (!lesson) return <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: colors.bg }}><p style={{ color: colors.textMuted }}>Lesson not found</p></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: colors.bg }}><div className="animate-pulse" style={{ color: colors.textMuted }}>{t('Loading...')}</div></div>;
+  if (!lesson) return <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: colors.bg }}><p style={{ color: colors.textMuted }}>{t('Lesson not found')}</p></div>;
 
   const hasContent = !!lesson.content?.trim();
   const hasLegacyBlocks = lesson.blocks.length > 0;
@@ -225,12 +230,12 @@ const InfoLessonView: React.FC = () => {
           {user ? (
             <>
               <span className="text-xs" style={{ color: colors.textMuted }}>{user.email}</span>
-              <Button variant="ghost" size="icon" className="w-8 h-8" style={{ color: colors.textMuted }} onClick={signOut} title="Sign out">
+              <Button variant="ghost" size="icon" className="w-8 h-8" style={{ color: colors.textMuted }} onClick={signOut} title={t('Sign out')}>
                 <LogOut className="w-4 h-4" />
               </Button>
             </>
           ) : (
-            <Button variant="outline" size="sm" style={{ borderColor: colors.border, color: colors.text }} onClick={() => navigate('/auth')}>Sign In</Button>
+            <Button variant="outline" size="sm" style={{ borderColor: colors.border, color: colors.text }} onClick={() => navigate('/auth')}>{t('Sign In')}</Button>
           )}
         </div>
       </header>
@@ -264,13 +269,13 @@ const InfoLessonView: React.FC = () => {
                       style={{ backgroundColor: colors.bg, color: colors.text, borderColor: colors.border }}
                       autoFocus
                     />
-                    <button aria-label="Save name" onClick={handleSaveTitle} style={{ color: colors.accent }}><Check className="w-5 h-5" /></button>
-                    <button aria-label="Cancel renaming" onClick={() => setEditingTitle(false)} style={{ color: colors.textMuted }}><X className="w-5 h-5" /></button>
+                    <button aria-label={t('Save name')} onClick={handleSaveTitle} style={{ color: colors.accent }}><Check className="w-5 h-5" /></button>
+                    <button aria-label={t('Cancel renaming')} onClick={() => setEditingTitle(false)} style={{ color: colors.textMuted }}><X className="w-5 h-5" /></button>
                   </div>
                 ) : (
                   <div className="group flex items-center gap-2">
                     <h1 className="text-lg font-bold" style={{ color: colors.text }}>{lesson.name}</h1>
-                    <button aria-label="Rename lesson"
+                    <button aria-label={t('Rename lesson')}
                       onClick={() => { setEditingTitle(true); setTitleDraft(lesson.name); }}
                       className="opacity-0 group-hover:opacity-100 transition-opacity"
                       style={{ color: colors.textMuted }}
@@ -286,7 +291,7 @@ const InfoLessonView: React.FC = () => {
                 style={{ backgroundColor: colors.accentMuted, color: colors.accent }}
               >
                 {lesson.published ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                {lesson.published ? 'Published' : 'Draft'}
+                {lesson.published ? t('Published') : t('Draft')}
               </button>
             </div>
           )}
@@ -332,7 +337,7 @@ const InfoLessonView: React.FC = () => {
                   ))
                 ) : (
                   <div className="px-6 py-12 text-center" style={{ color: colors.textMuted }}>
-                    No content yet
+                    {t('No content yet')}
                   </div>
                 )}
                 <div className="h-16" />

@@ -10,6 +10,7 @@ import { BuilderSwitcher } from '@/components/shared/BuilderSwitcher';
 import { ProjectSwitcher } from '@/components/shared/ProjectSwitcher';
 import { SaveStatus } from '@/components/shared/SaveStatus';
 import { PublishStatus } from '@/components/shared/PublishStatus';
+import { useT } from '@/i18n';
 
 interface BuilderHeaderProps {
   onPublish: () => void;
@@ -17,6 +18,7 @@ interface BuilderHeaderProps {
 }
 
 export const BuilderHeader: React.FC<BuilderHeaderProps> = ({ onPublish, onOverview }) => {
+  const t = useT();
   const { quiz, saving, saveFailed, saveQuiz, updateSettings } = useQuiz();
   const { signOut, user } = useAuth();
   const { isAdmin } = useAdmin();
@@ -36,8 +38,8 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({ onPublish, onOverv
             value={quiz.settings.title}
             onChange={(e) => updateSettings({ title: e.target.value })}
             className="text-sm text-muted-foreground bg-transparent border-none outline-none focus:text-foreground hover:text-foreground transition-colors w-32 lg:w-48"
-            aria-label="Quiz name"
-            placeholder="Quiz name..."
+            aria-label={t('Quiz name')}
+            placeholder={t('Quiz name...')}
           />
           <ProjectSwitcher
             table="quizzes"
@@ -68,10 +70,10 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({ onPublish, onOverv
           variant="outline"
           onClick={onOverview}
           className="h-8 px-3 text-sm"
-          title="See the whole quiz flow"
+          title={t('See the whole quiz flow')}
         >
           <LayoutGrid className="w-3.5 h-3.5 lg:mr-1.5" />
-          <span className="hidden lg:inline">Overview</span>
+          <span className="hidden lg:inline">{t('Overview')}</span>
         </Button>
 
         <Button 
@@ -80,7 +82,7 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({ onPublish, onOverv
           style={{ backgroundColor: quiz.settings.primaryColor }}
         >
           <Share2 className="w-3.5 h-3.5 mr-1.5" />
-          Publish
+          {t('Publish')}
         </Button>
 
         {isAdmin && (
@@ -89,7 +91,7 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({ onPublish, onOverv
             size="icon" 
             className="w-8 h-8" 
             onClick={() => navigate('/admin/users')} 
-            title="User Management"
+            title={t('User Management')}
           >
             <Users className="w-4 h-4" />
           </Button>
@@ -101,7 +103,7 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({ onPublish, onOverv
             size="icon" 
             className="w-8 h-8" 
             onClick={() => setShowAccessCodes(true)} 
-            title="Manage Access Codes"
+            title={t('Manage Access Codes')}
           >
             <KeyRound className="w-4 h-4" />
           </Button>
@@ -112,7 +114,7 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({ onPublish, onOverv
           size="icon" 
           className="w-8 h-8 text-muted-foreground hover:text-foreground" 
           onClick={signOut} 
-          title="Sign out"
+          title={t('Sign out')}
         >
           <LogOut className="w-4 h-4" />
         </Button>

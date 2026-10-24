@@ -1,5 +1,6 @@
 import React from 'react';
 import { Cloud, CloudOff, Loader2 } from 'lucide-react';
+import { useT } from '@/i18n';
 
 interface SaveStatusProps {
   saving: boolean;
@@ -15,11 +16,12 @@ interface SaveStatusProps {
  * it the indicator kept saying "Saved" while edits existed only in the tab.
  */
 export const SaveStatus: React.FC<SaveStatusProps> = ({ saving, failed, onRetry, mutedColor }) => {
+  const t = useT();
   if (saving) {
     return (
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground" style={{ color: mutedColor }}>
         <Loader2 className="w-3.5 h-3.5 animate-spin" />
-        <span>Saving...</span>
+        <span>{t('Saving...')}</span>
       </div>
     );
   }
@@ -28,13 +30,13 @@ export const SaveStatus: React.FC<SaveStatusProps> = ({ saving, failed, onRetry,
     return (
       <div className="flex items-center gap-1.5 text-xs text-destructive" role="alert">
         <CloudOff className="w-3.5 h-3.5" />
-        <span>Couldn't save</span>
+        <span>{t("Couldn't save")}</span>
         <button
           type="button"
           onClick={onRetry}
           className="font-medium underline underline-offset-2 hover:opacity-80"
         >
-          Retry
+          {t('Retry')}
         </button>
       </div>
     );
@@ -43,7 +45,7 @@ export const SaveStatus: React.FC<SaveStatusProps> = ({ saving, failed, onRetry,
   return (
     <div className="flex items-center gap-1.5 text-xs text-muted-foreground" style={{ color: mutedColor }}>
       <Cloud className="w-3.5 h-3.5 text-green-500" />
-      <span>Saved</span>
+      <span>{t('Saved')}</span>
     </div>
   );
 };

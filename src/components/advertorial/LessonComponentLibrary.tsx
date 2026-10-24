@@ -11,29 +11,31 @@ import { BlockType } from '@/types/advertorial';
 import { useAdvertorial } from '@/contexts/AdvertorialContext';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useT, msg, type MessageKey } from '@/i18n';
 
 interface BlockOption {
   type: BlockType;
-  label: string;
+  label: MessageKey;
   icon: React.ElementType;
   category: 'header' | 'content';
 }
 
 const blockOptions: BlockOption[] = [
-  { type: 'hero', label: 'Hero Section', icon: LayoutTemplate, category: 'header' },
-  { type: 'text', label: 'Text Block', icon: Type, category: 'content' },
-  { type: 'image', label: 'Image', icon: Image, category: 'content' },
-  { type: 'video', label: 'Video', icon: Video, category: 'content' },
-  { type: 'youtube', label: 'YouTube', icon: Youtube, category: 'content' },
-  { type: 'divider', label: 'Divider', icon: Minus, category: 'content' },
+  { type: 'hero', label: msg('Hero Section'), icon: LayoutTemplate, category: 'header' },
+  { type: 'text', label: msg('Text Block'), icon: Type, category: 'content' },
+  { type: 'image', label: msg('Image'), icon: Image, category: 'content' },
+  { type: 'video', label: msg('Video'), icon: Video, category: 'content' },
+  { type: 'youtube', label: msg('YouTube'), icon: Youtube, category: 'content' },
+  { type: 'divider', label: msg('Divider'), icon: Minus, category: 'content' },
 ];
 
 const categoryLabels = {
-  header: 'Header',
-  content: 'Content',
+  header: msg('Header'),
+  content: msg('Content'),
 };
 
 export const LessonComponentLibrary: React.FC = () => {
+  const t = useT();
   const { addBlock } = useAdvertorial();
 
   const groupedBlocks = blockOptions.reduce((acc, block) => {
@@ -50,8 +52,8 @@ export const LessonComponentLibrary: React.FC = () => {
   return (
     <div className="h-full flex flex-col">
       <div className="px-4 py-3 border-b border-border">
-        <h2 className="text-sm font-semibold text-foreground">Components</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">Drag to add or click</p>
+        <h2 className="text-sm font-semibold text-foreground">{t('Components')}</h2>
+        <p className="text-xs text-muted-foreground mt-0.5">{t('Drag to add or click')}</p>
       </div>
       
       <ScrollArea className="flex-1">
@@ -59,7 +61,7 @@ export const LessonComponentLibrary: React.FC = () => {
           {(['header', 'content'] as const).map((category) => (
             <div key={category}>
               <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
-                {categoryLabels[category]}
+                {t(categoryLabels[category])}
               </h3>
               <div className="flex flex-col gap-1">
                 {groupedBlocks[category]?.map((block) => (
@@ -76,7 +78,7 @@ export const LessonComponentLibrary: React.FC = () => {
                     )}
                   >
                     <block.icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                    <span className="text-xs font-medium text-foreground">{block.label}</span>
+                    <span className="text-xs font-medium text-foreground">{t(block.label)}</span>
                   </button>
                 ))}
               </div>

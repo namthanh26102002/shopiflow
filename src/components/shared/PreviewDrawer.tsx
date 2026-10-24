@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Eye } from 'lucide-react';
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet';
+import { useT } from '@/i18n';
 
 /**
  * The live preview, for screens too narrow to keep it docked.
@@ -10,6 +11,7 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/
  * as a slide-over instead. At xl and up the button is hidden.
  */
 export const PreviewDrawer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const t = useT();
   const [open, setOpen] = useState(false);
 
   return (
@@ -20,12 +22,12 @@ export const PreviewDrawer: React.FC<{ children: React.ReactNode }> = ({ childre
         className="xl:hidden fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-lg hover:bg-primary/90"
       >
         <Eye className="h-4 w-4" />
-        Preview
+        {t('Preview')}
       </button>
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="right" className="w-[420px] max-w-[92vw] sm:max-w-[420px] p-0 flex flex-col">
-          <SheetTitle className="sr-only">Live preview</SheetTitle>
-          <SheetDescription className="sr-only">How visitors will see this page.</SheetDescription>
+          <SheetTitle className="sr-only">{t('Live preview')}</SheetTitle>
+          <SheetDescription className="sr-only">{t('How visitors will see this page.')}</SheetDescription>
           <div className="flex-1 min-h-0 pt-10">{children}</div>
         </SheetContent>
       </Sheet>

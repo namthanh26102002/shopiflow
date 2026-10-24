@@ -27,6 +27,7 @@ import { useProjects, ProjectTable } from '@/hooks/useProjects';
 import { TemplateGallery } from '@/components/shared/TemplateGallery';
 import { SaveAsTemplateDialog } from '@/components/shared/SaveAsTemplateDialog';
 import { TemplateContent, TemplateType } from '@/hooks/useContentTemplates';
+import { useT, type MessageKey } from '@/i18n';
 
 interface ProjectSwitcherProps {
   table: ProjectTable;
@@ -46,6 +47,8 @@ interface ProjectSwitcherProps {
 export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
   table, basePath, noun, currentId, currentTitle, templateContent,
 }) => {
+    const t = useT();
+  const nounText = t(noun as MessageKey);
   const navigate = useNavigate();
   const {
     projects, isAdmin, atLimit, limit, busy, createProject, deleteProject, refresh,
@@ -80,7 +83,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
             variant="ghost"
             size="icon"
             className="w-6 h-6 text-muted-foreground hover:text-foreground shrink-0"
-            title={`Switch ${noun}`}
+            title={t('Switch {noun}', { noun: nounText })}
           >
             <ChevronDown className="w-4 h-4" />
           </Button>
@@ -88,7 +91,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
 
         <DropdownMenuContent align="start" className="w-64">
           <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
-            {isAdmin ? 'Your projects' : `${projects.length} of ${limit} projects used`}
+            {isAdmin ? t('Your projects') : t('{used} of {limit} projects used', { used: projects.length, limit })}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
 
@@ -111,24 +114,24 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
 
           <DropdownMenuItem onClick={handleCreate} disabled={busy || atLimit} className="gap-2">
             <Plus className="w-3.5 h-3.5 shrink-0" />
-            New {noun}
+            {t('New {noun}', { noun: nounText })}
           </DropdownMenuItem>
 
           {atLimit && (
             <p className="px-2 pb-1 text-xs text-muted-foreground">
-              Limit reached — delete one to make room.
+              {t('Limit reached — delete one to make room.')}
             </p>
           )}
 
           <DropdownMenuItem onClick={() => setGalleryOpen(true)} className="gap-2">
             <LayoutTemplate className="w-3.5 h-3.5 shrink-0" />
-            Start from a template
+            {t('Start from a template')}
           </DropdownMenuItem>
 
           {isAdmin && templateContent && (
             <DropdownMenuItem onClick={() => setSaveTemplateOpen(true)} className="gap-2">
               <Save className="w-3.5 h-3.5 shrink-0" />
-              Save as template
+              {t('Save as template')}
             </DropdownMenuItem>
           )}
 
@@ -138,7 +141,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
             className="gap-2 text-destructive focus:text-destructive"
           >
             <Trash2 className="w-3.5 h-3.5 shrink-0" />
-            Delete this {noun}
+            {t('Delete this {noun}', { noun: nounText })}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -156,7 +159,7 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
           open={saveTemplateOpen}
           onOpenChange={setSaveTemplateOpen}
           contentType={templateType}
-          projectTitle={currentTitle || `Untitled ${noun}`}
+          projectTitle={currentTitle || t('Untitled {noun}', { noun: nounText })}
           noun={noun}
           content={templateContent}
         />
@@ -165,17 +168,17 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
       <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete “{displayTitle}”?</AlertDialogTitle>
+            <AlertDialogTitle>{t('Delete “{title}”?', { title: displayTitle })}</AlertDialogTitle>
             <AlertDialogDescription>
-              This permanently deletes the {noun} and its content, and cannot be undone.
+              {t('This permanently deletes the {noun} and its content, and cannot be undone.', { noun: nounText })}{' '}
               {projects.length <= 1
-                ? ' It is your only project, so a new empty one will be created.'
-                : ' You will be taken to your most recent remaining project.'}
+                ? t('It is your only project, so a new empty one will be created.')
+                : t('You will be taken to your most recent remaining project.')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t('Delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

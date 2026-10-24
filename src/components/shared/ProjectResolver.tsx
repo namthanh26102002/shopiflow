@@ -7,6 +7,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProjects, ProjectTable } from '@/hooks/useProjects';
+import { useT, type MessageKey } from '@/i18n';
 
 interface ProjectResolverProps {
   table: ProjectTable;
@@ -17,6 +18,7 @@ interface ProjectResolverProps {
 }
 
 export const ProjectResolver: React.FC<ProjectResolverProps> = ({ table, basePath, noun }) => {
+  const t = useT();
   const navigate = useNavigate();
   const { projects, loading, createProject } = useProjects(table);
   // createProject is async and `projects` refreshes after it; without this the
@@ -51,10 +53,10 @@ export const ProjectResolver: React.FC<ProjectResolverProps> = ({ table, basePat
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-sm font-medium text-foreground mb-1">
-            Could not open a {noun}
+            {t('Could not open a {noun}', { noun: t(noun as MessageKey) })}
           </p>
           <p className="text-xs text-muted-foreground">
-            Something went wrong loading your projects. Try reloading the page.
+            {t('Something went wrong loading your projects. Try reloading the page.')}
           </p>
         </div>
       </div>

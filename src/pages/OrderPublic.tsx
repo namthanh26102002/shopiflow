@@ -8,6 +8,7 @@ import { OrderTimeline } from '@/components/orders/OrderTimeline';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
+import { PinLanguage } from '@/i18n';
 
 const statusColor: Record<string, string> = {
   Completed: 'bg-green-100 text-green-700 border-green-200',
@@ -85,6 +86,8 @@ const OrderPublic: React.FC = () => {
           <span className="text-xs sm:text-sm text-muted-foreground w-full sm:w-auto">{format(new Date(order.order_date), 'MMM dd, yyyy · hh:mm a')}</span>
         </div>
 
+        {/* Customers see this page in English, whatever the seller's dashboard language. */}
+        <PinLanguage language="en">
         <div className="space-y-6">
             <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
               <h3 className="text-sm font-semibold text-foreground mb-3 sm:mb-4">Order Details</h3>
@@ -93,6 +96,7 @@ const OrderPublic: React.FC = () => {
 
             <OrderTimeline events={timelineEvents} editable={false} />
         </div>
+        </PinLanguage>
       </div>
     </div>
   );

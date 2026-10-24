@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { tr, type MessageKey } from '@/i18n';
 
 export type DomainStatus = 'active' | 'pending' | 'error';
 
@@ -27,7 +28,7 @@ export interface DomainMapping {
   content_id: string;
 }
 
-export const STATUS_LABEL: Record<DomainStatus, string> = {
+export const STATUS_LABEL: Record<DomainStatus, MessageKey> = {
   active: 'Connected',
   pending: 'Pending verification',
   error: 'Error',
@@ -35,12 +36,12 @@ export const STATUS_LABEL: Record<DomainStatus, string> = {
 
 /** Why a domain is not yet serving, in the user's terms. */
 export const describeDomainState = (d: Domain): string => {
-  if (d.status === 'active') return 'Serving traffic';
+  if (d.status === 'active') return tr('Serving traffic');
   if (d.last_error) return d.last_error;
   // dns_ok is our own A-record lookup, which a CNAME'd subdomain will not
   // satisfy even when correctly configured, so it only softens the wording.
-  if (!d.dns_ok) return 'Waiting on DNS - add the record below, then Recheck';
-  return 'DNS looks right - waiting for the host to confirm';
+  if (!d.dns_ok) return tr('Waiting on DNS - add the record below, then Recheck');
+  return tr('DNS looks right - waiting for the host to confirm');
 };
 
 export interface DnsRecord {
@@ -113,7 +114,7 @@ export const useDomains = () => {
       setMappings((m.data ?? []) as unknown as DomainMapping[]);
     } catch (err) {
       console.error('Error loading domains:', err);
-      toast.error('Failed to load your domains');
+      toast.error(tr('Failed to load your domains'));
     } finally {
       setLoading(false);
     }
@@ -129,7 +130,7 @@ export const useDomains = () => {
     const { data, error } = await supabase.functions.invoke('domain-host', {
       body: { action, domain },
     });
-    if (error) throw new Error(error.message ?? 'Host request failed');
+    if (error) throw new Error(error.message ?? tr('Host request failed'));
     if (data?.error) throw new Error(data.error);
     return data;
   }, []);
@@ -137,7 +138,7 @@ export const useDomains = () => {
   const addDomain = useCallback(async (raw: string): Promise<boolean> => {
     if (!user) return false;
     const domain = normalizeDomain(raw);
-    if (!domain) { toast.error('Please enter a domain'); return false; }
+    if (!domain) { toast.error(tr('Please enter a domain')); return false; }
 
     setBusyId('new');
     try {
@@ -150,7 +151,7 @@ export const useDomains = () => {
       if (error) {
         // Unique is global, so this also covers another account claiming it.
         if (error.code === '23505') {
-          toast.error('That domain is already connected to an account');
+          toast.error(tr('That domain is already connected to an account'));
           return false;
         }
         throw error;
@@ -160,19 +161,19 @@ export const useDomains = () => {
         await syncWithHost(domain, 'register');
       } catch (hostErr) {
         // The row exists; registration can be retried from the list.
-        const message = hostErr instanceof Error ? hostErr.message : 'Registration failed';
+        const message = hostErr instanceof Error ? hostErr.message : tr('Registration failed');
         await supabase.from('domains').update({ last_error: message }).eq('id', data.id);
-        toast.error('Domain added, but host registration failed - use Recheck to retry');
+        toast.error(tr('Domain added, but host registration failed - use Recheck to retry'));
         await load();
         return true;
       }
 
-      toast.success('Domain added - point your DNS, then Recheck');
+      toast.success(tr('Domain added - point your DNS, then Recheck'));
       await load();
       return true;
     } catch (err) {
       console.error('Error adding domain:', err);
-      toast.error('Failed to add the domain');
+      toast.error(tr('Failed to add the domain'));
       return false;
     } finally {
       setBusyId(null);
@@ -185,7 +186,7 @@ export const useDomains = () => {
       await syncWithHost(d.domain, 'register');
       await load();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Check failed');
+      toast.error(err instanceof Error ? err.message : tr('Check failed'));
       await load();
     } finally {
       setBusyId(null);
@@ -198,11 +199,11 @@ export const useDomains = () => {
       try { await syncWithHost(d.domain, 'remove'); } catch { /* remove locally anyway */ }
       const { error } = await supabase.from('domains').delete().eq('id', d.id);
       if (error) throw error;
-      toast.success('Domain removed');
+      toast.success(tr('Domain removed'));
       await load();
     } catch (err) {
       console.error('Error removing domain:', err);
-      toast.error('Failed to remove the domain');
+      toast.error(tr('Failed to remove the domain'));
     } finally {
       setBusyId(null);
     }
@@ -226,7 +227,7 @@ export const useDomains = () => {
         if (existing) {
           const { error } = await supabase.from('custom_domains').delete().eq('id', existing.id);
           if (error) throw error;
-          toast.success('Domain disconnected from this project');
+          toast.success(tr('Domain disconnected from this project'));
           await load();
         }
         return true;
@@ -251,18 +252,18 @@ export const useDomains = () => {
       if (error) {
         // UNIQUE (domain, path) - another project already owns this address.
         if (error.code === '23505') {
-          toast.error('That address is already used by another project');
+          toast.error(tr('That address is already used by another project'));
           return false;
         }
         throw error;
       }
 
-      toast.success('Domain assigned to this project');
+      toast.success(tr('Domain assigned to this project'));
       await load();
       return true;
     } catch (err) {
       console.error('Error assigning domain:', err);
-      toast.error('Failed to assign the domain');
+      toast.error(tr('Failed to assign the domain'));
       return false;
     }
   }, [user, mappings, domains, load]);

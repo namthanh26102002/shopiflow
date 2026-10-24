@@ -16,40 +16,42 @@ import { BlockType } from '@/types/advertorial';
 import { useAdvertorial } from '@/contexts/AdvertorialContext';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useT, msg, type MessageKey } from '@/i18n';
 
 interface BlockOption {
   type: BlockType;
-  label: string;
+  label: MessageKey;
   icon: React.ElementType;
   category: 'header' | 'content' | 'conversion';
 }
 
 const blockOptions: BlockOption[] = [
   // Header Components
-  { type: 'alert-banner', label: 'Alert Banner', icon: AlertTriangle, category: 'header' },
-  { type: 'breadcrumb', label: 'Breadcrumb', icon: Navigation, category: 'header' },
-  { type: 'trending-badge', label: 'Trending Badge', icon: TrendingUp, category: 'header' },
-  { type: 'hero', label: 'Hero Section', icon: LayoutTemplate, category: 'header' },
+  { type: 'alert-banner', label: msg('Alert Banner'), icon: AlertTriangle, category: 'header' },
+  { type: 'breadcrumb', label: msg('Breadcrumb'), icon: Navigation, category: 'header' },
+  { type: 'trending-badge', label: msg('Trending Badge'), icon: TrendingUp, category: 'header' },
+  { type: 'hero', label: msg('Hero Section'), icon: LayoutTemplate, category: 'header' },
   
   // Content Components
-  { type: 'text', label: 'Text Block', icon: Type, category: 'content' },
-  { type: 'image', label: 'Image', icon: Image, category: 'content' },
-  { type: 'video', label: 'Video', icon: Video, category: 'content' },
-  { type: 'facebook-comments', label: 'FB Comments', icon: Facebook, category: 'content' },
-  { type: 'divider', label: 'Divider', icon: Minus, category: 'content' },
+  { type: 'text', label: msg('Text Block'), icon: Type, category: 'content' },
+  { type: 'image', label: msg('Image'), icon: Image, category: 'content' },
+  { type: 'video', label: msg('Video'), icon: Video, category: 'content' },
+  { type: 'facebook-comments', label: msg('FB Comments'), icon: Facebook, category: 'content' },
+  { type: 'divider', label: msg('Divider'), icon: Minus, category: 'content' },
   
   // Conversion Components
-  { type: 'cta-button', label: 'CTA Button', icon: MousePointerClick, category: 'conversion' },
-  { type: 'important-update', label: 'Important Update', icon: Megaphone, category: 'conversion' },
+  { type: 'cta-button', label: msg('CTA Button'), icon: MousePointerClick, category: 'conversion' },
+  { type: 'important-update', label: msg('Important Update'), icon: Megaphone, category: 'conversion' },
 ];
 
 const categoryLabels = {
-  header: 'Header',
-  content: 'Content',
-  conversion: 'Conversion',
+  header: msg('Header'),
+  content: msg('Content'),
+  conversion: msg('Conversion'),
 };
 
 export const ComponentLibrary: React.FC = () => {
+  const t = useT();
   const { addBlock } = useAdvertorial();
 
   const groupedBlocks = blockOptions.reduce((acc, block) => {
@@ -66,8 +68,8 @@ export const ComponentLibrary: React.FC = () => {
   return (
     <div className="h-full flex flex-col">
       <div className="px-4 py-3 border-b border-border">
-        <h2 className="text-sm font-semibold text-foreground">Components</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">Drag to add or click</p>
+        <h2 className="text-sm font-semibold text-foreground">{t('Components')}</h2>
+        <p className="text-xs text-muted-foreground mt-0.5">{t('Drag to add or click')}</p>
       </div>
       
       <ScrollArea className="flex-1">
@@ -75,7 +77,7 @@ export const ComponentLibrary: React.FC = () => {
           {(['header', 'content', 'conversion'] as const).map((category) => (
             <div key={category}>
               <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
-                {categoryLabels[category]}
+                {t(categoryLabels[category])}
               </h3>
               <div className="flex flex-col gap-1">
                 {groupedBlocks[category]?.map((block) => (
@@ -92,7 +94,7 @@ export const ComponentLibrary: React.FC = () => {
                     )}
                   >
                     <block.icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                    <span className="text-xs font-medium text-foreground">{block.label}</span>
+                    <span className="text-xs font-medium text-foreground">{t(block.label)}</span>
                   </button>
                 ))}
               </div>

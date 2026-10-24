@@ -9,8 +9,10 @@ import { QuizAnalyticsDashboard } from './QuizAnalyticsDashboard';
 import {
   QuizAnalyticsData, QuizAnswerRow, QuizPageViewRow, QuizResponseRow, QuizPageMeta, QuizCtaRow,
 } from '@/lib/quizAnalytics';
+import { useT } from '@/i18n';
 
 export const AnalyticsPanel: React.FC = () => {
+  const t = useT();
   const { quiz } = useQuiz();
   const [responses, setResponses] = useState<QuizResponseRow[]>([]);
   const [answers, setAnswers] = useState<QuizAnswerRow[]>([]);
@@ -65,14 +67,14 @@ export const AnalyticsPanel: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-foreground mb-1">Analytics</h2>
+          <h2 className="text-lg font-semibold text-foreground mb-1">{t('Analytics')}</h2>
           <p className="text-sm text-muted-foreground">
-            Location, time on each page and where visitors drop off
+            {t('Location, time on each page and where visitors drop off')}
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>
           <RefreshCw className={cn('w-4 h-4 mr-1', refreshing && 'animate-spin')} />
-          Refresh
+          {t('Refresh')}
         </Button>
       </div>
 
@@ -83,9 +85,9 @@ export const AnalyticsPanel: React.FC = () => {
               <div className="w-16 h-16 rounded-full bg-secondary mx-auto mb-4 flex items-center justify-center">
                 <span className="text-2xl">📊</span>
               </div>
-              <p className="text-sm font-medium text-foreground mb-1">No data yet</p>
+              <p className="text-sm font-medium text-foreground mb-1">{t('No data yet')}</p>
               <p className="text-xs text-muted-foreground">
-                Publish your quiz and share it to start collecting analytics. Open the demo dashboard in Settings to preview the report.
+                {t('Publish your quiz and share it to start collecting analytics. Open the demo dashboard in Settings to preview the report.')}
               </p>
             </div>
           </CardContent>

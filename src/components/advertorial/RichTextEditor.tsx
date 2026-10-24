@@ -3,6 +3,7 @@ import { Bold, Italic, Palette, List, Type, AlignVerticalJustifyCenter } from 'l
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useT, msg } from '@/i18n';
 
 interface RichTextEditorProps {
   value: string;
@@ -29,11 +30,11 @@ const FONT_SIZES = [
 ];
 
 const LINE_HEIGHTS = [
-  { label: 'Tight', value: '1' },
-  { label: 'Snug', value: '1.25' },
-  { label: 'Normal', value: '1.5' },
-  { label: 'Relaxed', value: '1.75' },
-  { label: 'Loose', value: '2' },
+  { label: msg('Tight'), value: '1' },
+  { label: msg('Snug'), value: '1.25' },
+  { label: msg('Normal'), value: '1.5' },
+  { label: msg('Relaxed'), value: '1.75' },
+  { label: msg('Loose'), value: '2' },
 ];
 
 /**
@@ -82,9 +83,10 @@ function sanitizePastedHtml(html: string): string {
 export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   value,
   onChange,
-  placeholder = 'Type your content here...',
+    placeholder,
   minHeight = '120px',
 }) => {
+  const t = useT();
   const editorRef = useRef<HTMLDivElement>(null);
   const savedRangeRef = useRef<Range | null>(null);
   const isInternalChange = useRef(false);
@@ -266,7 +268,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             e.preventDefault();
             execFormat('bold');
           }}
-          title="Bold"
+          title={t('Bold')}
         >
           <Bold className="h-3.5 w-3.5" />
         </Button>
@@ -283,7 +285,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             e.preventDefault();
             execFormat('italic');
           }}
-          title="Italic"
+          title={t('Italic')}
         >
           <Italic className="h-3.5 w-3.5" />
         </Button>
@@ -300,7 +302,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             e.preventDefault();
             execFormat('insertUnorderedList');
           }}
-          title="Bullet List"
+          title={t('Bullet List')}
         >
           <List className="h-3.5 w-3.5" />
         </Button>
@@ -316,7 +318,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
                 e.preventDefault();
                 saveSelection();
               }}
-              title="Text Color"
+              title={t('Text Color')}
             >
               <Palette className="h-3.5 w-3.5" />
             </Button>
@@ -343,7 +345,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               ))}
             </div>
             <div className="flex items-center gap-2 pt-1 border-t border-border">
-              <span className="text-xs text-muted-foreground">Custom:</span>
+              <span className="text-xs text-muted-foreground">{t('Custom:')}</span>
               <input
                 type="color"
                 className="w-7 h-6 rounded cursor-pointer border-0 p-0"
@@ -365,7 +367,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
                 e.preventDefault();
                 saveSelection();
               }}
-              title="Font Size"
+              title={t('Font Size')}
             >
               <Type className="h-3.5 w-3.5" />
             </Button>
@@ -404,7 +406,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
                 e.preventDefault();
                 saveSelection();
               }}
-              title="Line Spacing"
+              title={t('Line Spacing')}
             >
               <AlignVerticalJustifyCenter className="h-3.5 w-3.5" />
             </Button>
@@ -423,7 +425,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
                   className="text-left px-2 py-1.5 text-sm rounded hover:bg-accent"
                   onClick={() => applyLineHeight(lh.value)}
                 >
-                  {lh.label}
+                                    {t(lh.label)}
                   <span className="text-xs text-muted-foreground ml-2">{lh.value}</span>
                 </button>
               ))}
@@ -439,7 +441,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             className="absolute top-0 left-0 px-3 py-2 text-sm text-muted-foreground pointer-events-none select-none"
             aria-hidden
           >
-            {placeholder}
+                        {placeholder ?? t('Type your content here...')}
           </div>
         )}
         <div

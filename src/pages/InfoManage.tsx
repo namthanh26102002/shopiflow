@@ -11,8 +11,10 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useT, tr } from '@/i18n';
 
 const InfoManage: React.FC = () => {
+  const t = useT();
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
   const { classrooms, isLoading, createClassroom, updateClassroom, deleteClassroom } = useClassrooms();
@@ -56,10 +58,10 @@ const InfoManage: React.FC = () => {
           if (oldPath && oldPath !== path) await supabase.storage.from('quiz-assets').remove([oldPath]);
         }
       }
-      toast.success('Cover image updated');
+      toast.success(tr('Cover image updated'));
     } catch (err) {
       console.error(err);
-      toast.error('Failed to upload cover image');
+      toast.error(tr('Failed to upload cover image'));
     } finally {
       setUploadingCover(null);
     }
@@ -81,7 +83,7 @@ const InfoManage: React.FC = () => {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-zinc-500">{user?.email}</span>
-          <Button variant="ghost" size="icon" className="w-8 h-8 text-zinc-500 hover:text-zinc-100 hover:bg-zinc-800" onClick={signOut} title="Sign out">
+          <Button variant="ghost" size="icon" className="w-8 h-8 text-zinc-500 hover:text-zinc-100 hover:bg-zinc-800" onClick={signOut} title={t('Sign out')}>
             <LogOut className="w-4 h-4" />
           </Button>
         </div>
@@ -89,24 +91,24 @@ const InfoManage: React.FC = () => {
 
       <main className="flex-1 p-6 max-w-4xl mx-auto w-full">
         <Button variant="ghost" size="sm" className="mb-4 gap-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800" onClick={() => navigate('/info')}>
-          <ArrowLeft className="w-4 h-4" /> Back to Info
+          <ArrowLeft className="w-4 h-4" /> {t('Back to Info')}
         </Button>
 
-        <h1 className="text-xl font-bold text-zinc-100 mb-6">Manage Info</h1>
+        <h1 className="text-xl font-bold text-zinc-100 mb-6">{t('Manage Info')}</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Classrooms Column */}
           <div>
-            <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide mb-3">Classrooms</h2>
+            <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide mb-3">{t('Classrooms')}</h2>
             <div className="flex gap-2 mb-4">
               <Input
-                placeholder="New classroom name"
+                placeholder={t('New classroom name')}
                 value={newClassroomName}
                 onChange={e => setNewClassroomName(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleCreateClassroom()}
                 className="bg-zinc-900 border-zinc-700 text-zinc-100 placeholder:text-zinc-600"
               />
-              <Button aria-label="Add classroom" size="sm" onClick={handleCreateClassroom} disabled={!newClassroomName.trim()} className="bg-purple-600 hover:bg-purple-700 text-white">
+              <Button aria-label={t('Add classroom')} size="sm" onClick={handleCreateClassroom} disabled={!newClassroomName.trim()} className="bg-purple-600 hover:bg-purple-700 text-white">
                 <Plus className="w-4 h-4" />
               </Button>
             </div>
@@ -121,7 +123,7 @@ const InfoManage: React.FC = () => {
                   {editingId === c.id ? (
                     <div className="flex gap-2">
                       <Input value={editName} onChange={e => setEditName(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveEdit('classroom')} autoFocus className="bg-zinc-900 border-zinc-700 text-zinc-100" />
-                      <Button size="sm" onClick={() => saveEdit('classroom')} className="bg-purple-600 hover:bg-purple-700 text-white">Save</Button>
+                      <Button size="sm" onClick={() => saveEdit('classroom')} className="bg-purple-600 hover:bg-purple-700 text-white">{t('Save')}</Button>
                     </div>
                   ) : (
                     <div className="flex items-center justify-between">
@@ -134,7 +136,7 @@ const InfoManage: React.FC = () => {
                           </div>
                         )}
                         <span className="font-medium text-sm text-zinc-100">{c.name}</span>
-                        {!c.published && <span className="text-[10px] bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded">Draft</span>}
+                        {!c.published && <span className="text-[10px] bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded">{t('Draft')}</span>}
                       </div>
                       <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
                         <label className="cursor-pointer">
@@ -147,10 +149,10 @@ const InfoManage: React.FC = () => {
                           checked={c.published}
                           onCheckedChange={checked => updateClassroom.mutate({ id: c.id, published: checked })}
                         />
-                        <Button aria-label="Edit classroom" variant="ghost" size="icon" className="w-7 h-7 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800" onClick={() => startEdit(c.id, c.name)}>
+                        <Button aria-label={t('Edit classroom')} variant="ghost" size="icon" className="w-7 h-7 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800" onClick={() => startEdit(c.id, c.name)}>
                           <Edit2 className="w-3.5 h-3.5" />
                         </Button>
-                        <Button aria-label="Delete classroom" variant="ghost" size="icon" className="w-7 h-7 text-red-400 hover:text-red-300 hover:bg-zinc-800" onClick={() => deleteClassroom.mutate(c.id)}>
+                        <Button aria-label={t('Delete classroom')} variant="ghost" size="icon" className="w-7 h-7 text-red-400 hover:text-red-300 hover:bg-zinc-800" onClick={() => deleteClassroom.mutate(c.id)}>
                           <Trash2 className="w-3.5 h-3.5" />
                         </Button>
                       </div>
@@ -164,22 +166,22 @@ const InfoManage: React.FC = () => {
           {/* Lessons Column */}
           <div>
             <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide mb-3">
-              Lessons {selectedClassroomId && `— ${classrooms.find(c => c.id === selectedClassroomId)?.name}`}
+              {t('Lessons')} {selectedClassroomId && `— ${classrooms.find(c => c.id === selectedClassroomId)?.name}`}
             </h2>
 
             {!selectedClassroomId ? (
-              <p className="text-sm text-zinc-600 py-8 text-center">Select a classroom to manage its lessons.</p>
+              <p className="text-sm text-zinc-600 py-8 text-center">{t('Select a classroom to manage its lessons.')}</p>
             ) : (
               <>
                 <div className="flex gap-2 mb-4">
                   <Input
-                    placeholder="New lesson name"
+                    placeholder={t('New lesson name')}
                     value={newLessonName}
                     onChange={e => setNewLessonName(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleCreateLesson()}
                     className="bg-zinc-900 border-zinc-700 text-zinc-100 placeholder:text-zinc-600"
                   />
-                  <Button aria-label="Add lesson" size="sm" onClick={handleCreateLesson} disabled={!newLessonName.trim()} className="bg-purple-600 hover:bg-purple-700 text-white">
+                  <Button aria-label={t('Add lesson')} size="sm" onClick={handleCreateLesson} disabled={!newLessonName.trim()} className="bg-purple-600 hover:bg-purple-700 text-white">
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
@@ -190,27 +192,27 @@ const InfoManage: React.FC = () => {
                       {editingId === lesson.id ? (
                         <div className="flex gap-2">
                           <Input value={editName} onChange={e => setEditName(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveEdit('lesson')} autoFocus className="bg-zinc-900 border-zinc-700 text-zinc-100" />
-                          <Button size="sm" onClick={() => saveEdit('lesson')} className="bg-purple-600 hover:bg-purple-700 text-white">Save</Button>
+                          <Button size="sm" onClick={() => saveEdit('lesson')} className="bg-purple-600 hover:bg-purple-700 text-white">{t('Save')}</Button>
                         </div>
                       ) : (
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <span className="w-6 h-6 rounded bg-purple-500/15 flex items-center justify-center text-xs font-semibold text-purple-300">{idx + 1}</span>
                             <span className="font-medium text-sm text-zinc-100">{lesson.name}</span>
-                            {!lesson.published && <span className="text-[10px] bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded">Draft</span>}
+                            {!lesson.published && <span className="text-[10px] bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded">{t('Draft')}</span>}
                           </div>
                           <div className="flex items-center gap-1">
                             <Switch
                               checked={lesson.published}
                               onCheckedChange={checked => updateLesson.mutate({ id: lesson.id, published: checked })}
                             />
-                            <Button aria-label="Edit lesson" variant="ghost" size="icon" className="w-7 h-7 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800" onClick={() => startEdit(lesson.id, lesson.name)}>
+                            <Button aria-label={t('Edit lesson')} variant="ghost" size="icon" className="w-7 h-7 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800" onClick={() => startEdit(lesson.id, lesson.name)}>
                               <Edit2 className="w-3.5 h-3.5" />
                             </Button>
                             <Button variant="outline" size="sm" className="h-7 text-xs gap-1 border-zinc-700 text-zinc-300 hover:bg-zinc-800" onClick={() => navigate(`/info/lesson/${lesson.id}`)}>
-                              <FileText className="w-3 h-3" /> Edit Content
+                              <FileText className="w-3 h-3" /> {t('Edit Content')}
                             </Button>
-                            <Button aria-label="Delete lesson" variant="ghost" size="icon" className="w-7 h-7 text-red-400 hover:text-red-300 hover:bg-zinc-800" onClick={() => deleteLesson.mutate(lesson.id)}>
+                            <Button aria-label={t('Delete lesson')} variant="ghost" size="icon" className="w-7 h-7 text-red-400 hover:text-red-300 hover:bg-zinc-800" onClick={() => deleteLesson.mutate(lesson.id)}>
                               <Trash2 className="w-3.5 h-3.5" />
                             </Button>
                           </div>
@@ -219,7 +221,7 @@ const InfoManage: React.FC = () => {
                     </div>
                   ))}
                   {lessons.length === 0 && (
-                    <p className="text-sm text-zinc-600 py-8 text-center">No lessons yet. Create one above.</p>
+                    <p className="text-sm text-zinc-600 py-8 text-center">{t('No lessons yet. Create one above.')}</p>
                   )}
                 </div>
               </>

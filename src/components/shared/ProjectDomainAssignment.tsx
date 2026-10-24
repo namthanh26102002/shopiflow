@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/select';
 import { useDomains, formatPath, STATUS_LABEL } from '@/hooks/useDomains';
 import { DomainsManager } from '@/components/shared/DomainsManager';
+import { useT } from '@/i18n';
 
 interface ProjectDomainAssignmentProps {
   contentId: string;
@@ -24,6 +25,7 @@ const NONE = '__none__';
 export const ProjectDomainAssignment: React.FC<ProjectDomainAssignmentProps> = ({
   contentId, contentType, publishedUrl, onDomainChange,
 }) => {
+  const t = useT();
   const { domains, mappings, loading, assignToProject } = useDomains();
   const [domainId, setDomainId] = useState<string>(NONE);
   const [path, setPath] = useState('');
@@ -72,32 +74,32 @@ export const ProjectDomainAssignment: React.FC<ProjectDomainAssignmentProps> = (
         {!publishedUrl && (
           <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 text-amber-700 text-xs">
             <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-            <span>Publish this page first — a domain can only serve a published project.</span>
+            <span>{t('Publish this page first — a domain can only serve a published project.')}</span>
           </div>
         )}
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="domainSelect">Domain</Label>
+            <Label htmlFor="domainSelect">{t('Domain')}</Label>
             <Button
               variant="ghost" size="sm" className="h-7 text-xs"
               onClick={() => setManagerOpen(true)}
             >
               <Settings2 className="w-3.5 h-3.5 mr-1.5" />
-              Manage domains
+              {t('Manage domains')}
             </Button>
           </div>
 
           <Select value={domainId} onValueChange={setDomainId} disabled={loading}>
             <SelectTrigger id="domainSelect">
-              <SelectValue placeholder="Not connected" />
+              <SelectValue placeholder={t('Not connected')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={NONE}>Not connected</SelectItem>
+              <SelectItem value={NONE}>{t('Not connected')}</SelectItem>
               {domains.map((d) => (
                 <SelectItem key={d.id} value={d.id}>
                   {d.domain}
-                  {d.status !== 'active' && ` — ${STATUS_LABEL[d.status]}`}
+                  {d.status !== 'active' && ` — ${t(STATUS_LABEL[d.status])}`}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -105,39 +107,36 @@ export const ProjectDomainAssignment: React.FC<ProjectDomainAssignmentProps> = (
 
           {domains.length === 0 && !loading && (
             <p className="text-xs text-muted-foreground">
-              No domains yet. Use <strong>Manage domains</strong> to add one.
+              {t('No domains yet. Use')} <strong>{t('Manage domains')}</strong> {t('to add one.')}
             </p>
           )}
 
           {selected && selected.status !== 'active' && (
             <p className="text-xs text-amber-700">
-              {selected.domain} is not serving yet — you can still assign it, and it
-              will go live once verification completes.
+              {t('{domain} is not serving yet — you can still assign it, and it will go live once verification completes.', { domain: selected.domain })}
             </p>
           )}
         </div>
 
         {domainId !== NONE && (
           <div className="space-y-2">
-            <Label htmlFor="pathInput">Path</Label>
+            <Label htmlFor="pathInput">{t('Path')}</Label>
             <div className="flex items-center gap-1">
               <span className="text-sm text-muted-foreground">/</span>
               <Input
                 id="pathInput"
-                placeholder="quiz"
+                placeholder={t('quiz')}
                 value={path}
                 onChange={(e) => setPath(formatPath(e.target.value))}
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              Lowercase letters, numbers and hyphens. Leave empty to serve at the
-              domain root.
+              {t('Lowercase letters, numbers and hyphens. Leave empty to serve at the domain root.')}
             </p>
 
             {conflict && (
               <p className="text-xs text-destructive">
-                Another project already answers on this address. Pick a different
-                path, or free it up in that project first.
+                {t('Another project already answers on this address. Pick a different path, or free it up in that project first.')}
               </p>
             )}
           </div>
@@ -146,7 +145,7 @@ export const ProjectDomainAssignment: React.FC<ProjectDomainAssignmentProps> = (
         <div className="flex items-center gap-2">
           <Button onClick={handleSave} disabled={saving || !dirty || !!conflict}>
             <Save className="w-4 h-4 mr-1.5" />
-            {mine ? 'Update' : 'Connect'}
+            {mine ? t('Update') : t('Connect')}
           </Button>
 
           {mine && (
@@ -162,7 +161,7 @@ export const ProjectDomainAssignment: React.FC<ProjectDomainAssignmentProps> = (
               disabled={saving}
             >
               <Link2Off className="w-4 h-4 mr-1.5" />
-              Disconnect
+              {t('Disconnect')}
             </Button>
           )}
         </div>

@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { IconPicker } from './IconPicker';
 import { BlankBlocksEditor } from './BlankBlocksEditor';
 import { Slider } from '@/components/ui/slider';
+import { useT, tr } from '@/i18n';
 
 interface OptionCardProps {
   option: AnswerOption;
@@ -39,6 +40,7 @@ const OptionCard: React.FC<OptionCardProps> = ({
   onImageUpload,
   onRemoveImage,
 }) => {
+  const t = useT();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileClick = () => {
@@ -75,7 +77,7 @@ const OptionCard: React.FC<OptionCardProps> = ({
                 value={option.iconColor || '#6B7280'}
                 onChange={(e) => onUpdateOption(questionId, option.id, { iconColor: e.target.value })}
                 className="w-8 h-8 p-0.5 rounded-md cursor-pointer border border-border-subtle"
-                title="Icon color"
+                title={t('Icon color')}
               />
             )}
           </>
@@ -88,7 +90,7 @@ const OptionCard: React.FC<OptionCardProps> = ({
           disabled={questionType === 'yes-no'}
         />
         {questionType !== 'yes-no' && canDelete && (
-          <button aria-label="Delete option"
+          <button aria-label={t('Delete option')}
             onClick={() => onDeleteOption(questionId, option.id)}
             className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-muted-foreground hover:text-destructive"
           >
@@ -106,7 +108,7 @@ const OptionCard: React.FC<OptionCardProps> = ({
               alt={option.text}
               className="w-20 h-20 rounded-lg object-cover"
             />
-            <button aria-label="Remove option image"
+            <button aria-label={t('Remove option image')}
               onClick={() => onRemoveImage(option.id)}
               className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-destructive text-white rounded-full flex items-center justify-center hover:bg-destructive/90 transition-colors"
             >
@@ -128,7 +130,7 @@ const OptionCard: React.FC<OptionCardProps> = ({
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-muted-foreground bg-secondary hover:bg-secondary/80 rounded-lg cursor-pointer transition-colors"
             >
               <ImageIcon className="w-3.5 h-3.5" />
-              Add image (optional)
+              {t('Add image (optional)')}
             </button>
           </>
         )}
@@ -142,6 +144,7 @@ interface QuestionEditorProps {
 }
 
 export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
+  const t = useT();
   const { quiz, updateQuestion, updateResultConfig, addOption, updateOption, deleteOption } = useQuiz();
   const blankImageInputRef = useRef<HTMLInputElement>(null);
   const feedbackVideoRef = useRef<HTMLInputElement>(null);
@@ -407,11 +410,11 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
 
   const handleBlankImageUpload = async (file: File) => {
     if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
+      toast.error(tr('Please upload an image file'));
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
-      toast.error('Image must be less than 2MB');
+      toast.error(tr('Image must be less than 2MB'));
       return;
     }
 
@@ -430,10 +433,10 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
 
       const { data } = supabase.storage.from('quiz-assets').getPublicUrl(filePath);
       updateQuestion(question.id, { imageUrl: data.publicUrl });
-      toast.success('Image uploaded');
+      toast.success(tr('Image uploaded'));
     } catch (error) {
       console.error('Error uploading image:', error);
-      toast.error('Failed to upload image');
+      toast.error(tr('Failed to upload image'));
     }
   };
 
@@ -445,23 +448,23 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
     <div className="space-y-6 animate-fade-in-up">
       <div className="space-y-4">
         <div>
-          <Label className="text-sm font-medium text-foreground">Question Type</Label>
+          <Label className="text-sm font-medium text-foreground">{t('Question Type')}</Label>
           <Select value={question.type} onValueChange={(v) => handleTypeChange(v as QuestionType)}>
             <SelectTrigger className="mt-1.5 input-clean">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="blank">Blank / Info</SelectItem>
-              <SelectItem value="multiple-choice">Multiple Choice</SelectItem>
-              <SelectItem value="image-selection">Image Selection</SelectItem>
-              <SelectItem value="yes-no">Yes / No</SelectItem>
-              <SelectItem value="analyzing">Analyzing</SelectItem>
-              <SelectItem value="chart">Chart</SelectItem>
-              <SelectItem value="summary">Summary</SelectItem>
-              <SelectItem value="result">Result</SelectItem>
-              <SelectItem value="score-slider">Score Slider</SelectItem>
-              <SelectItem value="feedback">Feedback</SelectItem>
-              <SelectItem value="warning">Warning</SelectItem>
+              <SelectItem value="blank">{t('Blank / Info')}</SelectItem>
+              <SelectItem value="multiple-choice">{t('Multiple Choice')}</SelectItem>
+              <SelectItem value="image-selection">{t('Image Selection')}</SelectItem>
+              <SelectItem value="yes-no">{t('Yes / No')}</SelectItem>
+              <SelectItem value="analyzing">{t('Analyzing')}</SelectItem>
+              <SelectItem value="chart">{t('Chart')}</SelectItem>
+              <SelectItem value="summary">{t('Summary')}</SelectItem>
+              <SelectItem value="result">{t('Result')}</SelectItem>
+              <SelectItem value="score-slider">{t('Score Slider')}</SelectItem>
+              <SelectItem value="feedback">{t('Feedback')}</SelectItem>
+              <SelectItem value="warning">{t('Warning')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -470,8 +473,8 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
         {(question.type === 'multiple-choice' || question.type === 'image-selection') && (
           <div className="flex items-center justify-between py-2">
             <div>
-              <Label className="text-sm font-medium text-foreground">Allow multiple selections</Label>
-              <p className="text-xs text-muted-foreground mt-0.5">Users can select more than one answer</p>
+              <Label className="text-sm font-medium text-foreground">{t('Allow multiple selections')}</Label>
+              <p className="text-xs text-muted-foreground mt-0.5">{t('Users can select more than one answer')}</p>
             </div>
             <Switch
               checked={question.allowMultiple || false}
@@ -482,11 +485,11 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
 
         {question.type !== 'result' && question.type !== 'feedback' && question.type !== 'warning' && (
           <div>
-            <Label className="text-sm font-medium text-foreground">Question Text</Label>
+            <Label className="text-sm font-medium text-foreground">{t('Question Text')}</Label>
             <Textarea
               value={question.text}
               onChange={(e) => updateQuestion(question.id, { text: e.target.value })}
-              placeholder="Enter your question..."
+              placeholder={t('Enter your question...')}
               className="mt-1.5 input-clean min-h-[80px] resize-none"
             />
           </div>
@@ -494,12 +497,12 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
 
         {question.type !== 'result' && question.type !== 'feedback' && question.type !== 'warning' && (
           <div>
-            <Label className="text-sm font-medium text-foreground">Sub-text (optional)</Label>
+            <Label className="text-sm font-medium text-foreground">{t('Sub-text (optional)')}</Label>
             <div className="mt-1.5">
               <RichTextEditor
                 value={question.subText || ''}
                 onChange={(html) => updateQuestion(question.id, { subText: html })}
-                placeholder="Add helpful context or instructions..."
+                placeholder={t('Add helpful context or instructions...')}
                 minHeight="60px"
               />
             </div>
@@ -509,16 +512,16 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
         {/* Image upload for blank question type */}
         {question.type === 'blank' && (
           <div>
-            <Label className="text-sm font-medium text-foreground">Image (optional)</Label>
+            <Label className="text-sm font-medium text-foreground">{t('Image (optional)')}</Label>
             <div className="mt-2">
               {question.imageUrl ? (
                 <div className="relative inline-block">
                   <img
                     src={question.imageUrl}
-                    alt="Question image"
+                    alt={t('Question image')}
                     className="max-w-full h-32 object-contain rounded-lg border border-border-subtle"
                   />
-                  <button aria-label="Remove image"
+                  <button aria-label={t('Remove image')}
                     onClick={handleRemoveBlankImage}
                     className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:opacity-90"
                   >
@@ -543,7 +546,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                     className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-border-subtle rounded-lg cursor-pointer hover:bg-secondary/30 transition-colors"
                   >
                     <Upload className="w-6 h-6 text-muted-foreground mb-2" />
-                    <span className="text-xs text-muted-foreground">Click to upload image</span>
+                    <span className="text-xs text-muted-foreground">{t('Click to upload image')}</span>
                   </button>
                 </>
               )}
@@ -556,8 +559,8 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
           <div className="space-y-3">
             <div className="flex items-center justify-between py-2">
               <div>
-                <Label className="text-sm font-medium text-foreground">Card Slider</Label>
-                <p className="text-xs text-muted-foreground mt-0.5">Add a slideshow of cards</p>
+                <Label className="text-sm font-medium text-foreground">{t('Card Slider')}</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">{t('Add a slideshow of cards')}</p>
               </div>
               <Switch
                 checked={!!question.cardSliderConfig}
@@ -579,7 +582,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
             {question.cardSliderConfig && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Label className="text-xs text-muted-foreground">Auto-play interval</Label>
+                  <Label className="text-xs text-muted-foreground">{t('Auto-play interval')}</Label>
                   <Input
                     type="number"
                     min={1}
@@ -590,7 +593,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                     })}
                     className="w-16 input-clean text-center"
                   />
-                  <span className="text-xs text-muted-foreground">sec</span>
+                  <span className="text-xs text-muted-foreground">{t('sec')}</span>
                 </div>
 
                 {question.cardSliderConfig.cards.map((card, idx) => {
@@ -598,9 +601,9 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                   return (
                     <div key={card.id} className="card-elevated p-3 space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium text-muted-foreground">Card {idx + 1}</span>
+                        <span className="text-xs font-medium text-muted-foreground">{t('Card {number}', { number: idx + 1 })}</span>
                         {question.cardSliderConfig!.cards.length > 1 && (
-                          <button aria-label="Delete card"
+                          <button aria-label={t('Delete card')}
                             onClick={() => updateQuestion(question.id, {
                               cardSliderConfig: {
                                 ...question.cardSliderConfig!,
@@ -618,7 +621,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                       {card.imageUrl ? (
                         <div className="relative inline-block">
                           <img src={card.imageUrl} alt="" className="w-full h-20 object-cover rounded-lg" />
-                          <button aria-label="Remove card image"
+                          <button aria-label={t('Remove card image')}
                             onClick={() => {
                               const cards = question.cardSliderConfig!.cards.map(c =>
                                 c.id === card.id ? { ...c, imageUrl: undefined } : c
@@ -640,7 +643,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                             onChange={async (e) => {
                               const file = e.target.files?.[0];
                               if (!file) return;
-                              if (file.size > 2 * 1024 * 1024) { toast.error('Image must be less than 2MB'); return; }
+                              if (file.size > 2 * 1024 * 1024) { toast.error(tr('Image must be less than 2MB')); return; }
                               try {
                                 const { data: { user: authUser } } = await supabase.auth.getUser();
                                 if (!authUser) throw new Error('Not authenticated');
@@ -654,8 +657,8 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                                   c.id === card.id ? { ...c, imageUrl: data.publicUrl } : c
                                 );
                                 updateQuestion(question.id, { cardSliderConfig: { ...question.cardSliderConfig!, cards } });
-                                toast.success('Image uploaded');
-                              } catch { toast.error('Failed to upload'); }
+                                toast.success(tr('Image uploaded'));
+                              } catch { toast.error(tr('Failed to upload')); }
                             }}
                           />
                           <button
@@ -664,7 +667,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                             className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-muted-foreground bg-secondary hover:bg-secondary/80 rounded-lg cursor-pointer transition-colors"
                           >
                             <ImageIcon className="w-3.5 h-3.5" />
-                            Add image
+                            {t('Add image')}
                           </button>
                         </>
                       )}
@@ -677,7 +680,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                           );
                           updateQuestion(question.id, { cardSliderConfig: { ...question.cardSliderConfig!, cards } });
                         }}
-                        placeholder="Headline"
+                        placeholder={t('Headline')}
                         className="input-clean"
                       />
                       <Input
@@ -688,11 +691,11 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                           );
                           updateQuestion(question.id, { cardSliderConfig: { ...question.cardSliderConfig!, cards } });
                         }}
-                        placeholder="Sub-headline"
+                        placeholder={t('Sub-headline')}
                         className="input-clean"
                       />
                       <div className="flex items-center gap-2 mb-1">
-                        <Label className="text-xs text-muted-foreground">Font size</Label>
+                        <Label className="text-xs text-muted-foreground">{t('Font size')}</Label>
                         <Select
                           value={String(card.bodyFontSize || 14)}
                           onValueChange={(v) => {
@@ -720,7 +723,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                           );
                           updateQuestion(question.id, { cardSliderConfig: { ...question.cardSliderConfig!, cards } });
                         }}
-                        placeholder="Body content..."
+                        placeholder={t('Body content...')}
                         minHeight="60px"
                       />
                     </div>
@@ -739,7 +742,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                   className="text-primary hover:text-primary hover:bg-primary-light h-8 text-sm w-full"
                 >
                   <Plus className="w-4 h-4 mr-1" />
-                  Add Card
+                  {t('Add Card')}
                 </Button>
               </div>
             )}
@@ -753,7 +756,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
         {question.type === 'analyzing' && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium text-foreground">Progress Bars</Label>
+              <Label className="text-sm font-medium text-foreground">{t('Progress Bars')}</Label>
               <Button
                 variant="ghost"
                 size="sm"
@@ -761,7 +764,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                 className="text-primary hover:text-primary hover:bg-primary-light h-8 text-sm"
               >
                 <Plus className="w-4 h-4 mr-1" />
-                Add Bar
+                {t('Add Bar')}
               </Button>
             </div>
 
@@ -775,7 +778,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                     <Input
                       value={bar.label}
                       onChange={(e) => handleUpdateAnalyzingBar(bar.id, { label: e.target.value })}
-                      placeholder="Loading message..."
+                      placeholder={t('Loading message...')}
                       className="flex-1 input-clean"
                     />
                     <div className="flex items-center gap-1">
@@ -787,10 +790,10 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                         onChange={(e) => handleUpdateAnalyzingBar(bar.id, { duration: parseInt(e.target.value) || 2 })}
                         className="w-16 input-clean text-center"
                       />
-                      <span className="text-xs text-muted-foreground">sec</span>
+                      <span className="text-xs text-muted-foreground">{t('sec')}</span>
                     </div>
                     {(question.analyzingBars?.length || 0) > 1 && (
-                      <button aria-label="Delete progress bar"
+                      <button aria-label={t('Delete progress bar')}
                         onClick={() => handleDeleteAnalyzingBar(bar.id)}
                         className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-muted-foreground hover:text-destructive"
                       >
@@ -804,17 +807,17 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
 
             {/* Image upload for analyzing type */}
             <div>
-              <Label className="text-sm font-medium text-foreground">Image (optional)</Label>
-              <p className="text-xs text-muted-foreground mb-2">Add a before/after or comparison image</p>
+              <Label className="text-sm font-medium text-foreground">{t('Image (optional)')}</Label>
+              <p className="text-xs text-muted-foreground mb-2">{t('Add a before/after or comparison image')}</p>
               <div className="mt-2">
                 {question.imageUrl ? (
                   <div className="relative inline-block">
                     <img
                       src={question.imageUrl}
-                      alt="Analyzing image"
+                      alt={t('Analyzing image')}
                       className="max-w-full h-32 object-contain rounded-lg border border-border-subtle"
                     />
-                    <button aria-label="Remove image"
+                    <button aria-label={t('Remove image')}
                       onClick={handleRemoveBlankImage}
                       className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:opacity-90"
                     >
@@ -839,7 +842,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                       className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-border-subtle rounded-lg cursor-pointer hover:bg-secondary/30 transition-colors"
                     >
                       <Upload className="w-6 h-6 text-muted-foreground mb-2" />
-                      <span className="text-xs text-muted-foreground">Click to upload image</span>
+                      <span className="text-xs text-muted-foreground">{t('Click to upload image')}</span>
                     </button>
                   </>
                 )}
@@ -848,20 +851,20 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
 
             {/* Button text override */}
             <div>
-              <Label className="text-sm font-medium text-foreground">Button Text</Label>
+              <Label className="text-sm font-medium text-foreground">{t('Button Text')}</Label>
               <Input
                 value={question.analyzingButtonText || ''}
                 onChange={(e) => updateQuestion(question.id, { analyzingButtonText: e.target.value })}
-                placeholder={quiz.settings.nextButtonText || 'Next'}
+                placeholder={quiz.settings.nextButtonText || t('Next')}
                 className="mt-1.5 input-clean"
               />
-              <p className="text-xs text-muted-foreground mt-1">Leave empty to use the global button text</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('Leave empty to use the global button text')}</p>
             </div>
 
             {/* Popup Questions - one per bar */}
             <div className="space-y-3">
-              <Label className="text-sm font-medium text-foreground">Popup Questions</Label>
-              <p className="text-xs text-muted-foreground">Add a yes/no popup that pauses progress on each bar</p>
+              <Label className="text-sm font-medium text-foreground">{t('Popup Questions')}</Label>
+              <p className="text-xs text-muted-foreground">{t('Add a yes/no popup that pauses progress on each bar')}</p>
 
               {(question.analyzingBars || []).map((bar, barIndex) => {
                 const popups = question.analyzingPopups || [];
@@ -905,7 +908,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                   <div key={bar.id} className="card-elevated p-3 space-y-3">
                     <div className="flex items-center justify-between">
                       <div>
-                        <Label className="text-xs font-medium text-foreground">Bar {barIndex + 1}: {bar.label}</Label>
+                        <Label className="text-xs font-medium text-foreground">{t('Bar {number}', { number: barIndex + 1 })}: {bar.label}</Label>
                       </div>
                       <Switch checked={isEnabled} onCheckedChange={togglePopup} />
                     </div>
@@ -913,7 +916,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                     {isEnabled && popupForBar && (
                       <div className="space-y-3 pt-1">
                         <div>
-                          <Label className="text-xs text-muted-foreground">At percentage</Label>
+                          <Label className="text-xs text-muted-foreground">{t('At percentage')}</Label>
                           <Input
                             type="number"
                             min={10}
@@ -924,7 +927,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                           />
                         </div>
                         <div>
-                          <Label className="text-xs text-muted-foreground">Subtitle</Label>
+                          <Label className="text-xs text-muted-foreground">{t('Subtitle')}</Label>
                           <Input
                             value={popupForBar.subtitle}
                             onChange={(e) => updatePopupForBar({ subtitle: e.target.value })}
@@ -933,7 +936,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                           />
                         </div>
                         <div>
-                          <Label className="text-xs text-muted-foreground">Question Text</Label>
+                          <Label className="text-xs text-muted-foreground">{t('Question Text')}</Label>
                           <Textarea
                             value={popupForBar.questionText}
                             onChange={(e) => updatePopupForBar({ questionText: e.target.value })}
@@ -943,20 +946,20 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <Label className="text-xs text-muted-foreground">No Button</Label>
+                            <Label className="text-xs text-muted-foreground">{t('No Button')}</Label>
                             <Input
                               value={popupForBar.noButtonText}
                               onChange={(e) => updatePopupForBar({ noButtonText: e.target.value })}
-                              placeholder="No"
+                              placeholder={t('No')}
                               className="mt-1 input-clean"
                             />
                           </div>
                           <div>
-                            <Label className="text-xs text-muted-foreground">Yes Button</Label>
+                            <Label className="text-xs text-muted-foreground">{t('Yes Button')}</Label>
                             <Input
                               value={popupForBar.yesButtonText}
                               onChange={(e) => updatePopupForBar({ yesButtonText: e.target.value })}
-                              placeholder="Yes"
+                              placeholder={t('Yes')}
                               className="mt-1 input-clean"
                             />
                           </div>
@@ -974,12 +977,12 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
         {question.type === 'chart' && question.chartConfig && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium text-foreground">Chart Settings</Label>
+              <Label className="text-sm font-medium text-foreground">{t('Chart Settings')}</Label>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs text-muted-foreground">Start Badge Text</Label>
+                <Label className="text-xs text-muted-foreground">{t('Start Badge Text')}</Label>
                 <Input
                   value={question.chartConfig.startLabel}
                   onChange={(e) => handleUpdateChartConfig({ startLabel: e.target.value })}
@@ -988,18 +991,18 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                 />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Goal Badge Text</Label>
+                <Label className="text-xs text-muted-foreground">{t('Goal Badge Text')}</Label>
                 <Input
                   value={question.chartConfig.goalLabel}
                   onChange={(e) => handleUpdateChartConfig({ goalLabel: e.target.value })}
-                  placeholder="Goal"
+                  placeholder={t('Goal')}
                   className="mt-1 input-clean"
                 />
               </div>
             </div>
 
             <div>
-              <Label className="text-xs text-muted-foreground">Days to Goal</Label>
+              <Label className="text-xs text-muted-foreground">{t('Days to Goal')}</Label>
               <Input
                 type="number"
                 min={1}
@@ -1008,12 +1011,12 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                 onChange={(e) => handleUpdateChartConfig({ goalDays: parseInt(e.target.value) || 28 })}
                 className="mt-1 input-clean w-24"
               />
-              <p className="text-xs text-muted-foreground mt-1">X-axis dates auto-calculate from today</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('X-axis dates auto-calculate from today')}</p>
             </div>
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium text-foreground">Chart Points</Label>
+                <Label className="text-sm font-medium text-foreground">{t('Chart Points')}</Label>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -1021,7 +1024,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                   className="text-primary hover:text-primary hover:bg-primary-light h-8 text-sm"
                 >
                   <Plus className="w-4 h-4 mr-1" />
-                  Add Point
+                  {t('Add Point')}
                 </Button>
               </div>
 
@@ -1034,16 +1037,16 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                       </div>
                       <div className="flex-1 grid grid-cols-3 gap-2">
                         <div>
-                          <Label className="text-xs text-muted-foreground">Label</Label>
+                          <Label className="text-xs text-muted-foreground">{t('Label')}</Label>
                           <Input
                             value={point.label}
                             onChange={(e) => handleUpdateChartPoint(point.id, { label: e.target.value })}
-                            placeholder="Severe"
+                            placeholder={t('Severe')}
                             className="input-clean mt-0.5"
                           />
                         </div>
                         <div>
-                          <Label className="text-xs text-muted-foreground">Value (0-100)</Label>
+                          <Label className="text-xs text-muted-foreground">{t('Value (0-100)')}</Label>
                           <Input
                             type="number"
                             min={0}
@@ -1054,7 +1057,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                           />
                         </div>
                         <div>
-                          <Label className="text-xs text-muted-foreground">Day</Label>
+                          <Label className="text-xs text-muted-foreground">{t('Day')}</Label>
                           <Input
                             type="number"
                             min={0}
@@ -1066,7 +1069,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                         </div>
                       </div>
                       {(question.chartConfig?.points?.length || 0) > 2 && (
-                        <button aria-label="Delete chart point"
+                        <button aria-label={t('Delete chart point')}
                           onClick={() => handleDeleteChartPoint(point.id)}
                           className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-muted-foreground hover:text-destructive"
                         >
@@ -1094,30 +1097,30 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
           };
           return (
             <div className="space-y-4">
-              <Label className="text-sm font-medium text-foreground">Summary Settings</Label>
+              <Label className="text-sm font-medium text-foreground">{t('Summary Settings')}</Label>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs text-muted-foreground">Title</Label>
+                  <Label className="text-xs text-muted-foreground">{t('Title')}</Label>
                   <Input value={sc.title} onChange={(e) => updateSummary({ title: e.target.value })} className="mt-1 input-clean" />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Condition Text</Label>
+                  <Label className="text-xs text-muted-foreground">{t('Condition Text')}</Label>
                   <div className="flex gap-2 mt-1">
                     <Input value={sc.conditionText} onChange={(e) => updateSummary({ conditionText: e.target.value })} className="input-clean flex-1" />
-                    <input type="color" value={sc.conditionColor} onChange={(e) => updateSummary({ conditionColor: e.target.value })} className="w-8 h-10 p-0.5 rounded-md cursor-pointer border border-border-subtle" title="Condition color" />
+                    <input type="color" value={sc.conditionColor} onChange={(e) => updateSummary({ conditionColor: e.target.value })} className="w-8 h-10 p-0.5 rounded-md cursor-pointer border border-border-subtle" title={t('Condition color')} />
                   </div>
                 </div>
               </div>
 
               {/* Image upload */}
               <div>
-                <Label className="text-xs text-muted-foreground">Image</Label>
+                <Label className="text-xs text-muted-foreground">{t('Image')}</Label>
                 <div className="mt-2">
                   {sc.imageUrl ? (
                     <div className="relative inline-block">
                       <img src={sc.imageUrl} alt="" className="max-w-full h-32 object-contain rounded-lg border border-border-subtle" />
-                      <button aria-label="Remove image" onClick={() => updateSummary({ imageUrl: undefined })} className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:opacity-90">
+                      <button aria-label={t('Remove image')} onClick={() => updateSummary({ imageUrl: undefined })} className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:opacity-90">
                         <X className="w-3 h-3" />
                       </button>
                     </div>
@@ -1127,7 +1130,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                         onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
-                          if (file.size > 2 * 1024 * 1024) { toast.error('Image must be less than 2MB'); return; }
+                          if (file.size > 2 * 1024 * 1024) { toast.error(tr('Image must be less than 2MB')); return; }
                           try {
                             const { data: { user: authUser } } = await supabase.auth.getUser();
                             if (!authUser) throw new Error('Not authenticated');
@@ -1138,12 +1141,12 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                             if (uploadError) throw uploadError;
                             const { data } = supabase.storage.from('quiz-assets').getPublicUrl(uploadPath);
                             updateSummary({ imageUrl: data.publicUrl });
-                          } catch { toast.error('Failed to upload image'); }
+                          } catch { toast.error(tr('Failed to upload image')); }
                         }}
                       />
                       <label htmlFor={`summary-img-${question.id}`} className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-border-subtle rounded-lg cursor-pointer hover:bg-secondary/30 transition-colors">
                         <Upload className="w-6 h-6 text-muted-foreground mb-2" />
-                        <span className="text-xs text-muted-foreground">Click to upload image</span>
+                        <span className="text-xs text-muted-foreground">{t('Click to upload image')}</span>
                       </label>
                     </>
                   )}
@@ -1152,13 +1155,13 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
 
               {/* Level position slider */}
               <div>
-                <Label className="text-xs text-muted-foreground">Level Position ({sc.levelPosition}%)</Label>
+                <Label className="text-xs text-muted-foreground">{t('Level Position ({percent}%)', { percent: sc.levelPosition })}</Label>
                 <Slider value={[sc.levelPosition]} min={0} max={100} step={1} onValueChange={([v]) => updateSummary({ levelPosition: v })} className="mt-2" />
               </div>
 
               {/* Level labels */}
               <div>
-                <Label className="text-xs text-muted-foreground">Level Labels</Label>
+                <Label className="text-xs text-muted-foreground">{t('Level Labels')}</Label>
                 <div className="grid grid-cols-4 gap-2 mt-1">
                   {sc.levelLabels.map((label, i) => (
                     <Input key={i} value={label} onChange={(e) => {
@@ -1173,41 +1176,41 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
               {/* Detail box */}
               <div className="grid grid-cols-1 gap-3">
                 <div>
-                  <Label className="text-xs text-muted-foreground">Detail Title</Label>
+                  <Label className="text-xs text-muted-foreground">{t('Detail Title')}</Label>
                   <Input value={sc.detailTitle} onChange={(e) => updateSummary({ detailTitle: e.target.value })} className="mt-1 input-clean" />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Detail Subtitle</Label>
+                  <Label className="text-xs text-muted-foreground">{t('Detail Subtitle')}</Label>
                   <Textarea value={sc.detailSubtitle} onChange={(e) => updateSummary({ detailSubtitle: e.target.value })} className="mt-1 input-clean min-h-[60px] resize-none" />
                 </div>
               </div>
 
               {/* Text Size slider */}
               <div>
-                <Label className="text-xs text-muted-foreground">Info Card Text Size ({sc.textSize || 12}px)</Label>
+                <Label className="text-xs text-muted-foreground">{t('Info Card Text Size ({size}px)', { size: sc.textSize || 12 })}</Label>
                 <Slider value={[sc.textSize || 12]} min={10} max={18} step={1} onValueChange={([v]) => updateSummary({ textSize: v })} className="mt-2" />
               </div>
 
               {/* Info Cards */}
               <div className="space-y-3">
-                <Label className="text-sm font-medium text-foreground">Info Cards</Label>
+                <Label className="text-sm font-medium text-foreground">{t('Info Cards')}</Label>
                 {sc.infoCards.map((card, index) => (
                   <div key={card.id} className="card-elevated p-3 space-y-2">
                     <div className="flex items-center gap-2 mb-1">
                       <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-xs font-medium text-muted-foreground flex-shrink-0">{index + 1}</div>
-                      <span className="text-xs font-medium text-muted-foreground flex-1">Card {index + 1}</span>
+                      <span className="text-xs font-medium text-muted-foreground flex-1">{t('Card {number}', { number: index + 1 })}</span>
                     </div>
                     <div>
-                      <Label className="text-xs text-muted-foreground">Icon (emoji or SVG)</Label>
+                      <Label className="text-xs text-muted-foreground">{t('Icon (emoji or SVG)')}</Label>
                       <Input value={card.icon} onChange={(e) => updateInfoCard(card.id, { icon: e.target.value })} placeholder='e.g. 😚 or <svg>...</svg>' className="mt-1 input-clean" />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <Label className="text-xs text-muted-foreground">Title</Label>
+                        <Label className="text-xs text-muted-foreground">{t('Title')}</Label>
                         <Input value={card.title} onChange={(e) => updateInfoCard(card.id, { title: e.target.value })} className="mt-0.5 input-clean" />
                       </div>
                       <div>
-                        <Label className="text-xs text-muted-foreground">Subtitle</Label>
+                        <Label className="text-xs text-muted-foreground">{t('Subtitle')}</Label>
                         <Input value={card.subtitle} onChange={(e) => updateInfoCard(card.id, { subtitle: e.target.value })} className="mt-0.5 input-clean" />
                       </div>
                     </div>
@@ -1242,16 +1245,16 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
 
           return (
             <div className="space-y-4">
-              <Label className="text-sm font-medium text-foreground">Result Page Settings</Label>
+              <Label className="text-sm font-medium text-foreground">{t('Result Page Settings')}</Label>
 
               {/* Headline rich text */}
               <div>
-                <Label className="text-xs text-muted-foreground">Headline (rich text)</Label>
+                <Label className="text-xs text-muted-foreground">{t('Headline (rich text)')}</Label>
                 <div className="mt-1.5">
                   <RichTextEditor
                     value={rc.headlineHtml}
                     onChange={(html) => updateResult({ headlineHtml: html })}
-                    placeholder="Enter your headline..."
+                    placeholder={t('Enter your headline...')}
                     minHeight="80px"
                   />
                 </div>
@@ -1260,11 +1263,11 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
               {/* Transformation Card Labels */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs text-muted-foreground">Left Card Label</Label>
+                  <Label className="text-xs text-muted-foreground">{t('Left Card Label')}</Label>
                   <Input value={rc.nowLabel} onChange={(e) => updateResult({ nowLabel: e.target.value })} className="mt-1 input-clean" />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Right Card Label</Label>
+                  <Label className="text-xs text-muted-foreground">{t('Right Card Label')}</Label>
                   <Input value={rc.goalLabel} onChange={(e) => updateResult({ goalLabel: e.target.value })} className="mt-1 input-clean" />
                 </div>
               </div>
@@ -1272,14 +1275,14 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
               {/* Colors */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs text-muted-foreground">Now Bar Color</Label>
+                  <Label className="text-xs text-muted-foreground">{t('Now Bar Color')}</Label>
                   <div className="flex gap-2 mt-1">
                     <input type="color" value={rc.nowColor} onChange={(e) => updateResult({ nowColor: e.target.value })} className="w-8 h-10 p-0.5 rounded-md cursor-pointer border border-border-subtle" />
                     <Input value={rc.nowColor} onChange={(e) => updateResult({ nowColor: e.target.value })} className="input-clean flex-1" />
                   </div>
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Goal Bar Color</Label>
+                  <Label className="text-xs text-muted-foreground">{t('Goal Bar Color')}</Label>
                   <div className="flex gap-2 mt-1">
                     <input type="color" value={rc.goalColor} onChange={(e) => updateResult({ goalColor: e.target.value })} className="w-8 h-10 p-0.5 rounded-md cursor-pointer border border-border-subtle" />
                     <Input value={rc.goalColor} onChange={(e) => updateResult({ goalColor: e.target.value })} className="input-clean flex-1" />
@@ -1299,7 +1302,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
 
                   return (
                     <div key={side}>
-                      <Label className="text-xs text-muted-foreground">{side === 'now' ? 'Now' : 'Goal'} Image</Label>
+                      <Label className="text-xs text-muted-foreground">{side === 'now' ? t('Now image') : t('Goal image')}</Label>
                       
                       {/* Link to question dropdown */}
                       {imageSelectionQuestions.length > 0 && (
@@ -1314,13 +1317,13 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                           }}
                         >
                           <SelectTrigger className="mt-1.5 input-clean h-8 text-xs">
-                            <SelectValue placeholder="Image source" />
+                            <SelectValue placeholder={t('Image source')} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="__static__">Static image</SelectItem>
+                            <SelectItem value="__static__">{t('Static image')}</SelectItem>
                             {imageSelectionQuestions.map((q) => (
                               <SelectItem key={q.id} value={q.id}>
-                                {q.text || `Question ${quiz.questions.indexOf(q) + 1}`}
+                                {q.text || t('Question {number}', { number: quiz.questions.indexOf(q) + 1 })}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -1331,14 +1334,14 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                         {linkedQuestionId && linkedQuestion ? (
                           <div className="p-2 bg-secondary/50 rounded-lg border border-border-subtle">
                             <p className="text-[10px] text-muted-foreground text-center">
-                              🔗 Linked to user's answer from:<br/>
-                              <span className="font-medium">{linkedQuestion.text || 'Untitled question'}</span>
+                              {t("🔗 Linked to user's answer from:")}<br/>
+                              <span className="font-medium">{linkedQuestion.text || t('Untitled question')}</span>
                             </p>
                           </div>
                         ) : imgUrl ? (
                           <div className="relative inline-block">
                             <img src={imgUrl} alt="" className="w-full h-24 object-contain rounded-lg border border-border-subtle" />
-                            <button aria-label="Remove image" onClick={() => updateResult({ [imgKey]: undefined })} className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:opacity-90">
+                            <button aria-label={t('Remove image')} onClick={() => updateResult({ [imgKey]: undefined })} className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:opacity-90">
                               <X className="w-3 h-3" />
                             </button>
                           </div>
@@ -1348,7 +1351,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                               onChange={async (e) => {
                                 const file = e.target.files?.[0];
                                 if (!file) return;
-                                if (file.size > 2 * 1024 * 1024) { toast.error('Image must be less than 2MB'); return; }
+                                if (file.size > 2 * 1024 * 1024) { toast.error(tr('Image must be less than 2MB')); return; }
                                 try {
                                   const { data: { user: authUser } } = await supabase.auth.getUser();
                                   if (!authUser) throw new Error('Not authenticated');
@@ -1359,12 +1362,12 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                                   if (uploadError) throw uploadError;
                                   const { data } = supabase.storage.from('quiz-assets').getPublicUrl(uploadPath);
                                   updateResult({ [imgKey]: data.publicUrl });
-                                } catch { toast.error('Failed to upload image'); }
+                                } catch { toast.error(tr('Failed to upload image')); }
                               }}
                             />
                             <label htmlFor={`result-${side}-img-${question.id}`} className="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-border-subtle rounded-lg cursor-pointer hover:bg-secondary/30 transition-colors">
                               <Upload className="w-5 h-5 text-muted-foreground mb-1" />
-                              <span className="text-[10px] text-muted-foreground">Upload</span>
+                              <span className="text-[10px] text-muted-foreground">{t('Upload')}</span>
                             </label>
                           </>
                         )}
@@ -1377,40 +1380,40 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
               {/* Metrics */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium text-foreground">Metrics</Label>
+                  <Label className="text-sm font-medium text-foreground">{t('Metrics')}</Label>
                   <Button variant="ghost" size="sm" onClick={addMetric} className="text-primary hover:text-primary hover:bg-primary-light h-8 text-sm">
                     <Plus className="w-4 h-4 mr-1" />
-                    Add Metric
+                    {t('Add Metric')}
                   </Button>
                 </div>
                 {rc.metrics.map((metric, index) => (
                   <div key={metric.id} className="card-elevated p-3 space-y-2">
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-xs font-medium text-muted-foreground flex-shrink-0">{index + 1}</div>
-                      <Input value={metric.label} onChange={(e) => updateMetric(metric.id, { label: e.target.value })} placeholder="Metric label" className="flex-1 input-clean" />
+                      <Input value={metric.label} onChange={(e) => updateMetric(metric.id, { label: e.target.value })} placeholder={t('Metric label')} className="flex-1 input-clean" />
                       {rc.metrics.length > 1 && (
-                        <button aria-label="Delete metric" onClick={() => deleteMetric(metric.id)} className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-muted-foreground hover:text-destructive">
+                        <button aria-label={t('Delete metric')} onClick={() => deleteMetric(metric.id)} className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-muted-foreground hover:text-destructive">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       )}
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <Label className="text-[10px] text-muted-foreground">Now Value</Label>
+                        <Label className="text-[10px] text-muted-foreground">{t('Now Value')}</Label>
                         <Input value={metric.nowValue} onChange={(e) => updateMetric(metric.id, { nowValue: e.target.value })} className="input-clean mt-0.5" />
                       </div>
                       <div>
-                        <Label className="text-[10px] text-muted-foreground">Goal Value</Label>
+                        <Label className="text-[10px] text-muted-foreground">{t('Goal Value')}</Label>
                         <Input value={metric.goalValue} onChange={(e) => updateMetric(metric.id, { goalValue: e.target.value })} className="input-clean mt-0.5" />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <Label className="text-[10px] text-muted-foreground">Now Level (1-3)</Label>
+                        <Label className="text-[10px] text-muted-foreground">{t('Now Level (1-3)')}</Label>
                         <Input type="number" min={1} max={3} value={metric.nowLevel} onChange={(e) => updateMetric(metric.id, { nowLevel: parseInt(e.target.value) || 1 })} className="input-clean mt-0.5" />
                       </div>
                       <div>
-                        <Label className="text-[10px] text-muted-foreground">Goal Level (1-3)</Label>
+                        <Label className="text-[10px] text-muted-foreground">{t('Goal Level (1-3)')}</Label>
                         <Input type="number" min={1} max={3} value={metric.goalLevel} onChange={(e) => updateMetric(metric.id, { goalLevel: parseInt(e.target.value) || 1 })} className="input-clean mt-0.5" />
                       </div>
                     </div>
@@ -1421,14 +1424,14 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
               {/* Info Cards */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium text-foreground">Info Cards</Label>
+                  <Label className="text-sm font-medium text-foreground">{t('Info Cards')}</Label>
                   <Button variant="ghost" size="sm" onClick={() => {
                     updateResult({
                       infoCards: [...(rc.infoCards || []), { id: generateId(), type: 'text', label: 'New Card', value: 'Value' }],
                     });
                   }} className="text-primary hover:text-primary hover:bg-primary-light h-8 text-sm">
                     <Plus className="w-4 h-4 mr-1" />
-                    Add Card
+                    {t('Add Card')}
                   </Button>
                 </div>
                 {(rc.infoCards || []).map((card, index) => (
@@ -1444,13 +1447,13 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="text">Text</SelectItem>
-                          <SelectItem value="slider">Slider</SelectItem>
-                          <SelectItem value="highlighted">Highlighted</SelectItem>
+                          <SelectItem value="text">{t('Text')}</SelectItem>
+                          <SelectItem value="slider">{t('Slider')}</SelectItem>
+                          <SelectItem value="highlighted">{t('Highlighted')}</SelectItem>
                         </SelectContent>
                       </Select>
                       {(rc.infoCards || []).length > 1 && (
-                        <button aria-label="Delete info card" onClick={() => {
+                        <button aria-label={t('Delete info card')} onClick={() => {
                           updateResult({ infoCards: (rc.infoCards || []).filter(c => c.id !== card.id) });
                         }} className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-muted-foreground hover:text-destructive">
                           <Trash2 className="w-4 h-4" />
@@ -1459,7 +1462,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <Label className="text-[10px] text-muted-foreground">Label</Label>
+                        <Label className="text-[10px] text-muted-foreground">{t('Label')}</Label>
                         <Input value={card.label} onChange={(e) => {
                           updateResult({
                             infoCards: (rc.infoCards || []).map(c => c.id === card.id ? { ...c, label: e.target.value } : c),
@@ -1467,7 +1470,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                         }} className="input-clean mt-0.5" />
                       </div>
                       <div>
-                        <Label className="text-[10px] text-muted-foreground">Value</Label>
+                        <Label className="text-[10px] text-muted-foreground">{t('Value')}</Label>
                         <Input value={card.value} onChange={(e) => {
                           updateResult({
                             infoCards: (rc.infoCards || []).map(c => c.id === card.id ? { ...c, value: e.target.value } : c),
@@ -1477,7 +1480,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                     </div>
                     {/* Icon SVG picker */}
                     <div className="flex items-center gap-2">
-                      <Label className="text-[10px] text-muted-foreground">Icon (SVG)</Label>
+                      <Label className="text-[10px] text-muted-foreground">{t('Icon (SVG)')}</Label>
                       <IconPicker
                         value={card.iconSvg}
                         onChange={(svg) => {
@@ -1489,7 +1492,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                     </div>
                     {card.type === 'slider' && (
                       <div>
-                        <Label className="text-[10px] text-muted-foreground">Slider Position (0-100)</Label>
+                        <Label className="text-[10px] text-muted-foreground">{t('Slider Position (0-100)')}</Label>
                         <Slider
                           value={[card.sliderPosition || 50]}
                           onValueChange={([v]) => {
@@ -1503,7 +1506,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                     )}
                     {card.type === 'highlighted' && (
                       <div>
-                        <Label className="text-[10px] text-muted-foreground">Accent Color</Label>
+                        <Label className="text-[10px] text-muted-foreground">{t('Accent Color')}</Label>
                         <div className="flex gap-2 mt-0.5">
                           <input type="color" value={card.accentColor || '#2DD4BF'} onChange={(e) => {
                             updateResult({
@@ -1519,37 +1522,37 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
 
               {/* CTA */}
               <div className="space-y-3">
-                <Label className="text-sm font-medium text-foreground">CTA Button</Label>
+                <Label className="text-sm font-medium text-foreground">{t('CTA Button')}</Label>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-[10px] text-muted-foreground">Button Text</Label>
+                    <Label className="text-[10px] text-muted-foreground">{t('Button Text')}</Label>
                     <Input value={rc.ctaText} onChange={(e) => updateResult({ ctaText: e.target.value })} className="mt-1 input-clean" />
                   </div>
                   <div>
-                    <Label className="text-[10px] text-muted-foreground">Button URL</Label>
+                    <Label className="text-[10px] text-muted-foreground">{t('Button URL')}</Label>
                     <Input value={rc.ctaUrl} onChange={(e) => updateResult({ ctaUrl: e.target.value })} placeholder="https://..." className="mt-1 input-clean" />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-[10px] text-muted-foreground">Button Color</Label>
+                    <Label className="text-[10px] text-muted-foreground">{t('Button Color')}</Label>
                     <div className="flex gap-2 mt-1">
                       <input type="color" value={rc.ctaButtonColor || '#0066FF'} onChange={(e) => updateResult({ ctaButtonColor: e.target.value })} className="w-8 h-8 p-0.5 rounded-md cursor-pointer border border-border-subtle" />
-                      <Input value={rc.ctaButtonColor || ''} onChange={(e) => updateResult({ ctaButtonColor: e.target.value })} placeholder="Primary" className="input-clean flex-1" />
+                      <Input value={rc.ctaButtonColor || ''} onChange={(e) => updateResult({ ctaButtonColor: e.target.value })} placeholder={t('Primary')} className="input-clean flex-1" />
                     </div>
                   </div>
                   <div>
-                    <Label className="text-[10px] text-muted-foreground">Corner Radius</Label>
+                    <Label className="text-[10px] text-muted-foreground">{t('Corner Radius')}</Label>
                     <Select value={rc.ctaButtonRadius || 'large'} onValueChange={(v) => updateResult({ ctaButtonRadius: v as any })}>
                       <SelectTrigger className="mt-1 input-clean h-8 text-xs">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        <SelectItem value="small">Small</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="large">Large</SelectItem>
-                        <SelectItem value="full">Full</SelectItem>
+                        <SelectItem value="none">{t('None')}</SelectItem>
+                        <SelectItem value="small">{t('Small')}</SelectItem>
+                        <SelectItem value="medium">{t('Medium')}</SelectItem>
+                        <SelectItem value="large">{t('Large')}</SelectItem>
+                        <SelectItem value="full">{t('Full')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1558,7 +1561,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
 
               {/* Text Size */}
               <div>
-                <Label className="text-xs text-muted-foreground">Metric & Card Text Size ({rc.textSize || 12}px)</Label>
+                <Label className="text-xs text-muted-foreground">{t('Metric & Card Text Size ({size}px)', { size: rc.textSize || 12 })}</Label>
                 <Slider
                   value={[rc.textSize || 12]}
                   onValueChange={([v]) => updateResult({ textSize: v })}
@@ -1577,10 +1580,10 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
           updateQuestion(question.id, { feedbackConfig: { ...cfg, ...updates } });
         return (
           <div className="space-y-3">
-            <Label className="text-sm font-medium text-foreground">Feedback Page</Label>
+            <Label className="text-sm font-medium text-foreground">{t('Feedback Page')}</Label>
 
             <div className="card-elevated p-3 space-y-2">
-              <Label className="text-xs text-muted-foreground">Video</Label>
+              <Label className="text-xs text-muted-foreground">{t('Video')}</Label>
               {cfg.videoUrl ? (
                 <div className="space-y-2">
                   <video src={cfg.videoUrl} controls className="w-full rounded-lg max-h-40 bg-black" />
@@ -1589,11 +1592,11 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                     onClick={() => updateCfg({ videoUrl: '' })}
                     className="text-xs text-destructive hover:underline"
                   >
-                    Remove video
+                    {t('Remove video')}
                   </button>
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground">No video yet — upload a file or paste a URL.</p>
+                <p className="text-xs text-muted-foreground">{t('No video yet — upload a file or paste a URL.')}</p>
               )}
 
               <input
@@ -1605,7 +1608,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
                   if (file.size > 50 * 1024 * 1024) {
-                    toast.error('Video must be less than 50MB');
+                    toast.error(tr('Video must be less than 50MB'));
                     return;
                   }
                   try {
@@ -1617,10 +1620,10 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                     if (uploadError) throw uploadError;
                     const { data } = supabase.storage.from('quiz-assets').getPublicUrl(uploadPath);
                     updateCfg({ videoUrl: data.publicUrl });
-                    toast.success('Video uploaded');
+                    toast.success(tr('Video uploaded'));
                   } catch (err) {
                     console.error('Error uploading video:', err);
-                    toast.error('Failed to upload video');
+                    toast.error(tr('Failed to upload video'));
                   } finally {
                     e.target.value = '';
                   }
@@ -1633,18 +1636,18 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                 className="h-8 text-xs w-full bg-secondary hover:bg-secondary/80"
               >
                 <Upload className="w-3.5 h-3.5 mr-1.5" />
-                Upload video
+                {t('Upload video')}
               </Button>
               <Input
                 value={cfg.videoUrl || ''}
                 onChange={(e) => updateCfg({ videoUrl: e.target.value })}
-                placeholder="Or paste a video URL"
+                placeholder={t('Or paste a video URL')}
                 className="input-clean"
               />
             </div>
 
             <div>
-              <Label className="text-xs text-muted-foreground">Caption</Label>
+              <Label className="text-xs text-muted-foreground">{t('Caption')}</Label>
               <Input
                 value={cfg.caption || ''}
                 onChange={(e) => updateCfg({ caption: e.target.value })}
@@ -1654,7 +1657,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
             </div>
 
             <div>
-              <Label className="text-xs text-muted-foreground">Headline</Label>
+              <Label className="text-xs text-muted-foreground">{t('Headline')}</Label>
               <Input
                 value={cfg.headline}
                 onChange={(e) => updateCfg({ headline: e.target.value })}
@@ -1664,7 +1667,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
             </div>
 
             <div>
-              <Label className="text-xs text-muted-foreground">Sub-headline</Label>
+              <Label className="text-xs text-muted-foreground">{t('Sub-headline')}</Label>
               <Input
                 value={cfg.subHeadline}
                 onChange={(e) => updateCfg({ subHeadline: e.target.value })}
@@ -1674,7 +1677,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
             </div>
 
             <div>
-              <Label className="text-xs text-muted-foreground">Spinner duration (seconds)</Label>
+              <Label className="text-xs text-muted-foreground">{t('Spinner duration (seconds)')}</Label>
               <Input
                 type="number"
                 min={1}
@@ -1684,7 +1687,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                 className="mt-1 input-clean"
               />
               <p className="text-[11px] text-muted-foreground mt-1">
-                The quiz moves to the next page automatically when the spinner finishes.
+                {t('The quiz moves to the next page automatically when the spinner finishes.')}
               </p>
             </div>
           </div>
@@ -1712,15 +1715,15 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
         );
         return (
           <div className="space-y-3">
-            <Label className="text-sm font-medium text-foreground">Warning Page</Label>
+            <Label className="text-sm font-medium text-foreground">{t('Warning Page')}</Label>
 
             {/* Gradient background */}
             <div className="card-elevated p-3 space-y-2">
-              <Label className="text-xs font-medium text-foreground">Background Gradient</Label>
-              <ColorRow label="Top color" value={cfg.gradientFrom} onChange={(v) => updateCfg({ gradientFrom: v })} />
-              <ColorRow label="Bottom color" value={cfg.gradientTo} onChange={(v) => updateCfg({ gradientTo: v })} />
+              <Label className="text-xs font-medium text-foreground">{t('Background Gradient')}</Label>
+              <ColorRow label={t('Top color')} value={cfg.gradientFrom} onChange={(v) => updateCfg({ gradientFrom: v })} />
+              <ColorRow label={t('Bottom color')} value={cfg.gradientTo} onChange={(v) => updateCfg({ gradientTo: v })} />
               <div>
-                <Label className="text-[11px] text-muted-foreground">Angle: {cfg.gradientAngle ?? 180}°</Label>
+                <Label className="text-[11px] text-muted-foreground">{t('Angle: {degrees}°', { degrees: cfg.gradientAngle ?? 180 })}</Label>
                 <Slider
                   value={[cfg.gradientAngle ?? 180]}
                   min={0}
@@ -1739,7 +1742,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
             {/* Badge */}
             <div className="card-elevated p-3 space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-xs font-medium text-foreground">Badge Pill</Label>
+                <Label className="text-xs font-medium text-foreground">{t('Badge Pill')}</Label>
                 <Switch checked={cfg.showBadge} onCheckedChange={(c) => updateCfg({ showBadge: c })} />
               </div>
               {cfg.showBadge && (
@@ -1750,8 +1753,8 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                     placeholder="THE PROBLEM"
                     className="input-clean"
                   />
-                  <ColorRow label="Text color" value={cfg.badgeTextColor} onChange={(v) => updateCfg({ badgeTextColor: v })} />
-                  <ColorRow label="Background color" value={cfg.badgeBgColor} onChange={(v) => updateCfg({ badgeBgColor: v })} />
+                  <ColorRow label={t('Text color')} value={cfg.badgeTextColor} onChange={(v) => updateCfg({ badgeTextColor: v })} />
+                  <ColorRow label={t('Background color')} value={cfg.badgeBgColor} onChange={(v) => updateCfg({ badgeBgColor: v })} />
                 </>
               )}
             </div>
@@ -1759,7 +1762,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
             {/* Icon */}
             <div className="card-elevated p-3 space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-xs font-medium text-foreground">Icon</Label>
+                <Label className="text-xs font-medium text-foreground">{t('Icon')}</Label>
                 <Switch checked={cfg.showIcon} onCheckedChange={(c) => updateCfg({ showIcon: c })} />
               </div>
               {cfg.showIcon && (
@@ -1770,13 +1773,13 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                       <SelectItem value="alert-circle">Alert Circle</SelectItem>
                       <SelectItem value="alert-triangle">Alert Triangle</SelectItem>
                       <SelectItem value="alert-octagon">Alert Octagon</SelectItem>
-                      <SelectItem value="info">Info</SelectItem>
+                      <SelectItem value="info">{t('Info')}</SelectItem>
                       <SelectItem value="x-circle">X Circle</SelectItem>
                       <SelectItem value="shield-alert">Shield Alert</SelectItem>
                     </SelectContent>
                   </Select>
-                  <ColorRow label="Icon color" value={cfg.iconColor} onChange={(v) => updateCfg({ iconColor: v })} />
-                  <ColorRow label="Circle color" value={cfg.iconBgColor} onChange={(v) => updateCfg({ iconBgColor: v })} />
+                  <ColorRow label={t('Icon color')} value={cfg.iconColor} onChange={(v) => updateCfg({ iconColor: v })} />
+                  <ColorRow label={t('Circle color')} value={cfg.iconBgColor} onChange={(v) => updateCfg({ iconBgColor: v })} />
                 </>
               )}
             </div>
@@ -1784,7 +1787,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
             {/* Stat */}
             <div className="card-elevated p-3 space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-xs font-medium text-foreground">Stat</Label>
+                <Label className="text-xs font-medium text-foreground">{t('Stat')}</Label>
                 <Switch checked={cfg.showStat} onCheckedChange={(c) => updateCfg({ showStat: c })} />
               </div>
               {cfg.showStat && (
@@ -1801,31 +1804,31 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                     placeholder="of men affected"
                     className="input-clean"
                   />
-                  <ColorRow label="Stat color" value={cfg.statColor} onChange={(v) => updateCfg({ statColor: v })} />
-                  <ColorRow label="Label color" value={cfg.statLabelColor} onChange={(v) => updateCfg({ statLabelColor: v })} />
+                  <ColorRow label={t('Stat color')} value={cfg.statColor} onChange={(v) => updateCfg({ statColor: v })} />
+                  <ColorRow label={t('Label color')} value={cfg.statLabelColor} onChange={(v) => updateCfg({ statLabelColor: v })} />
                 </>
               )}
             </div>
 
             {/* Copy */}
             <div className="card-elevated p-3 space-y-2">
-              <Label className="text-xs font-medium text-foreground">Headline</Label>
+              <Label className="text-xs font-medium text-foreground">{t('Headline')}</Label>
               <Textarea
                 value={cfg.headline}
                 onChange={(e) => updateCfg({ headline: e.target.value })}
                 placeholder="It's more than the bedroom"
                 className="input-clean min-h-[60px] resize-none"
               />
-              <ColorRow label="Headline color" value={cfg.headlineColor} onChange={(v) => updateCfg({ headlineColor: v })} />
+              <ColorRow label={t('Headline color')} value={cfg.headlineColor} onChange={(v) => updateCfg({ headlineColor: v })} />
 
-              <Label className="text-xs font-medium text-foreground pt-1 block">Body text</Label>
+              <Label className="text-xs font-medium text-foreground pt-1 block">{t('Body text')}</Label>
               <Textarea
                 value={cfg.bodyText}
                 onChange={(e) => updateCfg({ bodyText: e.target.value })}
-                placeholder="Supporting paragraph..."
+                placeholder={t('Supporting paragraph...')}
                 className="input-clean min-h-[70px] resize-none"
               />
-              <ColorRow label="Body color" value={cfg.bodyColor} onChange={(v) => updateCfg({ bodyColor: v })} />
+              <ColorRow label={t('Body color')} value={cfg.bodyColor} onChange={(v) => updateCfg({ bodyColor: v })} />
             </div>
           </div>
         );
@@ -1842,16 +1845,16 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
         };
         return (
           <div className="space-y-3">
-            <Label className="text-sm font-medium text-foreground">Score Slider</Label>
+            <Label className="text-sm font-medium text-foreground">{t('Score Slider')}</Label>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <Label className="text-xs text-muted-foreground">Min</Label>
+                <Label className="text-xs text-muted-foreground">{t('Min')}</Label>
                 <Input type="number" value={cfg.min}
                   onChange={(e) => updateCfg({ min: parseInt(e.target.value) || 1 })}
                   className="mt-1 input-clean" />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Max</Label>
+                <Label className="text-xs text-muted-foreground">{t('Max')}</Label>
                 <Input type="number" value={cfg.max}
                   onChange={(e) => updateCfg({ max: parseInt(e.target.value) || 10 })}
                   className="mt-1 input-clean" />
@@ -1859,20 +1862,20 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <Label className="text-xs text-muted-foreground">Start Label</Label>
+                <Label className="text-xs text-muted-foreground">{t('Start Label')}</Label>
                 <Input value={cfg.startLabel}
                   onChange={(e) => updateCfg({ startLabel: e.target.value })}
                   className="mt-1 input-clean" />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">End Label</Label>
+                <Label className="text-xs text-muted-foreground">{t('End Label')}</Label>
                 <Input value={cfg.endLabel}
                   onChange={(e) => updateCfg({ endLabel: e.target.value })}
                   className="mt-1 input-clean" />
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Color Ranges</Label>
+              <Label className="text-xs text-muted-foreground">{t('Color Ranges')}</Label>
               {cfg.ranges.map((r, idx) => (
                 <div key={idx} className="card-elevated p-3 space-y-2">
                   <div className="flex items-center gap-2">
@@ -1884,18 +1887,18 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                     />
                     <Input value={r.label}
                       onChange={(e) => updateRange(idx, { label: e.target.value })}
-                      placeholder="Label"
+                      placeholder={t('Label')}
                       className="flex-1 input-clean" />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <Label className="text-[10px] text-muted-foreground">From</Label>
+                      <Label className="text-[10px] text-muted-foreground">{t('From')}</Label>
                       <Input type="number" value={r.from}
                         onChange={(e) => updateRange(idx, { from: parseInt(e.target.value) || 1 })}
                         className="mt-1 input-clean h-8 text-xs" />
                     </div>
                     <div>
-                      <Label className="text-[10px] text-muted-foreground">To</Label>
+                      <Label className="text-[10px] text-muted-foreground">{t('To')}</Label>
                       <Input type="number" value={r.to}
                         onChange={(e) => updateRange(idx, { to: parseInt(e.target.value) || 1 })}
                         className="mt-1 input-clean h-8 text-xs" />
@@ -1906,7 +1909,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                       onClick={() => updateCfg({ ranges: cfg.ranges.filter((_, i) => i !== idx) })}
                       className="text-xs text-destructive hover:underline"
                     >
-                      Remove range
+                      {t('Remove range')}
                     </button>
                   )}
                 </div>
@@ -1920,7 +1923,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                 className="text-primary hover:text-primary hover:bg-primary-light h-8 text-sm w-full"
               >
                 <Plus className="w-4 h-4 mr-1" />
-                Add Range
+                {t('Add Range')}
               </Button>
             </div>
           </div>
@@ -1931,7 +1934,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
       {question.type !== 'blank' && question.type !== 'analyzing' && question.type !== 'chart' && question.type !== 'summary' && question.type !== 'result' && question.type !== 'score-slider' && question.type !== 'feedback' && question.type !== 'warning' && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <Label className="text-sm font-medium text-foreground">Answer Options</Label>
+            <Label className="text-sm font-medium text-foreground">{t('Answer Options')}</Label>
             {question.type !== 'yes-no' && question.options.length < 6 && (
               <Button
                 variant="ghost"
@@ -1940,7 +1943,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                 className="text-primary hover:text-primary hover:bg-primary-light h-8 text-sm"
               >
                 <Plus className="w-4 h-4 mr-1" />
-                Add Option
+                {t('Add Option')}
               </Button>
             )}
           </div>

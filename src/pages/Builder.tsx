@@ -16,8 +16,10 @@ import { PreviewDrawer } from '@/components/shared/PreviewDrawer';
 import { PublishDialog } from '@/components/builder/PublishDialog';
 import { QuizOverview } from '@/components/builder/QuizOverview';
 import { QuestionsListSkeleton, EditorSkeleton, PreviewSkeleton } from '@/components/builder/BuilderSkeleton';
+import { useT, tr } from '@/i18n';
 
 const BuilderContent: React.FC = () => {
+  const t = useT();
   const { quiz, selectedQuestionId, setSelectedQuestionId, loading, notFound } = useQuiz();
   const [activeTab, setActiveTab] = useState<BuilderTab>('questions');
   const [publishOpen, setPublishOpen] = useState(false);
@@ -28,7 +30,7 @@ const BuilderContent: React.FC = () => {
   // Deleted (possibly in another tab), or someone else's. Say why before
   // sending them back, rather than ejecting silently.
   useEffect(() => {
-    if (notFound) toast.error('That quiz project no longer exists.');
+    if (notFound) toast.error(tr('That quiz project no longer exists.'));
   }, [notFound]);
 
   if (notFound) return <Navigate to="/builder" replace />;
@@ -93,7 +95,7 @@ const BuilderContent: React.FC = () => {
                           >
                             Q{quiz.questions.findIndex(q => q.id === selectedQuestionId) + 1}
                           </div>
-                          <h2 className="text-lg font-semibold text-foreground">Edit Question</h2>
+                          <h2 className="text-lg font-semibold text-foreground">{t('Edit Question')}</h2>
                         </div>
                         <QuestionEditor question={selectedQuestion} />
                       </div>
@@ -103,9 +105,9 @@ const BuilderContent: React.FC = () => {
                           <div className="w-16 h-16 rounded-full bg-secondary mx-auto mb-4 flex items-center justify-center">
                             <span className="text-2xl">📝</span>
                           </div>
-                          <p className="text-sm font-medium text-foreground mb-1">Select a question to edit</p>
+                          <p className="text-sm font-medium text-foreground mb-1">{t('Select a question to edit')}</p>
                           <p className="text-xs text-muted-foreground">
-                            Or add a new question from the left panel
+                            {t('Or add a new question from the left panel')}
                           </p>
                         </div>
                       </div>

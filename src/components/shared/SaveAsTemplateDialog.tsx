@@ -19,6 +19,7 @@ import {
 import {
   useContentTemplates, TemplateContent, TemplateType,
 } from '@/hooks/useContentTemplates';
+import { useT, type MessageKey } from '@/i18n';
 
 interface SaveAsTemplateDialogProps {
   open: boolean;
@@ -36,6 +37,8 @@ const NEW = '__new__';
 export const SaveAsTemplateDialog: React.FC<SaveAsTemplateDialogProps> = ({
   open, onOpenChange, contentType, projectTitle, noun, content,
 }) => {
+    const t = useT();
+  const nounText = t(noun as MessageKey);
   const {
     templates, busyId, createTemplate, updateTemplateContent,
   } = useContentTemplates(contentType);
@@ -65,26 +68,25 @@ export const SaveAsTemplateDialog: React.FC<SaveAsTemplateDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <LayoutTemplate className="w-4 h-4" />
-            Save as template
+            {t('Save as template')}
           </DialogTitle>
           <DialogDescription>
-            Copies this {noun}&apos;s content and design into a template other
-            users can start from.
+            {t("Copies this {noun}'s content and design into a template other users can start from.", { noun: nounText })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="templateTarget">Save to</Label>
+            <Label htmlFor="templateTarget">{t('Save to')}</Label>
             <Select value={target} onValueChange={setTarget}>
               <SelectTrigger id="templateTarget">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={NEW}>New template</SelectItem>
-                {templates.map((t) => (
-                  <SelectItem key={t.id} value={t.id}>
-                    Overwrite “{t.title}”
+                <SelectItem value={NEW}>{t('New template')}</SelectItem>
+                {templates.map((tpl) => (
+                  <SelectItem key={tpl.id} value={tpl.id}>
+                    {t('Overwrite “{title}”', { title: tpl.title })}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -94,43 +96,40 @@ export const SaveAsTemplateDialog: React.FC<SaveAsTemplateDialogProps> = ({
           {target === NEW ? (
             <>
               <div className="space-y-2">
-                <Label htmlFor="templateTitle">Name</Label>
+                <Label htmlFor="templateTitle">{t('Name')}</Label>
                 <Input
                   id="templateTitle"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Skincare finder"
+                  placeholder={t('Skincare finder')}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="templateDescription">Description</Label>
+                <Label htmlFor="templateDescription">{t('Description')}</Label>
                 <Textarea
                   id="templateDescription"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Who is this template for, and what does it do?"
+                  placeholder={t('Who is this template for, and what does it do?')}
                   rows={2}
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                New templates start as drafts. Publish it from the gallery when it
-                is ready for users.
+                {t('New templates start as drafts. Publish it from the gallery when it is ready for users.')}
               </p>
             </>
           ) : (
             <p className="text-xs text-muted-foreground">
-              Replaces that template&apos;s content with this {noun}. Its name,
-              description and published state stay as they are, and projects
-              already created from it are unaffected.
+              {t("Replaces that template's content with this {noun}. Its name, description and published state stay as they are, and projects already created from it are unaffected.", { noun: nounText })}
             </p>
           )}
         </div>
 
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>{t('Cancel')}</Button>
           <Button onClick={handleSave} disabled={saving}>
             {saving && <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />}
-            {target === NEW ? 'Create template' : 'Overwrite'}
+            {target === NEW ? t('Create template') : t('Overwrite')}
           </Button>
         </DialogFooter>
       </DialogContent>

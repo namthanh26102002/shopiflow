@@ -20,6 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import {
   useDomains, Domain, STATUS_LABEL, describeDomainState, dnsRecordsFor,
 } from '@/hooks/useDomains';
+import { useT, tr } from '@/i18n';
 
 interface DomainsManagerProps {
   open: boolean;
@@ -27,6 +28,7 @@ interface DomainsManagerProps {
 }
 
 const StatusBadge: React.FC<{ domain: Domain }> = ({ domain }) => {
+  const t = useT();
   const map = {
     active: { Icon: CheckCircle2, cls: 'bg-green-500/10 text-green-600' },
     pending: { Icon: Clock, cls: 'bg-amber-500/10 text-amber-600' },
@@ -37,12 +39,13 @@ const StatusBadge: React.FC<{ domain: Domain }> = ({ domain }) => {
   return (
     <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs ${map.cls}`}>
       <Icon className="w-3 h-3" />
-      {STATUS_LABEL[domain.status]}
+      {t(STATUS_LABEL[domain.status])}
     </span>
   );
 };
 
 export const DomainsManager: React.FC<DomainsManagerProps> = ({ open, onOpenChange }) => {
+  const t = useT();
   const {
     domains, mappings, loading, busyId, addDomain, recheckDomain, removeDomain, refresh,
   } = useDomains();
@@ -77,7 +80,7 @@ export const DomainsManager: React.FC<DomainsManagerProps> = ({ open, onOpenChan
     if (!value) return;
     navigator.clipboard.writeText(value);
     setCopied(value);
-    toast.success('Copied');
+    toast.success(tr('Copied'));
     setTimeout(() => setCopied(null), 2000);
   };
 
@@ -92,16 +95,15 @@ export const DomainsManager: React.FC<DomainsManagerProps> = ({ open, onOpenChan
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Globe className="w-4 h-4" />
-              Domains
+              {t('Domains')}
             </DialogTitle>
             <DialogDescription>
-              Connect a domain once here, then assign it to any project from that
-              project&apos;s Domain tab.
+              {t("Connect a domain once here, then assign it to any project from that project's Domain tab.")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-2">
-            <Label htmlFor="newDomain">Add a domain</Label>
+            <Label htmlFor="newDomain">{t('Add a domain')}</Label>
             <div className="flex gap-2">
               <Input
                 id="newDomain"
@@ -113,31 +115,28 @@ export const DomainsManager: React.FC<DomainsManagerProps> = ({ open, onOpenChan
               <Button onClick={handleAdd} disabled={busyId === 'new' || !newDomain.trim()}>
                 {busyId === 'new'
                   ? <Loader2 className="w-4 h-4 animate-spin" />
-                  : <><Plus className="w-4 h-4 mr-1.5" />Add</>}
+                  : <><Plus className="w-4 h-4 mr-1.5" />{t('Add')}</>}
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Without http:// or www. Adding registers it with the host; you then
-              point DNS at us and press Recheck.
+              {t('Without http:// or www. Adding registers it with the host; you then point DNS at us and press Recheck.')}
             </p>
           </div>
 
           <div className="rounded-lg border border-border-subtle p-3 space-y-2">
-            <p className="text-xs font-medium text-foreground">How connecting a domain works</p>
+            <p className="text-xs font-medium text-foreground">{t('How connecting a domain works')}</p>
             <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
-              <li>Add your domain above. We register it with our host for you.</li>
+              <li>{t('Add your domain above. We register it with our host for you.')}</li>
               <li>
-                At your DNS provider, add the record shown beneath the domain.
-                Each domain gets its own — an apex like
+                {t('At your DNS provider, add the record shown beneath the domain. Each domain gets its own — an apex like')}
                 <span className="font-mono"> example.com </span>
-                takes A records, a subdomain like
+                {t('takes A records, a subdomain like')}
                 <span className="font-mono"> try.example.com </span>
-                takes a CNAME.
+                {t('takes a CNAME.')}
               </li>
-              <li>Remove any conflicting A or CNAME records for the same name.</li>
+              <li>{t('Remove any conflicting A or CNAME records for the same name.')}</li>
               <li>
-                Press Recheck. DNS can take up to an hour to propagate, so it may
-                stay pending for a while before it turns green.
+                {t('Press Recheck. DNS can take up to an hour to propagate, so it may stay pending for a while before it turns green.')}
               </li>
             </ol>
           </div>
@@ -146,13 +145,13 @@ export const DomainsManager: React.FC<DomainsManagerProps> = ({ open, onOpenChan
             {loading ? (
               <div className="py-8 flex flex-col items-center gap-2">
                 <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">Loading domains…</p>
+                <p className="text-sm text-muted-foreground">{t('Loading domains…')}</p>
               </div>
             ) : domains.length === 0 ? (
               <div className="border border-border-subtle rounded-lg p-8 text-center">
-                <p className="text-sm font-medium text-foreground mb-1">No domains yet</p>
+                <p className="text-sm font-medium text-foreground mb-1">{t('No domains yet')}</p>
                 <p className="text-xs text-muted-foreground">
-                  Add one above to publish projects on your own domain.
+                  {t('Add one above to publish projects on your own domain.')}
                 </p>
               </div>
             ) : (
@@ -174,14 +173,14 @@ export const DomainsManager: React.FC<DomainsManagerProps> = ({ open, onOpenChan
 
                         <div className="mt-2 rounded border border-border-subtle p-2 space-y-1">
                           <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                            {d.status === 'active' ? 'DNS records in use' : 'Add these DNS records'}
+                            {d.status === 'active' ? t('DNS records in use') : t('Add these DNS records')}
                           </p>
                           {dnsRecordsFor(d.domain, expectedIp).map((r) => (
                               <button
                                 key={`${r.type}-${r.name}`}
                                 onClick={() => copyValue(r.value)}
                                 className="flex items-center gap-2 text-[11px] font-mono hover:text-primary w-full text-left"
-                                title="Copy value"
+                                title={t('Copy value')}
                               >
                                 <span className="w-12 shrink-0 text-muted-foreground">{r.type}</span>
                                 <span className="w-16 shrink-0 truncate">{r.name}</span>
@@ -195,12 +194,12 @@ export const DomainsManager: React.FC<DomainsManagerProps> = ({ open, onOpenChan
 
                         {projects.length > 0 ? (
                           <p className="text-xs text-muted-foreground mt-1.5">
-                            Used by {projects.length} project{projects.length > 1 ? 's' : ''}:{' '}
+                            {projects.length > 1 ? t('Used by {count} projects:', { count: projects.length }) : t('Used by 1 project:')}{' '}
                             {projects.map(p => `/${p.path || ''}`).join(', ')}
                           </p>
                         ) : (
                           <p className="text-xs text-muted-foreground mt-1.5">
-                            Not assigned to a project yet
+                            {t('Not assigned to a project yet')}
                           </p>
                         )}
                       </div>
@@ -208,7 +207,7 @@ export const DomainsManager: React.FC<DomainsManagerProps> = ({ open, onOpenChan
                       <div className="flex items-center gap-1 shrink-0">
                         <Button
                           variant="ghost" size="icon" className="w-8 h-8"
-                          title="Recheck DNS and host registration"
+                          title={t('Recheck DNS and host registration')}
                           disabled={busyId === d.id}
                           onClick={() => recheckDomain(d)}
                         >
@@ -218,7 +217,7 @@ export const DomainsManager: React.FC<DomainsManagerProps> = ({ open, onOpenChan
                         </Button>
                         <Button
                           variant="ghost" size="icon" className="w-8 h-8 text-destructive"
-                          title="Remove domain"
+                          title={t('Remove domain')}
                           disabled={busyId === d.id}
                           onClick={() => setPendingRemove(d)}
                         >
@@ -237,26 +236,22 @@ export const DomainsManager: React.FC<DomainsManagerProps> = ({ open, onOpenChan
       <AlertDialog open={!!pendingRemove} onOpenChange={(o) => !o && setPendingRemove(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove {pendingRemove?.domain}?</AlertDialogTitle>
+            <AlertDialogTitle>{t('Remove {domain}?', { domain: pendingRemove?.domain ?? '' })}</AlertDialogTitle>
             <AlertDialogDescription>
-              This unregisters the domain from the host and removes it from every
-              project using it
               {pendingRemove && usedBy(pendingRemove).length > 0
-                ? ` (${usedBy(pendingRemove).length} right now)`
-                : ''}
-              . Those pages stop being reachable on this domain. Your DNS records
-              are not changed.
+                ? t('This unregisters the domain from the host and removes it from every project using it ({count} right now). Those pages stop being reachable on this domain. Your DNS records are not changed.', { count: usedBy(pendingRemove).length })
+                : t('This unregisters the domain from the host and removes it from every project using it. Those pages stop being reachable on this domain. Your DNS records are not changed.')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (pendingRemove) removeDomain(pendingRemove);
                 setPendingRemove(null);
               }}
             >
-              Remove
+              {t('Remove')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

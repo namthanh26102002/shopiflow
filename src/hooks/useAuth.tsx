@@ -2,6 +2,12 @@ import { useState, useEffect, createContext, useContext, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { applySavedLanguage } from '@/i18n/language';
+import type { Translate } from '@/i18n';
+
+// Every page loads this hook, quiz pages included, so the dashboard's
+// messages are fetched only when one is needed.
+const message = async (...args: Parameters<Translate>) => (await import('@/i18n')).tr(...args);
 
 interface TrialInfo {
   is_expired: boolean;
@@ -79,6 +85,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Fired when the user opens a reset link; the session it creates is
         // only good for setting a new password.
         if (event === 'PASSWORD_RECOVERY') setRecoveryMode(true);
+        // The dashboard language follows the account across devices.
+        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') applySavedLanguage(session?.user);
         if (event === 'SIGNED_OUT') {
           setClaimCheckFailed(false);
           setAccessCodeClaimed(null);
@@ -94,7 +102,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const stalled = setTimeout(() => {
       if (settled) return;
       setLoading(false);
-      toast.error("Can't reach Shopiflow's servers. Check your connection and reload.");
+      void message("Can't reach Shopiflow's servers. Check your connection and reload.").then((text) => toast.error(text));
     }, 15000);
 
     supabase.auth.getSession()
@@ -173,7 +181,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (claimError || claimResult?.claimed !== true) {
         await supabase.auth.signOut();
-        return { error: new Error('Invalid or already used access code. Please try again with a different code.') };
+        return { error: new Error(await message('Invalid or already used access code. Please try again with a different code.')) };
       }
 
       // The session already exists, so the claim flag was computed before this
@@ -200,7 +208,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const trial = await checkTrialStatus(data.user.id);
       if (trial?.is_expired) {
         await supabase.auth.signOut();
-        return { error: new Error(`Your ${trial.trial_days}-day free trial has expired. Contact support to continue access.`) };
+        return { error: new Error(await message('Your {days}-day free trial has expired. Contact support to continue access.', { days: trial.trial_days })) };
       }
     }
 
@@ -222,14 +230,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   /** Claim a code for the signed-in user, used after OAuth. */
   const claimAccessCode = async (code: string) => {
-    if (!user) return { error: new Error('You need to be signed in') };
+    if (!user) return { error: new Error(await message('You need to be signed in')) };
 
     const { data, error } = await supabase.functions.invoke('access-code', {
       body: { action: 'claim', code: code.toUpperCase().trim() },
     });
 
     if (error || data?.claimed !== true) {
-      return { error: new Error('Invalid or already used access code.') };
+      return { error: new Error(await message('Invalid or already used access code.')) };
     }
 
     await refreshAccessCodeClaim(user.id);

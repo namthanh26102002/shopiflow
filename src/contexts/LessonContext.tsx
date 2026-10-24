@@ -11,6 +11,7 @@ import {
 import { AdvertorialContext } from '@/contexts/AdvertorialContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { tr } from '@/i18n';
 
 export const LessonProvider: React.FC<{ lessonId: string; children: React.ReactNode }> = ({ lessonId, children }) => {
   const [advertorial, setAdvertorial] = useState<Advertorial>({
@@ -46,7 +47,7 @@ export const LessonProvider: React.FC<{ lessonId: string; children: React.ReactN
         isLoadedRef.current = true;
       } catch (err) {
         console.error('Error loading lesson:', err);
-        toast.error('Failed to load lesson');
+        toast.error(tr('Failed to load lesson'));
       }
     };
     load();

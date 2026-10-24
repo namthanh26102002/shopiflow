@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { RefreshCw, Eye, MousePointerClick, Clock, ChevronDown, TrendingUp, MapPin, Megaphone, Smartphone, ArrowDownWideNarrow, PlayCircle, Layers } from 'lucide-react';
 import { toBreakdown, BreakdownRow, formatDuration } from '@/lib/quizAnalytics';
+import { useT, tr, trKnown } from '@/i18n';
 
 interface AdvertorialEvent {
   id: string;
@@ -26,14 +27,14 @@ interface AdvertorialEvent {
   percent?: number | null;
 }
 
-const BarList: React.FC<{ rows: BreakdownRow[]; limit?: number; empty?: string }> = ({ rows, limit = 8, empty = 'No data yet.' }) => {
-  if (rows.length === 0) return <p className="text-xs text-muted-foreground">{empty}</p>;
+const BarList: React.FC<{ rows: BreakdownRow[]; limit?: number; empty?: string }> = ({ rows, limit = 8, empty }) => {
+  if (rows.length === 0) return <p className="text-xs text-muted-foreground">{empty ?? tr('No data yet.')}</p>;
   return (
     <div className="space-y-2">
       {rows.slice(0, limit).map(row => (
         <div key={row.label} className="space-y-1">
           <div className="flex justify-between text-xs">
-            <span className="text-muted-foreground truncate mr-2">{row.label}</span>
+            <span className="text-muted-foreground truncate mr-2">{trKnown(row.label)}</span>
             <span className="text-foreground font-medium whitespace-nowrap">{row.count} · {row.share}%</span>
           </div>
           <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
@@ -52,6 +53,7 @@ interface AdvertorialAnalyticsPanelProps {
 }
 
 export const AdvertorialAnalyticsPanel: React.FC<AdvertorialAnalyticsPanelProps> = ({ events: providedEvents, demo }) => {
+  const t = useT();
   const { advertorial } = useAdvertorial();
   const [fetchedEvents, setFetchedEvents] = useState<AdvertorialEvent[]>([]);
   const [loading, setLoading] = useState(!providedEvents);
@@ -190,18 +192,18 @@ export const AdvertorialAnalyticsPanel: React.FC<AdvertorialAnalyticsPanelProps>
 
   // Find the block label from advertorial blocks
   const getBlockLabel = (blockId: string | null) => {
-    if (!blockId) return 'Unknown';
+    if (!blockId) return t('Unknown');
     const block = advertorial.blocks.find(b => b.id === blockId);
     if (!block) return blockId.slice(0, 8);
-    if (block.type === 'cta-button') return (block as any).text || 'CTA Button';
-    if (block.type === 'important-update') return (block as any).buttonText || 'Important Update';
+    if (block.type === 'cta-button') return (block as any).text || t('CTA Button');
+    if (block.type === 'important-update') return (block as any).buttonText || t('Important Update');
     return block.type;
   };
 
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading analytics...</div>
+        <div className="animate-pulse text-muted-foreground">{t('Loading analytics...')}</div>
       </div>
     );
   }
@@ -209,25 +211,25 @@ export const AdvertorialAnalyticsPanel: React.FC<AdvertorialAnalyticsPanelProps>
   return (
     <div className="h-full overflow-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-foreground">Analytics</h2>
+        <h2 className="text-lg font-semibold text-foreground">{t('Analytics')}</h2>
         {!demo && (
           <Button variant="outline" size="sm" onClick={fetchEvents}>
-            <RefreshCw className="w-4 h-4 mr-1" /> Refresh
+            <RefreshCw className="w-4 h-4 mr-1" /> {t('Refresh')}
           </Button>
         )}
       </div>
 
       {demo && (
         <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-xs text-primary">
-          Sample data — a preview of how your advertorial analytics will look with real traffic.
+          {t('Sample data — a preview of how your advertorial analytics will look with real traffic.')}
         </div>
       )}
 
       {totalViews === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
           <Eye className="w-10 h-10 mx-auto mb-3 opacity-40" />
-          <p className="font-medium">No data yet</p>
-          <p className="text-sm mt-1">Publish your advertorial and share the link to start tracking.</p>
+          <p className="font-medium">{t('No data yet')}</p>
+          <p className="text-sm mt-1">{t('Publish your advertorial and share the link to start tracking.')}</p>
         </div>
       ) : (
         <>
@@ -237,7 +239,7 @@ export const AdvertorialAnalyticsPanel: React.FC<AdvertorialAnalyticsPanelProps>
               <CardContent className="pt-4 pb-3 px-4">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
                   <Eye className="w-4 h-4" />
-                  <span className="text-xs font-medium">Page Views</span>
+                  <span className="text-xs font-medium">{t('Page Views')}</span>
                 </div>
                 <p className="text-2xl font-bold text-foreground">{totalViews}</p>
               </CardContent>
@@ -246,7 +248,7 @@ export const AdvertorialAnalyticsPanel: React.FC<AdvertorialAnalyticsPanelProps>
               <CardContent className="pt-4 pb-3 px-4">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
                   <MousePointerClick className="w-4 h-4" />
-                  <span className="text-xs font-medium">CTA Clicks</span>
+                  <span className="text-xs font-medium">{t('CTA Clicks')}</span>
                 </div>
                 <p className="text-2xl font-bold text-foreground">{totalClicks}</p>
               </CardContent>
@@ -255,7 +257,7 @@ export const AdvertorialAnalyticsPanel: React.FC<AdvertorialAnalyticsPanelProps>
               <CardContent className="pt-4 pb-3 px-4">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
                   <TrendingUp className="w-4 h-4" />
-                  <span className="text-xs font-medium">Click-Through Rate</span>
+                  <span className="text-xs font-medium">{t('Click-Through Rate')}</span>
                 </div>
                 <p className="text-2xl font-bold text-foreground">{ctr}%</p>
               </CardContent>
@@ -264,7 +266,7 @@ export const AdvertorialAnalyticsPanel: React.FC<AdvertorialAnalyticsPanelProps>
               <CardContent className="pt-4 pb-3 px-4">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
                   <Clock className="w-4 h-4" />
-                  <span className="text-xs font-medium">Avg. Time on Page</span>
+                  <span className="text-xs font-medium">{t('Avg. Time on Page')}</span>
                 </div>
                 <p className="text-2xl font-bold text-foreground">{formatTime(avgTimeMs)}</p>
               </CardContent>
@@ -276,7 +278,7 @@ export const AdvertorialAnalyticsPanel: React.FC<AdvertorialAnalyticsPanelProps>
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <MapPin className="w-4 h-4" /> Top locations
+                  <MapPin className="w-4 h-4" /> {t('Top locations')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
@@ -303,7 +305,7 @@ export const AdvertorialAnalyticsPanel: React.FC<AdvertorialAnalyticsPanelProps>
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4" /> Traffic sources
+                  <TrendingUp className="w-4 h-4" /> {t('Traffic sources')}
                 </CardTitle>
               </CardHeader>
               <CardContent><BarList rows={sources} /></CardContent>
@@ -311,15 +313,15 @@ export const AdvertorialAnalyticsPanel: React.FC<AdvertorialAnalyticsPanelProps>
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Megaphone className="w-4 h-4" /> Campaigns
+                  <Megaphone className="w-4 h-4" /> {t('Campaigns')}
                 </CardTitle>
               </CardHeader>
-              <CardContent><BarList rows={campaigns} empty="No UTM campaigns tagged yet." /></CardContent>
+              <CardContent><BarList rows={campaigns} empty={t('No UTM campaigns tagged yet.')} /></CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Smartphone className="w-4 h-4" /> Devices
+                  <Smartphone className="w-4 h-4" /> {t('Devices')}
                 </CardTitle>
               </CardHeader>
               <CardContent><BarList rows={devices} /></CardContent>
@@ -330,14 +332,14 @@ export const AdvertorialAnalyticsPanel: React.FC<AdvertorialAnalyticsPanelProps>
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <ArrowDownWideNarrow className="w-4 h-4" /> Scroll depth
+                <ArrowDownWideNarrow className="w-4 h-4" /> {t('Scroll depth')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               {scrollRows.map(r => (
                 <div key={r.milestone} className="space-y-1">
                   <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Reached {r.milestone}% of the page</span>
+                    <span className="text-muted-foreground">{t('Reached {percent}% of the page', { percent: r.milestone })}</span>
                     <span className="text-foreground font-medium">{r.sessions} · {r.share}%</span>
                   </div>
                   <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
@@ -353,7 +355,7 @@ export const AdvertorialAnalyticsPanel: React.FC<AdvertorialAnalyticsPanelProps>
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Layers className="w-4 h-4" /> Attention per section
+                  <Layers className="w-4 h-4" /> {t('Attention per section')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
@@ -363,7 +365,7 @@ export const AdvertorialAnalyticsPanel: React.FC<AdvertorialAnalyticsPanelProps>
                     <div key={r.blockId} className="space-y-1">
                       <div className="flex justify-between text-xs">
                         <span className="text-muted-foreground truncate mr-2">{getBlockLabel(r.blockId)}</span>
-                        <span className="text-foreground font-medium whitespace-nowrap">{formatDuration(r.avgMs)} avg</span>
+                        <span className="text-foreground font-medium whitespace-nowrap">{t('{time} avg', { time: formatDuration(r.avgMs) })}</span>
                       </div>
                       <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
                         <div className="h-full bg-primary rounded-full" style={{ width: `${Math.round((r.avgMs / max) * 100)}%` }} />
@@ -380,17 +382,17 @@ export const AdvertorialAnalyticsPanel: React.FC<AdvertorialAnalyticsPanelProps>
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <PlayCircle className="w-4 h-4" /> Video engagement
+                  <PlayCircle className="w-4 h-4" /> {t('Video engagement')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <p className="text-xs text-muted-foreground">
-                  {videoPlays.size} sessions played a video ({videoPlayRate}% of visitors)
+                  {t('{count} sessions played a video ({percent}% of visitors)', { count: videoPlays.size, percent: videoPlayRate })}
                 </p>
                 {videoRows.map(r => (
                   <div key={r.milestone} className="space-y-1">
                     <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Watched {r.milestone}%</span>
+                      <span className="text-muted-foreground">{t('Watched {percent}%', { percent: r.milestone })}</span>
                       <span className="text-foreground font-medium">{r.sessions} · {r.share}%</span>
                     </div>
                     <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
@@ -405,7 +407,7 @@ export const AdvertorialAnalyticsPanel: React.FC<AdvertorialAnalyticsPanelProps>
           {Object.keys(clicksByBlock).length > 0 && (
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Clicks per CTA</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('Clicks per CTA')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 {Object.entries(clicksByBlock)
@@ -413,7 +415,7 @@ export const AdvertorialAnalyticsPanel: React.FC<AdvertorialAnalyticsPanelProps>
                   .map(([blockId, data]) => (
                     <div key={blockId} className="flex items-center justify-between text-sm">
                       <span className="text-foreground truncate max-w-[60%]">{getBlockLabel(blockId)}</span>
-                      <span className="font-medium text-foreground">{data.count} clicks</span>
+                      <span className="font-medium text-foreground">{t('{count} clicks', { count: data.count })}</span>
                     </div>
                   ))}
               </CardContent>
@@ -423,7 +425,7 @@ export const AdvertorialAnalyticsPanel: React.FC<AdvertorialAnalyticsPanelProps>
           {/* Recent Sessions */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Recent Sessions ({sessions.length})</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('Recent sessions ({count})', { count: sessions.length })}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-1">
               {sessions.map(([sessionId, sessionEvents]) => {
@@ -444,7 +446,7 @@ export const AdvertorialAnalyticsPanel: React.FC<AdvertorialAnalyticsPanelProps>
                         </span>
                         {clickCount > 0 && (
                           <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">
-                            {clickCount} click{clickCount > 1 ? 's' : ''}
+                            {clickCount > 1 ? t('{count} clicks', { count: clickCount }) : t('1 click')}
                           </span>
                         )}
                         {timeOnPage && (
@@ -458,9 +460,9 @@ export const AdvertorialAnalyticsPanel: React.FC<AdvertorialAnalyticsPanelProps>
                         <div key={event.id} className="flex items-center gap-2 text-xs text-muted-foreground py-0.5">
                           <span className="font-mono">{new Date(event.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
                           <span className={`font-medium ${event.event_type === 'cta_click' ? 'text-primary' : ''}`}>
-                            {event.event_type === 'page_view' && '👁 Page View'}
-                            {event.event_type === 'cta_click' && `🖱 Click → ${getBlockLabel(event.block_id)}`}
-                            {event.event_type === 'page_exit' && `🚪 Exit (${formatTime(event.time_on_page_ms || 0)})`}
+                            {event.event_type === 'page_view' && t('👁 Page View')}
+                            {event.event_type === 'cta_click' && t('🖱 Click → {label}', { label: getBlockLabel(event.block_id) })}
+                            {event.event_type === 'page_exit' && t('🚪 Exit ({time})', { time: formatTime(event.time_on_page_ms || 0) })}
                           </span>
                         </div>
                       ))}

@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 
 import type { QuizThemeColors } from './quizTheme';
+import type { MessageKey } from '@/i18n';
 
 export type QuestionType = 'multiple-choice' | 'image-selection' | 'yes-no' | 'blank' | 'analyzing' | 'chart' | 'summary' | 'result' | 'score-slider' | 'feedback' | 'warning';
 
@@ -16,7 +17,7 @@ export type QuizTextType =
   | 'caption'
   | 'button';
 
-export const QUIZ_TEXT_TYPES: { key: QuizTextType; label: string; description: string; min: number; max: number }[] = [
+export const QUIZ_TEXT_TYPES: { key: QuizTextType; label: MessageKey; description: MessageKey; min: number; max: number }[] = [
   { key: 'headline', label: 'Headline', description: 'Question text, page titles', min: 14, max: 48 },
   { key: 'subheadline', label: 'Sub-headline', description: 'Description under headlines', min: 10, max: 32 },
   { key: 'answer', label: 'Answer', description: 'Options, choices, slider labels', min: 10, max: 28 },

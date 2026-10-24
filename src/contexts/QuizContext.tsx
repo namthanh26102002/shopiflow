@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
+import { tr } from '@/i18n';
 
 interface QuizContextType {
   quiz: Quiz;
@@ -112,7 +113,7 @@ export const QuizProvider: React.FC<{ children: React.ReactNode; quizId: string 
         }
       } catch (error) {
         console.error('Error loading quiz:', error);
-        toast.error('Failed to load your quiz');
+        toast.error(tr('Failed to load your quiz'));
       } finally {
         setLoading(false);
       }
