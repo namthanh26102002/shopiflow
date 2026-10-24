@@ -335,8 +335,9 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
     pageEnterRef.current = Date.now();
   }, [currentQuestionIndex]);
 
-  // Set dynamic page title
+  // Set dynamic page title, restoring the previous one on the way out
   useEffect(() => {
+    const previousTitle = document.title;
     if (quiz?.settings?.title) {
       document.title = quiz.settings.title;
     }
@@ -345,7 +346,7 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
       if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
       link.href = quiz.settings.faviconUrl;
     }
-    return () => { document.title = 'QuizFlow - Product Quiz Builder'; };
+    return () => { document.title = previousTitle; };
   }, [quiz?.settings?.title, quiz?.settings?.faviconUrl]);
 
   useEffect(() => {

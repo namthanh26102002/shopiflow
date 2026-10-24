@@ -4,6 +4,7 @@ import { Quiz, Question, Product, QuizSettings, ResultsConfig, ResultQuestionCon
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
 
 interface QuizContextType {
   quiz: Quiz;
@@ -11,6 +12,8 @@ interface QuizContextType {
   setSelectedQuestionId: (id: string | null) => void;
   loading: boolean;
   saving: boolean;
+  /** The last save failed; edits exist only in this tab until one succeeds. */
+  saveFailed: boolean;
   /** True when the requested quiz does not exist or does not belong to the user. */
   notFound: boolean;
   
@@ -53,6 +56,7 @@ export const QuizProvider: React.FC<{ children: React.ReactNode; quizId: string 
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [dbQuizId, setDbQuizId] = useState<string | null>(null);
   // Autosave must not fire until a real row has been read into state, or the
@@ -72,6 +76,7 @@ export const QuizProvider: React.FC<{ children: React.ReactNode; quizId: string 
       hydratedRef.current = false;
       setLoading(true);
       setNotFound(false);
+      setSaveFailed(false);
 
       try {
         const { data, error } = await supabase
@@ -146,8 +151,10 @@ export const QuizProvider: React.FC<{ children: React.ReactNode; quizId: string 
 
       if (error) throw error;
       lastSavedRef.current = snapshot;
+      setSaveFailed(false);
     } catch (error) {
       console.error('Error saving quiz:', error);
+      setSaveFailed(true);
     } finally {
       setSaving(false);
     }
@@ -166,6 +173,21 @@ export const QuizProvider: React.FC<{ children: React.ReactNode; quizId: string 
 
     return () => clearTimeout(timeoutId);
   }, [quiz, user, loading]);
+
+  // A failed save retries on its own every 10s, so a brief network drop
+  // recovers without the user noticing. The Retry button does it sooner.
+  useEffect(() => {
+    if (!saveFailed) return;
+    const retry = setTimeout(() => saveQuizRef.current(), 10000);
+    return () => clearTimeout(retry);
+  }, [saveFailed, quiz]);
+
+  // Warn before closing the tab while an edit has not reached the database.
+  const quizRef = useRef(quiz);
+  quizRef.current = quiz;
+  useUnsavedChangesWarning(
+    () => hydratedRef.current && editSnapshot(quizRef.current) !== lastSavedRef.current,
+  );
 
   // Switching quiz or leaving the builder cancels the debounce timer above, so
   // save anything still pending (saveQuiz skips when nothing changed). This
@@ -360,6 +382,7 @@ export const QuizProvider: React.FC<{ children: React.ReactNode; quizId: string 
       setSelectedQuestionId,
       loading,
       saving,
+      saveFailed,
       notFound,
       addQuestion,
       updateQuestion,

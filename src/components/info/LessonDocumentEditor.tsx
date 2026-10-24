@@ -3,13 +3,15 @@ import {
   Bold, Italic,
   Image, Minus, Link, Video, Trash2,
   Heading1, Heading2, Heading3, Heading4,
-  Cloud, CloudOff, ChevronUp, ChevronDown, ChevronLeft, ChevronRight,
+  ChevronUp, ChevronDown, ChevronLeft, ChevronRight,
   Columns, Rows,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { InfoThemeColors } from '@/hooks/useInfoTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { SaveStatus } from '@/components/shared/SaveStatus';
+import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
 
 interface LessonDocumentEditorProps {
   lessonId: string;
@@ -44,6 +46,7 @@ export const LessonDocumentEditor: React.FC<LessonDocumentEditorProps> = ({
   const editorRef = useRef<HTMLDivElement>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const [saving, setSaving] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
   const lastSavedRef = useRef(initialContent);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -168,11 +171,30 @@ export const LessonDocumentEditor: React.FC<LessonDocumentEditorProps> = ({
       .eq('id', lessonId);
     setSaving(false);
     if (error) {
-      toast.error('Failed to save');
+      console.error('Error saving lesson:', error);
+      setSaveFailed(true);
     } else {
       lastSavedRef.current = html;
+      setSaveFailed(false);
     }
   }, [lessonId]);
+
+  const retrySave = useCallback(() => {
+    if (editorRef.current) saveContent(editorRef.current.innerHTML);
+  }, [saveContent]);
+
+  // A failed save retries on its own every 10s, so a brief network drop
+  // recovers without the user noticing. The Retry button does it sooner.
+  useEffect(() => {
+    if (!saveFailed) return;
+    const retry = setTimeout(retrySave, 10000);
+    return () => clearTimeout(retry);
+  }, [saveFailed, retrySave]);
+
+  // Warn before closing the tab while the text differs from what was saved.
+  useUnsavedChangesWarning(
+    () => !!editorRef.current && editorRef.current.innerHTML !== lastSavedRef.current,
+  );
 
   const scheduleSave = useCallback(() => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -534,7 +556,8 @@ export const LessonDocumentEditor: React.FC<LessonDocumentEditorProps> = ({
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       if (editorRef.current && editorRef.current.innerHTML !== lastSavedRef.current) {
-        supabase.from('lessons').update({ content: editorRef.current.innerHTML } as any).eq('id', lessonId);
+        // Queries are lazy: without .then() this request is never sent.
+        supabase.from('lessons').update({ content: editorRef.current.innerHTML } as any).eq('id', lessonId).then(() => {});
       }
     };
   }, [lessonId]);
@@ -578,12 +601,13 @@ export const LessonDocumentEditor: React.FC<LessonDocumentEditorProps> = ({
           </>
         )}
 
-        <div className="ml-auto flex items-center gap-1.5 text-xs" style={{ color: themeColors.textMuted }}>
-          {saving ? (
-            <><CloudOff className="w-3.5 h-3.5 animate-pulse" /> Saving...</>
-          ) : (
-            <><Cloud className="w-3.5 h-3.5" style={{ color: '#22c55e' }} /> Saved</>
-          )}
+        <div className="ml-auto">
+          <SaveStatus
+            saving={saving}
+            failed={saveFailed}
+            onRetry={retrySave}
+            mutedColor={themeColors.textMuted}
+          />
         </div>
       </div>
 

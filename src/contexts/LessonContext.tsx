@@ -155,6 +155,8 @@ export const LessonProvider: React.FC<{ lessonId: string; children: React.ReactN
     // Required by AdvertorialContextType; this provider has no loading screen.
     loading: false,
     notFound: false,
+    saveFailed: false,
+    retrySave: () => {},
     isLesson: true,
     addBlock,
     updateBlock,

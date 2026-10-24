@@ -12,12 +12,16 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
 
 interface AdvertorialContextType {
   advertorial: Advertorial;
   selectedBlockId: string | null;
   setSelectedBlockId: (id: string | null) => void;
   saving: boolean;
+  /** The last save failed; edits exist only in this tab until one succeeds. */
+  saveFailed: boolean;
+  retrySave: () => void;
   loading: boolean;
   /** True when the requested advertorial does not exist or is not the user's. */
   notFound: boolean;
@@ -47,6 +51,10 @@ export const AdvertorialProvider: React.FC<{ children: React.ReactNode; advertor
   const [advertorial, setAdvertorial] = useState<Advertorial>(createDefaultAdvertorial());
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
+  // Refs for the leave-page check, which runs outside React's render.
+  const savingRef = useRef(false);
+  const saveFailedRef = useRef(false);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [dbId, setDbId] = useState<string | null>(null);
@@ -65,6 +73,8 @@ export const AdvertorialProvider: React.FC<{ children: React.ReactNode; advertor
       isLoadedRef.current = false;
       setLoading(true);
       setNotFound(false);
+      saveFailedRef.current = false;
+      setSaveFailed(false);
       try {
         // Load the requested advertorial project.
         const { data, error } = await supabase
@@ -106,6 +116,7 @@ export const AdvertorialProvider: React.FC<{ children: React.ReactNode; advertor
     if (!dbId || !user || !isLoadedRef.current) return;
     
     setSaving(true);
+    savingRef.current = true;
     try {
       const { error } = await supabase
         .from('advertorials')
@@ -117,12 +128,36 @@ export const AdvertorialProvider: React.FC<{ children: React.ReactNode; advertor
         .eq('id', dbId);
 
       if (error) throw error;
+      saveFailedRef.current = false;
+      setSaveFailed(false);
     } catch (err) {
       console.error('Error saving advertorial:', err);
+      saveFailedRef.current = true;
+      setSaveFailed(true);
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   }, [dbId, user]);
+
+  const advertorialRef = useRef(advertorial);
+  advertorialRef.current = advertorial;
+  const retrySave = useCallback(() => {
+    saveToDb(advertorialRef.current);
+  }, [saveToDb]);
+
+  // A failed save retries on its own every 10s, so a brief network drop
+  // recovers without the user noticing. The Retry button does it sooner.
+  useEffect(() => {
+    if (!saveFailed) return;
+    const retry = setTimeout(retrySave, 10000);
+    return () => clearTimeout(retry);
+  }, [saveFailed, retrySave]);
+
+  // Warn before closing the tab while an edit has not reached the database.
+  useUnsavedChangesWarning(
+    () => pendingSaveRef.current !== null || savingRef.current || saveFailedRef.current,
+  );
 
   // Debounced save trigger
   const triggerSave = useCallback((advert: Advertorial) => {
@@ -282,6 +317,8 @@ export const AdvertorialProvider: React.FC<{ children: React.ReactNode; advertor
       selectedBlockId,
       setSelectedBlockId,
       saving,
+      saveFailed,
+      retrySave,
       loading,
       notFound,
       addBlock,

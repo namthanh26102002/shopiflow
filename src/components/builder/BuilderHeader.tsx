@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Undo2, Redo2, Share2, LogOut, Cloud, CloudOff, KeyRound, Users, LayoutGrid } from 'lucide-react';
+import { Share2, LogOut, KeyRound, Users, LayoutGrid } from 'lucide-react';
 import { useQuiz } from '@/contexts/QuizContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdmin } from '@/hooks/useAdmin';
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { AccessCodeManager } from '@/components/admin/AccessCodeManager';
 import { BuilderSwitcher } from '@/components/shared/BuilderSwitcher';
 import { ProjectSwitcher } from '@/components/shared/ProjectSwitcher';
+import { SaveStatus } from '@/components/shared/SaveStatus';
 
 interface BuilderHeaderProps {
   onPublish: () => void;
@@ -15,7 +16,7 @@ interface BuilderHeaderProps {
 }
 
 export const BuilderHeader: React.FC<BuilderHeaderProps> = ({ onPublish, onOverview }) => {
-  const { quiz, saving, updateSettings } = useQuiz();
+  const { quiz, saving, saveFailed, saveQuiz, updateSettings } = useQuiz();
   const { signOut, user } = useAuth();
   const { isAdmin } = useAdmin();
   const navigate = useNavigate();
@@ -51,34 +52,12 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({ onPublish, onOverv
           />
         </div>
         
-        {/* Auto-save indicator */}
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          {saving ? (
-            <>
-              <CloudOff className="w-3.5 h-3.5 animate-pulse" />
-              <span>Saving...</span>
-            </>
-          ) : (
-            <>
-              <Cloud className="w-3.5 h-3.5 text-green-500" />
-              <span>Saved</span>
-            </>
-          )}
-        </div>
+        <SaveStatus saving={saving} failed={saveFailed} onRetry={saveQuiz} />
       </div>
 
       <div className="flex items-center gap-2">
         <span className="ml-3 text-xs text-muted-foreground">{user?.email}</span>
         
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="w-8 h-8 text-muted-foreground" disabled>
-            <Undo2 className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="w-8 h-8 text-muted-foreground" disabled>
-            <Redo2 className="w-4 h-4" />
-          </Button>
-        </div>
-
         <Button
           variant="outline"
           onClick={onOverview}

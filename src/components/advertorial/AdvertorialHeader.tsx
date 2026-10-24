@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { LogOut, Cloud, CloudOff, ExternalLink, Share2 } from 'lucide-react';
+import { LogOut, ExternalLink, Share2 } from 'lucide-react';
 import { useAdvertorial } from '@/contexts/AdvertorialContext';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { BuilderSwitcher } from '@/components/shared/BuilderSwitcher';
 import { ProjectSwitcher } from '@/components/shared/ProjectSwitcher';
+import { SaveStatus } from '@/components/shared/SaveStatus';
 import { AdvertorialPublishDialog } from '@/components/advertorial/AdvertorialPublishDialog';
 
 export const AdvertorialHeader: React.FC = () => {
-  const { advertorial, saving } = useAdvertorial();
+  const { advertorial, saving, saveFailed, retrySave } = useAdvertorial();
   const { advertorialId } = useParams<{ advertorialId: string }>();
   const { signOut, user } = useAuth();
   const [publishOpen, setPublishOpen] = useState(false);
@@ -39,20 +40,7 @@ export const AdvertorialHeader: React.FC = () => {
             />
           </div>
           
-          {/* Auto-save indicator */}
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            {saving ? (
-              <>
-                <CloudOff className="w-3.5 h-3.5 animate-pulse" />
-                <span>Saving...</span>
-              </>
-            ) : (
-              <>
-                <Cloud className="w-3.5 h-3.5 text-green-500" />
-                <span>Saved</span>
-              </>
-            )}
-          </div>
+          <SaveStatus saving={saving} failed={saveFailed} onRetry={retrySave} />
         </div>
 
         <div className="flex items-center gap-2">
