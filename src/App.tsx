@@ -10,6 +10,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 // Every route is its own chunk, so a visitor landing on a public quiz page
 // does not download the builder, the charts or the drag-and-drop libraries.
 const Auth = lazy(() => import("./pages/Auth"));
+const Home = lazy(() => import("./pages/Home"));
 const Builder = lazy(() => import("./pages/Builder"));
 const BuilderEntry = lazy(() => import("./pages/BuilderEntry"));
 const AdvertorialBuilder = lazy(() => import("./pages/AdvertorialBuilder"));
@@ -67,6 +68,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={isCustomDomain() ? <SlugResolver /> : <Auth />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
             <Route path="/quiz/:quizId" element={<QuizPublic />} />
             <Route path="/advertorial/:advertorialId" element={<AdvertorialPublic />} />
             <Route

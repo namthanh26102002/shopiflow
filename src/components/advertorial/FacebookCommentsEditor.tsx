@@ -254,7 +254,7 @@ export const FacebookCommentsEditor: React.FC<FacebookCommentsEditorProps> = ({ 
                   <p className="text-xs text-muted-foreground truncate">{comment.text || 'No text...'}</p>
                 </div>
                 <div className="flex gap-1">
-                  <Button
+                  <Button aria-label="Edit comment"
                     variant="ghost"
                     size="icon"
                     className="h-6 w-6"
@@ -262,7 +262,7 @@ export const FacebookCommentsEditor: React.FC<FacebookCommentsEditorProps> = ({ 
                   >
                     <Pencil className="w-3 h-3" />
                   </Button>
-                  <Button
+                  <Button aria-label="Delete comment"
                     variant="ghost"
                     size="icon"
                     className="h-6 w-6 text-destructive hover:text-destructive"
@@ -297,7 +297,7 @@ export const FacebookCommentsEditor: React.FC<FacebookCommentsEditorProps> = ({ 
                         <p className="text-[10px] text-muted-foreground truncate">{reply.text || 'No text...'}</p>
                       </div>
                       <div className="flex gap-1">
-                        <Button
+                        <Button aria-label="Edit reply"
                           variant="ghost"
                           size="icon"
                           className="h-5 w-5"
@@ -305,7 +305,7 @@ export const FacebookCommentsEditor: React.FC<FacebookCommentsEditorProps> = ({ 
                         >
                           <Pencil className="w-2.5 h-2.5" />
                         </Button>
-                        <Button
+                        <Button aria-label="Delete reply"
                           variant="ghost"
                           size="icon"
                           className="h-5 w-5 text-destructive hover:text-destructive"

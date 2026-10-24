@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { BuilderSwitcher } from '@/components/shared/BuilderSwitcher';
 import { ProjectSwitcher } from '@/components/shared/ProjectSwitcher';
 import { SaveStatus } from '@/components/shared/SaveStatus';
+import { PublishStatus } from '@/components/shared/PublishStatus';
 import { AdvertorialPublishDialog } from '@/components/advertorial/AdvertorialPublishDialog';
 
 export const AdvertorialHeader: React.FC = () => {
@@ -17,8 +18,8 @@ export const AdvertorialHeader: React.FC = () => {
 
   return (
     <>
-      <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4">
-        <div className="flex items-center gap-4">
+      <header className="h-14 border-b border-border bg-card flex items-center justify-between gap-3 px-4">
+        <div className="flex items-center gap-3 lg:gap-4 min-w-0">
           <BuilderSwitcher />
           
           <div className="h-6 w-px bg-border" />
@@ -40,20 +41,25 @@ export const AdvertorialHeader: React.FC = () => {
             />
           </div>
           
+          <PublishStatus
+            liveUrl={advertorial.publishedUrl ? `${window.location.origin}/advertorial/${advertorialId}` : null}
+            noun="page"
+          />
           <SaveStatus saving={saving} failed={saveFailed} onRetry={retrySave} />
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="ml-3 text-xs text-muted-foreground">{user?.email}</span>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="ml-3 hidden xl:inline text-xs text-muted-foreground">{user?.email}</span>
 
           {advertorial.publishedUrl && (
             <Button
               variant="outline"
               className="h-8 px-3 text-sm"
               onClick={() => window.open(advertorial.publishedUrl, '_blank')}
+              title="See the live page"
             >
-              <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
-              See Live Preview
+              <ExternalLink className="w-3.5 h-3.5 lg:mr-1.5" />
+              <span className="hidden lg:inline">See Live Preview</span>
             </Button>
           )}
 

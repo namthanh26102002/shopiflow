@@ -115,8 +115,8 @@ const InfoClassroom: React.FC = () => {
                           style={{ backgroundColor: colors.bg, color: colors.text, borderColor: colors.border }}
                           autoFocus
                         />
-                        <button onClick={() => handleRename(lesson.id)} style={{ color: colors.accent }}><Check className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => setEditingId(null)} style={{ color: colors.textMuted }}><X className="w-3.5 h-3.5" /></button>
+                        <button aria-label="Save name" onClick={() => handleRename(lesson.id)} style={{ color: colors.accent }}><Check className="w-3.5 h-3.5" /></button>
+                        <button aria-label="Cancel" onClick={() => setEditingId(null)} style={{ color: colors.textMuted }}><X className="w-3.5 h-3.5" /></button>
                       </div>
                     ) : (
                       <>
@@ -168,8 +168,8 @@ const InfoClassroom: React.FC = () => {
                       style={{ backgroundColor: colors.bg, color: colors.text, borderColor: colors.border }}
                       autoFocus
                     />
-                    <button onClick={handleCreateLesson} style={{ color: colors.accent }}><Check className="w-4 h-4" /></button>
-                    <button onClick={() => { setCreatingLesson(false); setNewLessonName(''); }} style={{ color: colors.textMuted }}><X className="w-4 h-4" /></button>
+                    <button aria-label="Save name" onClick={handleCreateLesson} style={{ color: colors.accent }}><Check className="w-4 h-4" /></button>
+                    <button aria-label="Cancel" onClick={() => { setCreatingLesson(false); setNewLessonName(''); }} style={{ color: colors.textMuted }}><X className="w-4 h-4" /></button>
                   </div>
                 ) : (
                   <button

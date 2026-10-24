@@ -264,13 +264,13 @@ const InfoLessonView: React.FC = () => {
                       style={{ backgroundColor: colors.bg, color: colors.text, borderColor: colors.border }}
                       autoFocus
                     />
-                    <button onClick={handleSaveTitle} style={{ color: colors.accent }}><Check className="w-5 h-5" /></button>
-                    <button onClick={() => setEditingTitle(false)} style={{ color: colors.textMuted }}><X className="w-5 h-5" /></button>
+                    <button aria-label="Save name" onClick={handleSaveTitle} style={{ color: colors.accent }}><Check className="w-5 h-5" /></button>
+                    <button aria-label="Cancel renaming" onClick={() => setEditingTitle(false)} style={{ color: colors.textMuted }}><X className="w-5 h-5" /></button>
                   </div>
                 ) : (
                   <div className="group flex items-center gap-2">
                     <h1 className="text-lg font-bold" style={{ color: colors.text }}>{lesson.name}</h1>
-                    <button
+                    <button aria-label="Rename lesson"
                       onClick={() => { setEditingTitle(true); setTitleDraft(lesson.name); }}
                       className="opacity-0 group-hover:opacity-100 transition-opacity"
                       style={{ color: colors.textMuted }}

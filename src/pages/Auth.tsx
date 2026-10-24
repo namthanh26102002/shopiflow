@@ -42,7 +42,7 @@ const Auth: React.FC = () => {
   // A password-reset link signs the user in; that session is only for setting
   // a new password, so it must not fall through to the app.
   if (user && !recoveryMode && accessCodeClaimed === true) {
-    return <Navigate to="/builder" replace />;
+    return <Navigate to="/home" replace />;
   }
 
   // Signed in but unclaimed: OAuth has nowhere to carry a code, so ask now.

@@ -37,7 +37,7 @@ const AdminUsers: React.FC = () => {
 
   useEffect(() => {
     if (!checking && (!user || !isOwner)) {
-      navigate('/builder', { replace: true });
+      navigate('/home', { replace: true });
     }
   }, [user, checking, isOwner, navigate]);
 
@@ -117,7 +117,7 @@ const AdminUsers: React.FC = () => {
     <div className="min-h-screen bg-background">
       <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => navigate('/builder')}>
+          <Button aria-label="Back" variant="ghost" size="icon" className="w-8 h-8" onClick={() => navigate('/home')}>
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <Users className="w-5 h-5 text-primary" />

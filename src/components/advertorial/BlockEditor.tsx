@@ -484,7 +484,7 @@ function BreadcrumbBlockEditor({
                 className="h-8 text-sm text-muted-foreground"
               />
             </div>
-            <Button
+            <Button aria-label="Remove item"
               type="button"
               variant="ghost"
               size="icon"
@@ -1050,7 +1050,7 @@ function ImportantUpdateBlockEditor({
               placeholder="Badge label"
               className="h-8 text-sm flex-1"
             />
-            <Button
+            <Button aria-label="Remove badge"
               type="button"
               variant="ghost"
               size="icon"

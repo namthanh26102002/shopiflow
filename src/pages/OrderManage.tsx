@@ -74,19 +74,23 @@ const OrderManage: React.FC = () => {
                         toast({ title: 'Missing order number', description: 'Please add an order number before sharing.', variant: 'destructive' });
                         return;
                       }
+                      // Sharing needs the order public, so say so when this click is what publishes it.
+                      const wasPublished = order.published;
                       await updateOrder.mutateAsync({ id: order.id, published: true, order_number: normalizedOrderNumber });
                       const url = `${window.location.origin}/order/${encodeURIComponent(normalizedOrderNumber)}`;
                       navigator.clipboard.writeText(url);
-                      toast({ title: 'Tracking link copied' });
+                      toast(wasPublished
+                        ? { title: 'Tracking link copied' }
+                        : { title: 'Order published and link copied', description: 'Anyone with the link can now see this order’s tracking page.' });
                     }}>
                       <Share2 className="w-3.5 h-3.5" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => { setEditing(order); setShowForm(true); }}>
+                    <Button aria-label="Edit order" variant="ghost" size="icon" className="w-8 h-8" onClick={() => { setEditing(order); setShowForm(true); }}>
                       <Pencil className="w-3.5 h-3.5" />
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive">
+                        <Button aria-label="Delete order" variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive">
                           <Trash2 className="w-3.5 h-3.5" />
                         </Button>
                       </AlertDialogTrigger>

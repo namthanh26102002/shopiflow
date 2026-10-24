@@ -11,6 +11,7 @@ import { DomainPanel } from '@/components/advertorial/DomainPanel';
 import { BlocksList } from '@/components/advertorial/BlocksList';
 import { BlockEditor } from '@/components/advertorial/BlockEditor';
 import { LivePreview } from '@/components/advertorial/LivePreview';
+import { PreviewDrawer } from '@/components/shared/PreviewDrawer';
 import { AdvertorialAnalyticsPanel } from '@/components/advertorial/AdvertorialAnalyticsPanel';
 
 const AdvertorialBuilderContent: React.FC = () => {
@@ -49,31 +50,33 @@ const AdvertorialBuilderContent: React.FC = () => {
               </div>
             </div>
 
-            <div className="w-[420px] flex-shrink-0 bg-card overflow-hidden flex flex-col">
+            <div className="hidden xl:flex w-[420px] flex-shrink-0 bg-card overflow-hidden flex-col">
               <LivePreview />
             </div>
+            <PreviewDrawer><LivePreview /></PreviewDrawer>
           </div>
         ) : (
           <>
             {/* Left Panel - Component Library or Settings */}
-            <div className="w-48 border-r border-border bg-card overflow-hidden">
+            <div className="w-44 lg:w-48 shrink-0 border-r border-border bg-card overflow-hidden">
               {activeTab === 'components' && <ComponentLibrary />}
             </div>
 
             {/* Blocks List */}
-            <div className="w-80 border-r border-border bg-card overflow-hidden">
+            <div className="w-56 lg:w-72 2xl:w-80 shrink-0 border-r border-border bg-card overflow-hidden">
               <BlocksList />
             </div>
 
             {/* Edit Properties */}
-            <div className="flex-1 min-w-[400px] border-r border-border bg-card overflow-hidden">
+            <div className="flex-1 min-w-0 border-r border-border bg-card overflow-hidden">
               <BlockEditor />
             </div>
 
             {/* Right Panel - Live Preview (mobile only) */}
-            <div className="w-[420px] flex-shrink-0 overflow-hidden">
+            <div className="hidden xl:block w-[380px] 2xl:w-[420px] flex-shrink-0 overflow-hidden">
               <LivePreview />
             </div>
+            <PreviewDrawer><LivePreview /></PreviewDrawer>
           </>
         )}
       </div>

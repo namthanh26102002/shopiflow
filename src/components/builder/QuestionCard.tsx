@@ -100,7 +100,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
         )}
       </div>
       
-      <button
+      <button aria-label="Delete question"
         onClick={(e) => {
           e.stopPropagation();
           onDelete();

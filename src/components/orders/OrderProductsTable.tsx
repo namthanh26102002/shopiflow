@@ -112,7 +112,7 @@ export const OrderProductsTable: React.FC<Props> = ({ products, onChange, editab
                         <img src={p.image_url} alt="" className="w-full h-full object-cover" />
                       </div>
                     ) : (
-                      <Button type="button" variant="ghost" size="icon" className="w-8 h-8 text-muted-foreground" onClick={() => fileInputRefs.current[i]?.click()}>
+                      <Button aria-label="Add product image" type="button" variant="ghost" size="icon" className="w-8 h-8 text-muted-foreground" onClick={() => fileInputRefs.current[i]?.click()}>
                         <ImagePlus className="w-3.5 h-3.5" />
                       </Button>
                     )}
@@ -122,7 +122,7 @@ export const OrderProductsTable: React.FC<Props> = ({ products, onChange, editab
                   <td className="py-2 pr-2"><Input type="number" value={p.quantity} onChange={e => updateRow(i, 'quantity', Number(e.target.value))} className="h-8 w-20" /></td>
                   <td className="py-2 pr-2"><Input type="number" step="0.01" value={p.price} onChange={e => updateRow(i, 'price', Number(e.target.value))} className="h-8 w-24" /></td>
                   <td className="py-2 text-foreground">${p.total.toFixed(2)}</td>
-                  <td className="py-2"><Button type="button" variant="ghost" size="icon" className="w-7 h-7 text-destructive hover:text-destructive" onClick={() => removeRow(i)}><Trash2 className="w-3.5 h-3.5" /></Button></td>
+                  <td className="py-2"><Button aria-label="Remove product" type="button" variant="ghost" size="icon" className="w-7 h-7 text-destructive hover:text-destructive" onClick={() => removeRow(i)}><Trash2 className="w-3.5 h-3.5" /></Button></td>
                 </>
               ) : (
                 <>

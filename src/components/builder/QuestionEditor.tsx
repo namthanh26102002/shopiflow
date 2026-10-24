@@ -88,7 +88,7 @@ const OptionCard: React.FC<OptionCardProps> = ({
           disabled={questionType === 'yes-no'}
         />
         {questionType !== 'yes-no' && canDelete && (
-          <button
+          <button aria-label="Delete option"
             onClick={() => onDeleteOption(questionId, option.id)}
             className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-muted-foreground hover:text-destructive"
           >
@@ -106,7 +106,7 @@ const OptionCard: React.FC<OptionCardProps> = ({
               alt={option.text}
               className="w-20 h-20 rounded-lg object-cover"
             />
-            <button
+            <button aria-label="Remove option image"
               onClick={() => onRemoveImage(option.id)}
               className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-destructive text-white rounded-full flex items-center justify-center hover:bg-destructive/90 transition-colors"
             >
@@ -518,7 +518,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                     alt="Question image"
                     className="max-w-full h-32 object-contain rounded-lg border border-border-subtle"
                   />
-                  <button
+                  <button aria-label="Remove image"
                     onClick={handleRemoveBlankImage}
                     className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:opacity-90"
                   >
@@ -600,7 +600,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-medium text-muted-foreground">Card {idx + 1}</span>
                         {question.cardSliderConfig!.cards.length > 1 && (
-                          <button
+                          <button aria-label="Delete card"
                             onClick={() => updateQuestion(question.id, {
                               cardSliderConfig: {
                                 ...question.cardSliderConfig!,
@@ -618,7 +618,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                       {card.imageUrl ? (
                         <div className="relative inline-block">
                           <img src={card.imageUrl} alt="" className="w-full h-20 object-cover rounded-lg" />
-                          <button
+                          <button aria-label="Remove card image"
                             onClick={() => {
                               const cards = question.cardSliderConfig!.cards.map(c =>
                                 c.id === card.id ? { ...c, imageUrl: undefined } : c
@@ -790,7 +790,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                       <span className="text-xs text-muted-foreground">sec</span>
                     </div>
                     {(question.analyzingBars?.length || 0) > 1 && (
-                      <button
+                      <button aria-label="Delete progress bar"
                         onClick={() => handleDeleteAnalyzingBar(bar.id)}
                         className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-muted-foreground hover:text-destructive"
                       >
@@ -814,7 +814,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                       alt="Analyzing image"
                       className="max-w-full h-32 object-contain rounded-lg border border-border-subtle"
                     />
-                    <button
+                    <button aria-label="Remove image"
                       onClick={handleRemoveBlankImage}
                       className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:opacity-90"
                     >
@@ -1066,7 +1066,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                         </div>
                       </div>
                       {(question.chartConfig?.points?.length || 0) > 2 && (
-                        <button
+                        <button aria-label="Delete chart point"
                           onClick={() => handleDeleteChartPoint(point.id)}
                           className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-muted-foreground hover:text-destructive"
                         >
@@ -1117,7 +1117,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                   {sc.imageUrl ? (
                     <div className="relative inline-block">
                       <img src={sc.imageUrl} alt="" className="max-w-full h-32 object-contain rounded-lg border border-border-subtle" />
-                      <button onClick={() => updateSummary({ imageUrl: undefined })} className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:opacity-90">
+                      <button aria-label="Remove image" onClick={() => updateSummary({ imageUrl: undefined })} className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:opacity-90">
                         <X className="w-3 h-3" />
                       </button>
                     </div>
@@ -1338,7 +1338,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                         ) : imgUrl ? (
                           <div className="relative inline-block">
                             <img src={imgUrl} alt="" className="w-full h-24 object-contain rounded-lg border border-border-subtle" />
-                            <button onClick={() => updateResult({ [imgKey]: undefined })} className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:opacity-90">
+                            <button aria-label="Remove image" onClick={() => updateResult({ [imgKey]: undefined })} className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:opacity-90">
                               <X className="w-3 h-3" />
                             </button>
                           </div>
@@ -1389,7 +1389,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                       <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-xs font-medium text-muted-foreground flex-shrink-0">{index + 1}</div>
                       <Input value={metric.label} onChange={(e) => updateMetric(metric.id, { label: e.target.value })} placeholder="Metric label" className="flex-1 input-clean" />
                       {rc.metrics.length > 1 && (
-                        <button onClick={() => deleteMetric(metric.id)} className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-muted-foreground hover:text-destructive">
+                        <button aria-label="Delete metric" onClick={() => deleteMetric(metric.id)} className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-muted-foreground hover:text-destructive">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       )}
@@ -1450,7 +1450,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({ question }) => {
                         </SelectContent>
                       </Select>
                       {(rc.infoCards || []).length > 1 && (
-                        <button onClick={() => {
+                        <button aria-label="Delete info card" onClick={() => {
                           updateResult({ infoCards: (rc.infoCards || []).filter(c => c.id !== card.id) });
                         }} className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-muted-foreground hover:text-destructive">
                           <Trash2 className="w-4 h-4" />

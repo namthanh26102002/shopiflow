@@ -12,6 +12,7 @@ import { SettingsPanel } from '@/components/builder/SettingsPanel';
 import { AnalyticsPanel } from '@/components/builder/AnalyticsPanel';
 import { DomainPanel } from '@/components/builder/DomainPanel';
 import { LivePreview } from '@/components/builder/LivePreview';
+import { PreviewDrawer } from '@/components/shared/PreviewDrawer';
 import { PublishDialog } from '@/components/builder/PublishDialog';
 import { QuizOverview } from '@/components/builder/QuizOverview';
 import { QuestionsListSkeleton, EditorSkeleton, PreviewSkeleton } from '@/components/builder/BuilderSkeleton';
@@ -61,23 +62,24 @@ const BuilderContent: React.FC = () => {
               </div>
             </div>
 
-            <div className="w-[380px] shrink-0 bg-card overflow-hidden flex flex-col">
+            <div className="hidden xl:flex w-[380px] shrink-0 bg-card overflow-hidden flex-col">
               <LivePreview />
             </div>
+            <PreviewDrawer><LivePreview /></PreviewDrawer>
           </div>
         ) : (
           /* Main Content Area */
-          <div className="flex-1 flex">
+          <div className="flex-1 flex min-w-0">
             {/* Left Panel - Controls */}
-            <div className="w-80 border-r border-border-subtle bg-card overflow-y-auto scrollbar-thin">
+            <div className="w-64 lg:w-80 shrink-0 border-r border-border-subtle bg-card overflow-y-auto scrollbar-thin">
               <div className="p-4">
                 {activeTab === 'questions' && <QuestionsList />}
               </div>
             </div>
 
             {/* Center Panel - Editor */}
-            <div className="flex-1 border-r border-border-subtle bg-secondary/20 overflow-y-auto scrollbar-thin">
-              <div className="p-6">
+            <div className="flex-1 min-w-0 border-r border-border-subtle bg-secondary/20 overflow-y-auto scrollbar-thin">
+              <div className="p-4 lg:p-6">
                 {activeTab === 'questions' && (
                   <>
                     {loading ? (
@@ -114,9 +116,10 @@ const BuilderContent: React.FC = () => {
             </div>
 
             {/* Right Panel - Preview */}
-            <div className="w-[380px] shrink-0 bg-card overflow-hidden flex flex-col">
+            <div className="hidden xl:flex w-[380px] shrink-0 bg-card overflow-hidden flex-col">
               <LivePreview />
             </div>
+            <PreviewDrawer><LivePreview /></PreviewDrawer>
           </div>
         )}
       </div>

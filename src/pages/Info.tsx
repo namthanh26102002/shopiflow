@@ -343,8 +343,8 @@ const Info: React.FC = () => {
                         style={{ backgroundColor: colors.bg, color: colors.text, borderColor: colors.border }}
                         autoFocus
                       />
-                      <button onClick={() => handleRename(c.id)} className="w-6 h-6 flex items-center justify-center" style={{ color: colors.accent }}><Check className="w-4 h-4" /></button>
-                      <button onClick={() => setEditingId(null)} className="w-6 h-6 flex items-center justify-center" style={{ color: colors.textMuted }}><X className="w-4 h-4" /></button>
+                      <button aria-label="Save name" onClick={() => handleRename(c.id)} className="w-6 h-6 flex items-center justify-center" style={{ color: colors.accent }}><Check className="w-4 h-4" /></button>
+                      <button aria-label="Cancel renaming" onClick={() => setEditingId(null)} className="w-6 h-6 flex items-center justify-center" style={{ color: colors.textMuted }}><X className="w-4 h-4" /></button>
                     </div>
                   ) : (
                     <h3 className="font-semibold" style={{ color: colors.text }}>{c.name}</h3>

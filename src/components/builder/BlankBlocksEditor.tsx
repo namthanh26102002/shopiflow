@@ -65,14 +65,14 @@ const RowHeader: React.FC<{
   <div className="flex items-center justify-between">
     <span className="text-xs font-medium text-muted-foreground">{label}</span>
     <div className="flex items-center gap-0.5">
-      <button
+      <button aria-label="Move block up"
         onClick={() => onMove(-1)}
         disabled={index === 0}
         className="p-1 rounded hover:bg-secondary disabled:opacity-30 text-muted-foreground"
       >
         <ChevronUp className="w-3.5 h-3.5" />
       </button>
-      <button
+      <button aria-label="Move block down"
         onClick={() => onMove(1)}
         disabled={index === total - 1}
         className="p-1 rounded hover:bg-secondary disabled:opacity-30 text-muted-foreground"
@@ -80,7 +80,7 @@ const RowHeader: React.FC<{
         <ChevronDown className="w-3.5 h-3.5" />
       </button>
       {onDelete && (
-        <button onClick={onDelete} className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
+        <button aria-label="Delete block" onClick={onDelete} className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
           <Trash2 className="w-3.5 h-3.5" />
         </button>
       )}

@@ -1,7 +1,7 @@
 // Public Quiz Page - responsive quiz experience for end users
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronRight, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Quiz, Question, Product, QuizSettings, ResultsConfig, ButtonSize, ButtonRadius, FontWeight, AnalyzingBar, AnalyzingPopupConfig, ChartConfig, SummaryConfig, ResultQuestionConfig, CardSliderConfig, getQuizTextSizeVars } from '@/types/quiz';
 import { cn } from '@/lib/utils';
@@ -9,6 +9,7 @@ import { resolveQuizTheme } from '@/lib/quizTheme';
 import { useWebFonts } from '@/hooks/useWebFonts';
 import { sanitizeHtml, sanitizeSvg } from '@/lib/sanitize';
 import { updateQuizResponse } from '@/lib/quizResponseTracking';
+import { browserLanguage, labelOr, visitorText, VisitorText } from '@/lib/visitorText';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { addDays, format } from 'date-fns';
 import { Check } from 'lucide-react';
@@ -52,7 +53,8 @@ const AnalyzingProgress: React.FC<{
   textColor: string;
   popups?: AnalyzingPopupConfig[];
   onComplete: () => void;
-}> = ({ bars, primaryColor, textColor, popups, onComplete }) => {
+  text: VisitorText;
+}> = ({ bars, primaryColor, textColor, popups, onComplete, text }) => {
   const [currentBarIndex, setCurrentBarIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [showPopup, setShowPopup] = useState(false);
@@ -146,14 +148,14 @@ const AnalyzingProgress: React.FC<{
                 className="px-8 py-2.5 rounded-full text-white font-medium text-sm transition-opacity hover:opacity-90"
                 style={{ backgroundColor: primaryColor }}
               >
-                {activePopup.noButtonText || 'No'}
+                {labelOr(activePopup.noButtonText, 'no', text)}
               </button>
               <button
                 onClick={handlePopupAnswer}
                 className="px-8 py-2.5 rounded-full text-white font-medium text-sm transition-opacity hover:opacity-90"
                 style={{ backgroundColor: primaryColor }}
               >
-                {activePopup.yesButtonText || 'Yes'}
+                {labelOr(activePopup.yesButtonText, 'yes', text)}
               </button>
             </div>
           </div>
@@ -319,7 +321,7 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
   const navigate = useNavigate();
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<'notFound' | 'notPublished' | 'loadFailed' | null>(null);
   const [screen, setScreen] = useState<PreviewScreen>('question');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string | string[]>>({});
@@ -327,6 +329,9 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
   const [sessionId] = useState(() => crypto.randomUUID());
   const [responseId, setResponseId] = useState<string | null>(null);
   const finishedRef = React.useRef(false);
+  // Pages already logged. Going back and forward again must not count a page
+  // view or an answer twice; the first answer given is the one recorded.
+  const loggedPagesRef = React.useRef<Set<number>>(new Set());
   const startTimeRef = React.useRef<number>(Date.now());
   const pageEnterRef = React.useRef<number>(Date.now());
 
@@ -352,7 +357,7 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
   useEffect(() => {
     const loadQuiz = async () => {
       if (!quizId) {
-        setError('Quiz not found');
+        setError('notFound');
         setLoading(false);
         return;
       }
@@ -366,14 +371,14 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
 
         if (fetchError) throw fetchError;
         if (!data) {
-          setError('Quiz not found');
+          setError('notFound');
           setLoading(false);
           return;
         }
 
         // Check if quiz is published
         if (!data.published_url) {
-          setError('This quiz is not published');
+          setError('notPublished');
           setLoading(false);
           return;
         }
@@ -440,7 +445,7 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
           });
       } catch (err) {
         console.error('Error loading quiz:', err);
-        setError('Failed to load quiz');
+        setError('loadFailed');
         setLoading(false);
       }
     };
@@ -452,11 +457,37 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
   // and useWebFonts is a hook.
   const theme = resolveQuizTheme(quiz?.settings ?? ({} as Quiz['settings']));
   useWebFonts(theme.webFonts);
+  const t = visitorText(quiz?.settings?.language ?? browserLanguage());
+  const bgCacheKey = `shopiflow:quiz-bg:${quizId}`;
+  useEffect(() => {
+    if (!quiz) return;
+    try { localStorage.setItem(bgCacheKey, theme.background); } catch { /* storage blocked */ }
+  }, [quiz, bgCacheKey, theme.background]);
 
   if (loading) {
+    // Shaped like a question page, on the quiz's own background when this
+    // browser has seen it before, so loading does not flash a blank page.
+    let cachedBg: string | null = null;
+    try { cachedBg = localStorage.getItem(bgCacheKey); } catch { /* storage blocked */ }
+    const shimmer = { backgroundColor: 'rgba(127, 127, 127, 0.16)' };
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-muted-foreground">Loading quiz...</div>
+      <div
+        className={cn('min-h-screen flex flex-col', !cachedBg && 'bg-background')}
+        style={cachedBg ? { background: cachedBg } : undefined}
+        role="status"
+        aria-label={t.loading}
+      >
+        <div className="flex gap-1.5 px-4 py-3 max-w-lg mx-auto w-full animate-pulse">
+          {[0, 1, 2, 3].map((i) => <div key={i} className="flex-1 h-2 rounded-full" style={shimmer} />)}
+        </div>
+        <div className="flex-1 flex flex-col justify-center items-center px-4 pt-4 pb-8">
+          <div className="w-full max-w-lg space-y-4 animate-pulse">
+            <div className="h-7 w-3/4 mx-auto rounded-lg" style={shimmer} />
+            <div className="h-4 w-1/2 mx-auto rounded mb-6" style={shimmer} />
+            {[0, 1, 2].map((i) => <div key={i} className="h-14 rounded-xl" style={shimmer} />)}
+            <div className="h-12 rounded-xl !mt-8" style={shimmer} />
+          </div>
+        </div>
       </div>
     );
   }
@@ -465,12 +496,12 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <p className="text-xl font-semibold text-foreground mb-2">{error || 'Quiz not found'}</p>
+          <p className="text-xl font-semibold text-foreground mb-2">{t[error ?? 'notFound']}</p>
           <button
             onClick={() => navigate('/')}
             className="text-sm text-primary hover:underline"
           >
-            Go back home
+            {t.goHome}
           </button>
         </div>
       </div>
@@ -537,14 +568,21 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
     setAnalyzingComplete(prev => ({ ...prev, [currentQuestion.id]: true }));
   };
 
+  const handleBack = () => {
+    if (finishedRef.current || currentQuestionIndex === 0) return;
+    setCurrentQuestionIndex((i) => i - 1);
+  };
+
   const handleNext = async () => {
     // Once finished, a repeat tap must not log the last page again.
     if (finishedRef.current) return;
     const nextIndex = currentQuestionIndex + 1;
     const timeOnPage = Date.now() - pageEnterRef.current;
+    const firstVisit = !loggedPagesRef.current.has(currentQuestionIndex);
+    loggedPagesRef.current.add(currentQuestionIndex);
 
     // Track how long this page was on screen (every page type)
-    if (responseId && currentQuestion) {
+    if (responseId && currentQuestion && firstVisit) {
       supabase
         .from('quiz_page_views')
         .insert({
@@ -559,7 +597,7 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
     }
 
     // Track the answer for the current question
-    if (responseId && currentQuestion) {
+    if (responseId && currentQuestion && firstVisit) {
       const answer = selectedAnswers[currentQuestion.id];
       if (answer) {
         const optionIds = Array.isArray(answer) ? answer : [answer];
@@ -697,7 +735,18 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
 
       {/* Segmented Progress Bar */}
       {screen === 'question' && quiz.questions.length > 0 && (
-        <div className="flex gap-1.5 px-4 py-3 max-w-lg mx-auto w-full">
+        <div className="flex items-center gap-1.5 px-4 py-3 max-w-lg mx-auto w-full">
+          {currentQuestionIndex > 0 && (
+            <button
+              type="button"
+              onClick={handleBack}
+              aria-label={t.previous}
+              className="-ml-1 mr-1 p-1 rounded-full transition-opacity hover:opacity-70"
+              style={{ color: textColor }}
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          )}
           {quiz.questions.map((_, index) => (
             <div
               key={index}
@@ -719,10 +768,10 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
           {quiz.questions.length === 0 && (
             <div className="text-center animate-fade-in-up">
               <h1 className="qt-headline font-bold mb-4 text-balance">
-                This quiz has no questions yet
+                {t.emptyTitle}
               </h1>
               <p className="qt-sub" style={{ color: mutedTextColor }}>
-                Please check back later
+                {t.emptyBody}
               </p>
             </div>
           )}
@@ -737,10 +786,10 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
                 <Check className="w-8 h-8" style={{ color: theme.accent }} />
               </div>
               <h1 className="qt-headline font-bold mb-3 text-balance" style={{ color: textColor }}>
-                Thanks for completing the quiz!
+                {t.finishedTitle}
               </h1>
               <p className="qt-sub" style={{ color: mutedTextColor }}>
-                Your answers have been recorded.
+                {t.finishedBody}
               </p>
             </div>
           )}
@@ -814,6 +863,7 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
                     textColor={textColor}
                     popups={currentQuestion.analyzingPopups || (currentQuestion.analyzingPopup ? [currentQuestion.analyzingPopup] : undefined)}
                     onComplete={handleAnalyzingComplete}
+                    text={t}
                   />
                   {currentQuestion.imageUrl && (
                     <div className="flex justify-center mt-4">
@@ -917,7 +967,7 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
                   <div>
                     {/* Multi-select hint */}
                     {currentQuestion.allowMultiple && (
-                      <p className="qt-caption text-center mb-4" style={{ color: mutedTextColor }}>Select all that apply</p>
+                      <p className="qt-caption text-center mb-4" style={{ color: mutedTextColor }}>{t.selectAll}</p>
                     )}
                     <div
                       className={cn(
@@ -1012,7 +1062,7 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
                     )}
                     style={{ backgroundColor: currentQuestion.resultConfig.ctaButtonColor || buttonColor }}
                   >
-                    {currentQuestion.resultConfig.ctaText || 'Continue'}
+                    {labelOr(currentQuestion.resultConfig.ctaText, 'continue', t)}
                   </a>
                 ) : (
                   <button
@@ -1025,7 +1075,7 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
                     )}
                     style={{ backgroundColor: buttonColor }}
                   >
-                    {(currentQuestion?.type === 'analyzing' && currentQuestion.analyzingButtonText) || quiz.settings.nextButtonText || 'Next'}
+                    {(currentQuestion?.type === 'analyzing' && currentQuestion.analyzingButtonText) || labelOr(quiz.settings.nextButtonText, 'next', t)}
                   </button>
                 )}
                 {currentQuestionIndex === 0 && quiz.settings?.showSkipButton && quiz.settings?.skipButtonUrl && (
@@ -1036,7 +1086,7 @@ const QuizPublic: React.FC<{ overrideId?: string }> = ({ overrideId }) => {
                     className="qt-caption block w-full text-center mt-3 underline opacity-60 hover:opacity-100 transition-opacity"
                     style={{ color: quiz.settings.fontColor || '#1A1A1A' }}
                   >
-                    {quiz.settings.skipButtonText || 'Skip Quiz'}
+                    {labelOr(quiz.settings.skipButtonText, 'skip', t)}
                   </a>
                 )}
               </div>

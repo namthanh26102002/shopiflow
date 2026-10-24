@@ -171,7 +171,7 @@ export const SettingsPanel: React.FC = () => {
               {settings.faviconUrl ? (
                 <div className="relative inline-block">
                   <img src={settings.faviconUrl} alt="Favicon" className="h-10 w-10 object-contain rounded border border-border bg-secondary/50" />
-                  <button
+                  <button aria-label="Remove favicon"
                     onClick={() => updateSettings({ faviconUrl: '' })}
                     className="absolute -top-1.5 -right-1.5 p-0.5 bg-destructive text-destructive-foreground rounded-full hover:opacity-90"
                   >

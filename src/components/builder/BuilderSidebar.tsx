@@ -23,6 +23,7 @@ export const BuilderSidebar: React.FC<BuilderSidebarProps> = ({ activeTab, onTab
         <button
           key={tab.id}
           onClick={() => onTabChange(tab.id)}
+          aria-current={activeTab === tab.id ? 'page' : undefined}
           className={cn(
             'w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 transition-colors',
             activeTab === tab.id

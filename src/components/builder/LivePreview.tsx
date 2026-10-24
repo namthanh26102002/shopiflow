@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronRight, RotateCcw, Check, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RotateCcw, Check, X } from 'lucide-react';
 import { useQuiz } from '@/contexts/QuizContext';
 import { cn } from '@/lib/utils';
 import { resolveQuizTheme } from '@/lib/quizTheme';
@@ -18,6 +18,7 @@ import { ScoreSlider } from './ScoreSlider';
 import { FeedbackPage } from './FeedbackPage';
 import { WarningPage, warningGradient } from './WarningPage';
 import { sanitizeSvg } from '@/lib/sanitize';
+import { labelOr, visitorText, VisitorText } from '@/lib/visitorText';
 
 type PreviewScreen = 'question' | 'results';
 
@@ -47,7 +48,8 @@ const AnalyzingProgress: React.FC<{
   primaryColor: string;
   popups?: AnalyzingPopupConfig[];
   onComplete: () => void;
-}> = ({ bars, primaryColor, popups, onComplete }) => {
+  text: VisitorText;
+}> = ({ bars, primaryColor, popups, onComplete, text }) => {
   const [currentBarIndex, setCurrentBarIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [showPopup, setShowPopup] = useState(false);
@@ -143,14 +145,14 @@ const AnalyzingProgress: React.FC<{
                 className="px-8 py-2.5 rounded-full text-white font-medium text-sm transition-opacity hover:opacity-90"
                 style={{ backgroundColor: primaryColor }}
               >
-                {activePopup.noButtonText || 'No'}
+                {labelOr(activePopup.noButtonText, 'no', text)}
               </button>
               <button
                 onClick={handlePopupAnswer}
                 className="px-8 py-2.5 rounded-full text-white font-medium text-sm transition-opacity hover:opacity-90"
                 style={{ backgroundColor: primaryColor }}
               >
-                {activePopup.yesButtonText || 'Yes'}
+                {labelOr(activePopup.yesButtonText, 'yes', text)}
               </button>
             </div>
           </div>
@@ -198,6 +200,7 @@ export const LivePreview: React.FC = () => {
   // useWebFonts is a hook. Falls back to the original settings for un-themed
   // quizzes, so the preview matches what respondents see.
   const theme = resolveQuizTheme(quiz.settings);
+  const t = visitorText(quiz.settings.language);
   useWebFonts(theme.webFonts);
 
   if (loading) {
@@ -260,6 +263,10 @@ export const LivePreview: React.FC = () => {
         }, 300);
       }
     }
+  };
+
+  const handleBack = () => {
+    if (currentQuestionIndex > 0) setCurrentQuestionIndex(prev => prev - 1);
   };
 
   const handleNext = () => {
@@ -365,7 +372,18 @@ export const LivePreview: React.FC = () => {
 
           {/* Segmented Progress Bar */}
           {screen === 'question' && quiz.questions.length > 0 && (
-            <div className="flex gap-1.5 px-4 py-3">
+            <div className="flex items-center gap-1.5 px-4 py-3">
+              {currentQuestionIndex > 0 && (
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  aria-label={t.previous}
+                  className="-ml-1 mr-1 p-1 rounded-full transition-opacity hover:opacity-70"
+                  style={{ color: quiz.settings.fontColor || '#1A1A1A' }}
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+              )}
               {quiz.questions.map((_, index) => (
                 <div
                   key={index}
@@ -485,6 +503,7 @@ export const LivePreview: React.FC = () => {
                         primaryColor={quiz.settings.primaryColor}
                         popups={currentQuestion.analyzingPopups || (currentQuestion.analyzingPopup ? [currentQuestion.analyzingPopup] : undefined)}
                         onComplete={handleAnalyzingComplete}
+                        text={t}
                       />
                       {currentQuestion.imageUrl && (
                         <div className="flex justify-center mt-4">
@@ -599,7 +618,7 @@ export const LivePreview: React.FC = () => {
                       <div>
                         {/* Multi-select hint */}
                         {currentQuestion.allowMultiple && (
-                          <p className="qt-caption text-muted-foreground text-center mb-3">Select all that apply</p>
+                          <p className="qt-caption text-muted-foreground text-center mb-3">{t.selectAll}</p>
                         )}
                         <div className={cn(
                           hasAnyImage ? 'grid grid-cols-2 gap-3' : 'space-y-3'
@@ -681,7 +700,7 @@ export const LivePreview: React.FC = () => {
                       )}
                       style={{ backgroundColor: currentQuestion.resultConfig.ctaButtonColor || buttonColor }}
                     >
-                      {currentQuestion.resultConfig.ctaText || 'Continue'}
+                      {labelOr(currentQuestion.resultConfig.ctaText, 'continue', t)}
                     </a>
                   ) : (
                     <button
@@ -694,7 +713,7 @@ export const LivePreview: React.FC = () => {
                       )}
                       style={{ backgroundColor: buttonColor }}
                     >
-                      {(currentQuestion?.type === 'analyzing' && currentQuestion.analyzingButtonText) || quiz.settings.nextButtonText || 'Next'}
+                      {(currentQuestion?.type === 'analyzing' && currentQuestion.analyzingButtonText) || labelOr(quiz.settings.nextButtonText, 'next', t)}
                     </button>
                   )}
                   {currentQuestionIndex === 0 && quiz.settings?.showSkipButton && quiz.settings?.skipButtonUrl && (
@@ -705,7 +724,7 @@ export const LivePreview: React.FC = () => {
                       className="qt-caption block w-full text-center mt-3 underline opacity-60 hover:opacity-100 transition-opacity"
                       style={{ color: quiz.settings.fontColor || '#1A1A1A' }}
                     >
-                      {quiz.settings.skipButtonText || 'Skip Quiz'}
+                      {labelOr(quiz.settings.skipButtonText, 'skip', t)}
                     </a>
                   )}
                 </div>

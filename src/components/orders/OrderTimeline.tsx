@@ -112,8 +112,8 @@ export const OrderTimeline: React.FC<Props> = ({ events, editable = false, order
                     <div className="space-y-1">
                       <div className="flex items-center gap-1">
                         <Input value={editDesc} onChange={e => setEditDesc(e.target.value)} className="h-7 text-xs" />
-                        <Button variant="ghost" size="icon" className="w-6 h-6 text-green-600" onClick={saveEdit}><Check className="w-3 h-3" /></Button>
-                        <Button variant="ghost" size="icon" className="w-6 h-6 text-muted-foreground" onClick={() => setEditingId(null)}><X className="w-3 h-3" /></Button>
+                        <Button aria-label="Save event" variant="ghost" size="icon" className="w-6 h-6 text-green-600" onClick={saveEdit}><Check className="w-3 h-3" /></Button>
+                        <Button aria-label="Cancel editing" variant="ghost" size="icon" className="w-6 h-6 text-muted-foreground" onClick={() => setEditingId(null)}><X className="w-3 h-3" /></Button>
                       </div>
                       <input type="datetime-local" value={editDate} onChange={e => setEditDate(e.target.value)} className="h-7 text-xs rounded-md border border-input bg-background px-2 text-muted-foreground" />
                     </div>
@@ -133,10 +133,10 @@ export const OrderTimeline: React.FC<Props> = ({ events, editable = false, order
                 </div>
                 {editable && editingId !== event.id && (
                   <div className="flex gap-0.5 shrink-0">
-                    <Button variant="ghost" size="icon" className="w-6 h-6 text-muted-foreground hover:text-foreground" onClick={() => startEdit(event)}>
+                    <Button aria-label="Edit event" variant="ghost" size="icon" className="w-6 h-6 text-muted-foreground hover:text-foreground" onClick={() => startEdit(event)}>
                       <Pencil className="w-3 h-3" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="w-6 h-6 text-destructive hover:text-destructive" onClick={() => onDelete?.(event.id)}>
+                    <Button aria-label="Delete event" variant="ghost" size="icon" className="w-6 h-6 text-destructive hover:text-destructive" onClick={() => onDelete?.(event.id)}>
                       <Trash2 className="w-3 h-3" />
                     </Button>
                   </div>

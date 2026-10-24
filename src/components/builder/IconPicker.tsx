@@ -86,7 +86,7 @@ export const IconPicker: React.FC<IconPickerProps> = ({ value, onChange }) => {
               Save
             </Button>
             {value && (
-              <Button
+              <Button aria-label="Remove icon"
                 variant="ghost"
                 size="sm"
                 onClick={handleClear}

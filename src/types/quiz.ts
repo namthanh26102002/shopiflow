@@ -382,6 +382,8 @@ export interface QuizSettings {
   showSkipButton?: boolean;
   skipButtonText?: string;
   skipButtonUrl?: string;
+  // Language of the built-in text visitors see (Next, Select all that apply...)
+  language?: 'en' | 'vi';
 }
 
 export interface QuizAnalytics {

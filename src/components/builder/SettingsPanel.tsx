@@ -15,6 +15,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { QuizAnalyticsDashboard } from './QuizAnalyticsDashboard';
 import { ThemePicker } from './ThemePicker';
 import { generateDemoQuizAnalytics } from '@/lib/quizAnalytics';
+import { VISITOR_LANGUAGES, VisitorLanguage } from '@/lib/visitorText';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const colorPresets = [
   '#0066FF', // Blue
@@ -245,7 +247,7 @@ export const SettingsPanel: React.FC = () => {
                   alt="Store logo"
                   className="h-16 w-16 object-contain rounded-lg border border-border-subtle bg-secondary/50"
                 />
-                <button
+                <button aria-label="Remove logo"
                   onClick={handleRemoveLogo}
                   className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:opacity-90"
                 >
@@ -330,7 +332,7 @@ export const SettingsPanel: React.FC = () => {
           {quiz.settings.faviconUrl ? (
             <div className="relative inline-block">
               <img src={quiz.settings.faviconUrl} alt="Favicon" className="h-10 w-10 object-contain rounded border border-border-subtle bg-secondary/50" />
-              <button
+              <button aria-label="Remove favicon"
                 onClick={handleRemoveFavicon}
                 className="absolute -top-1.5 -right-1.5 p-0.5 bg-destructive text-destructive-foreground rounded-full hover:opacity-90"
               >
@@ -485,7 +487,7 @@ export const SettingsPanel: React.FC = () => {
                 className="flex-1 input-clean font-mono text-sm"
               />
               {quiz.settings.nextButtonColor && (
-                <Button
+                <Button aria-label="Use brand color"
                   variant="ghost"
                   size="sm"
                   onClick={() => updateSettings({ nextButtonColor: undefined })}
@@ -644,8 +646,30 @@ export const SettingsPanel: React.FC = () => {
       </SettingsSection>
 
       {/* Behaviour */}
-      <SettingsSection id="behaviour" title="Behaviour" description="Navigation and skip options" className="space-y-4">
-        <div>
+      <SettingsSection id="behaviour" title="Behaviour" description="Language, navigation and skip options" className="space-y-4">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <Label htmlFor="visitor-language" className="text-sm font-medium text-foreground">Visitor language</Label>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              For the text the quiz supplies, like "Next" and "Select all that apply". Your own text is never changed.
+            </p>
+          </div>
+          <Select
+            value={quiz.settings.language ?? 'en'}
+            onValueChange={(value) => updateSettings({ language: value as VisitorLanguage })}
+          >
+            <SelectTrigger id="visitor-language" className="w-36 shrink-0">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {VISITOR_LANGUAGES.map((l) => (
+                <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="pt-4 border-t border-border-subtle">
           <div className="flex items-center justify-between">
             <div>
               <Label className="text-sm font-medium text-foreground">Auto-advance single-answer</Label>

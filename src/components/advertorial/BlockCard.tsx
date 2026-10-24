@@ -104,7 +104,7 @@ export const BlockCard: React.FC<BlockCardProps> = ({
       </div>
 
       <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Button
+        <Button aria-label="Duplicate block"
           variant="ghost"
           size="icon"
           className="h-6 w-6"
@@ -115,7 +115,7 @@ export const BlockCard: React.FC<BlockCardProps> = ({
         >
           <Copy className="w-3 h-3" />
         </Button>
-        <Button
+        <Button aria-label="Delete block"
           variant="ghost"
           size="icon"
           className="h-6 w-6 text-destructive hover:text-destructive"

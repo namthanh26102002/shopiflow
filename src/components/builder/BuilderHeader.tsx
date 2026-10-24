@@ -9,6 +9,7 @@ import { AccessCodeManager } from '@/components/admin/AccessCodeManager';
 import { BuilderSwitcher } from '@/components/shared/BuilderSwitcher';
 import { ProjectSwitcher } from '@/components/shared/ProjectSwitcher';
 import { SaveStatus } from '@/components/shared/SaveStatus';
+import { PublishStatus } from '@/components/shared/PublishStatus';
 
 interface BuilderHeaderProps {
   onPublish: () => void;
@@ -24,8 +25,8 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({ onPublish, onOverv
   const [showAccessCodes, setShowAccessCodes] = useState(false);
 
   return (
-    <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4">
-      <div className="flex items-center gap-4">
+    <header className="h-14 border-b border-border bg-card flex items-center justify-between gap-3 px-4">
+      <div className="flex items-center gap-3 lg:gap-4 min-w-0">
         <BuilderSwitcher />
         
         <div className="h-6 w-px bg-border" />
@@ -34,7 +35,8 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({ onPublish, onOverv
           <input
             value={quiz.settings.title}
             onChange={(e) => updateSettings({ title: e.target.value })}
-            className="text-sm text-muted-foreground bg-transparent border-none outline-none focus:text-foreground hover:text-foreground transition-colors w-48"
+            className="text-sm text-muted-foreground bg-transparent border-none outline-none focus:text-foreground hover:text-foreground transition-colors w-32 lg:w-48"
+            aria-label="Quiz name"
             placeholder="Quiz name..."
           />
           <ProjectSwitcher
@@ -52,11 +54,15 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({ onPublish, onOverv
           />
         </div>
         
+        <PublishStatus
+          liveUrl={quiz.publishedUrl ? `${window.location.origin}/quiz/${quiz.id}` : null}
+          noun="quiz"
+        />
         <SaveStatus saving={saving} failed={saveFailed} onRetry={saveQuiz} />
       </div>
 
-      <div className="flex items-center gap-2">
-        <span className="ml-3 text-xs text-muted-foreground">{user?.email}</span>
+      <div className="flex items-center gap-2 shrink-0">
+        <span className="ml-3 hidden xl:inline text-xs text-muted-foreground">{user?.email}</span>
         
         <Button
           variant="outline"
@@ -64,8 +70,8 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({ onPublish, onOverv
           className="h-8 px-3 text-sm"
           title="See the whole quiz flow"
         >
-          <LayoutGrid className="w-3.5 h-3.5 mr-1.5" />
-          Overview
+          <LayoutGrid className="w-3.5 h-3.5 lg:mr-1.5" />
+          <span className="hidden lg:inline">Overview</span>
         </Button>
 
         <Button 

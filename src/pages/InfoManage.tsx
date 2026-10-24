@@ -106,7 +106,7 @@ const InfoManage: React.FC = () => {
                 onKeyDown={e => e.key === 'Enter' && handleCreateClassroom()}
                 className="bg-zinc-900 border-zinc-700 text-zinc-100 placeholder:text-zinc-600"
               />
-              <Button size="sm" onClick={handleCreateClassroom} disabled={!newClassroomName.trim()} className="bg-purple-600 hover:bg-purple-700 text-white">
+              <Button aria-label="Add classroom" size="sm" onClick={handleCreateClassroom} disabled={!newClassroomName.trim()} className="bg-purple-600 hover:bg-purple-700 text-white">
                 <Plus className="w-4 h-4" />
               </Button>
             </div>
@@ -147,10 +147,10 @@ const InfoManage: React.FC = () => {
                           checked={c.published}
                           onCheckedChange={checked => updateClassroom.mutate({ id: c.id, published: checked })}
                         />
-                        <Button variant="ghost" size="icon" className="w-7 h-7 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800" onClick={() => startEdit(c.id, c.name)}>
+                        <Button aria-label="Edit classroom" variant="ghost" size="icon" className="w-7 h-7 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800" onClick={() => startEdit(c.id, c.name)}>
                           <Edit2 className="w-3.5 h-3.5" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="w-7 h-7 text-red-400 hover:text-red-300 hover:bg-zinc-800" onClick={() => deleteClassroom.mutate(c.id)}>
+                        <Button aria-label="Delete classroom" variant="ghost" size="icon" className="w-7 h-7 text-red-400 hover:text-red-300 hover:bg-zinc-800" onClick={() => deleteClassroom.mutate(c.id)}>
                           <Trash2 className="w-3.5 h-3.5" />
                         </Button>
                       </div>
@@ -179,7 +179,7 @@ const InfoManage: React.FC = () => {
                     onKeyDown={e => e.key === 'Enter' && handleCreateLesson()}
                     className="bg-zinc-900 border-zinc-700 text-zinc-100 placeholder:text-zinc-600"
                   />
-                  <Button size="sm" onClick={handleCreateLesson} disabled={!newLessonName.trim()} className="bg-purple-600 hover:bg-purple-700 text-white">
+                  <Button aria-label="Add lesson" size="sm" onClick={handleCreateLesson} disabled={!newLessonName.trim()} className="bg-purple-600 hover:bg-purple-700 text-white">
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
@@ -204,13 +204,13 @@ const InfoManage: React.FC = () => {
                               checked={lesson.published}
                               onCheckedChange={checked => updateLesson.mutate({ id: lesson.id, published: checked })}
                             />
-                            <Button variant="ghost" size="icon" className="w-7 h-7 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800" onClick={() => startEdit(lesson.id, lesson.name)}>
+                            <Button aria-label="Edit lesson" variant="ghost" size="icon" className="w-7 h-7 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800" onClick={() => startEdit(lesson.id, lesson.name)}>
                               <Edit2 className="w-3.5 h-3.5" />
                             </Button>
                             <Button variant="outline" size="sm" className="h-7 text-xs gap-1 border-zinc-700 text-zinc-300 hover:bg-zinc-800" onClick={() => navigate(`/info/lesson/${lesson.id}`)}>
                               <FileText className="w-3 h-3" /> Edit Content
                             </Button>
-                            <Button variant="ghost" size="icon" className="w-7 h-7 text-red-400 hover:text-red-300 hover:bg-zinc-800" onClick={() => deleteLesson.mutate(lesson.id)}>
+                            <Button aria-label="Delete lesson" variant="ghost" size="icon" className="w-7 h-7 text-red-400 hover:text-red-300 hover:bg-zinc-800" onClick={() => deleteLesson.mutate(lesson.id)}>
                               <Trash2 className="w-3.5 h-3.5" />
                             </Button>
                           </div>
