@@ -7,6 +7,7 @@ import {
   isSyncableThemeFile,
   needsRefresh,
   normalizeShopDomain,
+  parseReturnOrigins,
   refreshAccessToken,
   verifyOAuthHmac,
   verifyWebhookHmac,
@@ -28,6 +29,27 @@ describe('normalizeShopDomain', () => {
 
   it.each(['mystore.com', 'evil.com/x.myshopify.com', 'my_store', '', 'a.myshopify.com.evil.com'])('rejects %s', (input) => {
     expect(normalizeShopDomain(input)).toBeNull();
+  });
+});
+
+describe('parseReturnOrigins', () => {
+  it('reads a clean list', () => {
+    expect(parseReturnOrigins('https://www.tryshopiflow.com,http://localhost:8080')).toEqual([
+      'https://www.tryshopiflow.com',
+      'http://localhost:8080',
+    ]);
+  });
+
+  it('forgives quotes, spaces, slashes and paths', () => {
+    expect(parseReturnOrigins('"https://www.tryshopiflow.com/" , \'http://localhost:8081/home\'')).toEqual([
+      'https://www.tryshopiflow.com',
+      'http://localhost:8081',
+    ]);
+  });
+
+  it('falls back to the live app when unset or unusable', () => {
+    expect(parseReturnOrigins(undefined)).toEqual(['https://www.tryshopiflow.com']);
+    expect(parseReturnOrigins('www.tryshopiflow.com, javascript:alert(1)')).toEqual(['https://www.tryshopiflow.com']);
   });
 });
 

@@ -3,6 +3,7 @@
 // redirect URL in the Dev Dashboard). Verifies the request, swaps the code for
 // tokens, saves the store, and sends the merchant back to the theme editor.
 import {
+  DEFAULT_RETURN_ORIGIN,
   SHOPIFY_API_VERSION,
   adminGraphql,
   exchangeCode,
@@ -23,7 +24,18 @@ const backTo = (returnUrl: string, status: string) => {
   return redirect(url.toString());
 };
 
+// Whatever goes wrong, the merchant lands back in the app with a message,
+// never on a bare 500 page from this function.
 Deno.serve(async (req) => {
+  try {
+    return await handle(req);
+  } catch (err) {
+    console.error('Shopify OAuth callback crashed:', err);
+    return backTo(`${DEFAULT_RETURN_ORIGIN}/theme-builder`, 'failed');
+  }
+});
+
+const handle = async (req: Request): Promise<Response> => {
   const cfg = config();
   const fallback = `${cfg.returnOrigins[0]}/theme-builder`;
   const params = new URL(req.url).searchParams;
@@ -89,4 +101,4 @@ Deno.serve(async (req) => {
     console.error('Shopify OAuth callback failed:', err);
     return backTo(returnUrl, 'failed');
   }
-});
+};

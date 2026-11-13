@@ -29,6 +29,28 @@ export const normalizeShopDomain = (input: string): string | null => {
 
 export const isShopDomain = (value: string) => SHOP_PATTERN.test(value);
 
+export const DEFAULT_RETURN_ORIGIN = 'https://www.tryshopiflow.com';
+
+/**
+ * SHOPIFY_RETURN_ORIGINS as a list of origins. Forgiving about how the secret
+ * was typed (quotes, spaces, trailing slashes, a path); anything that is not
+ * an http(s) URL is dropped. Never empty: falls back to the live app.
+ */
+export const parseReturnOrigins = (raw: string | undefined | null): string[] => {
+  const origins: string[] = [];
+  for (const part of (raw ?? '').split(/[,\s]+/)) {
+    const cleaned = part.trim().replace(/^['"]+|['"]+$/g, '');
+    if (!cleaned) continue;
+    try {
+      const url = new URL(cleaned);
+      if ((url.protocol === 'https:' || url.protocol === 'http:') && !origins.includes(url.origin)) origins.push(url.origin);
+    } catch {
+      // Not a URL: ignore it rather than break sign-in.
+    }
+  }
+  return origins.length > 0 ? origins : [DEFAULT_RETURN_ORIGIN];
+};
+
 const encoder = new TextEncoder();
 
 const hmacKey = (secret: string) =>

@@ -1,7 +1,7 @@
 // Deno-side plumbing shared by the shopify-* edge functions: config, the
 // service-role client, caller auth, and access tokens that refresh themselves.
 import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { refreshAccessToken, needsRefresh, ShopifyAuthError, type TokenSet } from './shopifyCore.ts';
+import { parseReturnOrigins, refreshAccessToken, needsRefresh, ShopifyAuthError, type TokenSet } from './shopifyCore.ts';
 
 export const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,10 +25,7 @@ export const config = () => ({
   /** Where the OAuth callback lives; must match the Dev Dashboard redirect URL exactly. */
   redirectUri: `${required('SUPABASE_URL')}/functions/v1/shopify-oauth-callback`,
   /** Origins the callback may send the merchant back to. The first is the default. */
-  returnOrigins: (Deno.env.get('SHOPIFY_RETURN_ORIGINS') ?? 'https://www.tryshopiflow.com')
-    .split(',')
-    .map((origin) => origin.trim().replace(/\/$/, ''))
-    .filter(Boolean),
+  returnOrigins: parseReturnOrigins(Deno.env.get('SHOPIFY_RETURN_ORIGINS')),
 });
 
 export const adminClient = (): SupabaseClient =>
