@@ -1,0 +1,29 @@
+{%- comment -%}
+  A home for app blocks: review walls (Loox, Judge.me, Okendo), widgets and
+  the like. The theme does not build its own review wall because reviews have
+  to come from somewhere real, and that somewhere is a reviews app.
+{%- endcomment -%}
+
+{%- comment -%}Empty, it would only add a band of padding.{%- endcomment -%}
+{%- if section.blocks.size > 0 -%}
+  <div class="color-{{ section.settings.color_scheme }}">
+    <div class="{% if section.settings.full_width %}apps--full{% else %}page-width{% endif %} section">
+      {%- for block in section.blocks -%}
+        {% render block %}
+      {%- endfor -%}
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Apps",
+  "tag": "section",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "default": "scheme-1", "label": "Color scheme" },
+    { "type": "checkbox", "id": "full_width", "default": false, "label": "Full width" }
+  ],
+  "blocks": [{ "type": "@app" }],
+  "presets": [{ "name": "Apps" }]
+}
+{% endschema %}

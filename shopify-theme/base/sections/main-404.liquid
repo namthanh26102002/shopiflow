@@ -1,0 +1,25 @@
+<div class="color-{{ section.settings.color_scheme }}">
+  <div class="page-width section text-center">
+    <h1>{{ 'sections.not_found.title' | t }}</h1>
+    <p>{{ 'sections.not_found.subtext' | t }}</p>
+    <a class="button" href="{{ routes.root_url }}">{{ 'general.continue_shopping' | t }}</a>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "404 page",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "default": "scheme-1",
+      "label": "Color scheme"
+    }
+  ],
+  "enabled_on": {
+    "templates": ["404"]
+  }
+}
+{% endschema %}

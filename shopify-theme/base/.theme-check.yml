@@ -1,0 +1,10 @@
+# Theme Check runs over this directory via `npm run check` in shopify-theme/.
+#
+# MatchingTranslations is off because the settings schema uses plain English
+# labels rather than `t:` keys: the admin theme builder reads those labels
+# straight out of settings_schema.json to render its editor, so indirecting
+# them through locale files would buy nothing and cost a lookup.
+extends: theme-check:recommended
+
+MatchingTranslations:
+  enabled: false

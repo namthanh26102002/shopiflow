@@ -1,0 +1,32 @@
+{%- comment -%}
+  Five stars with fractional fill, e.g. 4.6 fills four and most of the fifth.
+
+  Accepts:
+  - rating: a number on a 0-5 scale (required)
+  - size: star size in px, default 16
+
+  Two identical rows are stacked and the top one is clipped to the rating, so
+  there is no per-star maths and partial stars come out exact.
+{%- endcomment -%}
+
+{%- liquid
+  assign size = size | default: 16
+  if size == 0
+    assign size = 16
+  endif
+  assign percent = rating | times: 20 | at_most: 100 | at_least: 0
+-%}
+
+<span
+  class="stars"
+  role="img"
+  aria-label="{{ 'products.product.rating.stars' | t: rating: rating }}"
+  style="--stars-fill: {{ percent }}%;"
+>
+  <span class="stars__row stars__row--base">
+    {%- for i in (1..5) -%}{% render 'icon', name: 'star-fill', size: size %}{%- endfor -%}
+  </span>
+  <span class="stars__row stars__row--fill">
+    {%- for i in (1..5) -%}{% render 'icon', name: 'star-fill', size: size %}{%- endfor -%}
+  </span>
+</span>

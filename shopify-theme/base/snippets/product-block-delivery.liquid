@@ -1,0 +1,56 @@
+{%- comment -%}
+  Delivery estimate; theme.js fills in the dates.
+
+  A block of sections/main-product.liquid, rendered from there with:
+  block
+{%- endcomment -%}
+
+{%- comment -%}
+  Dates depend on the moment the page is viewed, and Shopify
+  caches rendered pages, so Liquid only renders the rules and
+  theme.js works out the dates in the shopper's browser. The
+  cutoff is in the store's own time zone; data-offset carries it.
+  Holidays are not known, only weekends.
+{%- endcomment -%}
+<delivery-estimate
+  class="product-block delivery"
+  data-processing="{{ block.settings.processing_days }}"
+  data-min="{{ block.settings.min_days }}"
+  data-max="{{ block.settings.max_days }}"
+  data-cutoff="{{ block.settings.cutoff_hour }}"
+  data-weekends="{{ block.settings.weekends }}"
+  data-offset="{{ 'now' | date: '%z' }}"
+  data-label-today="{{ 'products.product.delivery.today' | t }}"
+  {% if block.settings.show_countdown %}data-countdown="{{ 'products.product.delivery.countdown' | t }}"{% endif %}
+  {{ block.shopify_attributes }}
+>
+  {%- if block.settings.shipping_text != blank -%}
+    <p class="delivery__shipping">
+      {% render 'icon', name: 'truck', size: 16 %}
+      <span>{{ block.settings.shipping_text | escape }} <strong>{{ localization.country.name }}</strong></span>
+      {%- if block.settings.shipping_tag != blank -%}
+        <span class="delivery__tag">{{ block.settings.shipping_tag | escape }}</span>
+      {%- endif -%}
+    </p>
+  {%- endif -%}
+  <ol class="delivery__steps" role="list">
+    <li class="delivery__step is-done">
+      <span class="delivery__dot">{% render 'icon', name: 'check', size: 14 %}</span>
+      <strong>{{ 'products.product.delivery.ordered' | t }}</strong>
+      <small data-delivery-date="ordered">{{ 'products.product.delivery.today' | t }}</small>
+    </li>
+    <li class="delivery__step">
+      <span class="delivery__dot">{% render 'icon', name: 'package', size: 14 %}</span>
+      <strong>{{ 'products.product.delivery.ships' | t }}</strong>
+      <small data-delivery-date="ships"></small>
+    </li>
+    <li class="delivery__step">
+      <span class="delivery__dot">{% render 'icon', name: 'home', size: 14 %}</span>
+      <strong>{{ 'products.product.delivery.delivered' | t }}</strong>
+      <small data-delivery-date="delivered">
+        {{- 'products.product.delivery.days_range' | t: min: block.settings.min_days, max: block.settings.max_days -}}
+      </small>
+    </li>
+  </ol>
+  <p class="delivery__countdown" data-delivery-countdown hidden></p>
+</delivery-estimate>

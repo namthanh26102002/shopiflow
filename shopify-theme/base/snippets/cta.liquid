@@ -1,0 +1,22 @@
+{%- comment -%}
+  A call-to-action button with an optional line beneath it.
+
+  Accepts:
+  - label: button text; nothing renders without it
+  - link: a url setting value. Blank means "scroll to the buy box", which is
+    what nearly every mid-page button on a long product page should do; the
+    target is the #product-buy anchor in sections/main-product.liquid.
+  - caption: small text under the button
+  - align: 'center' (default) or 'left'
+{%- endcomment -%}
+
+{%- if label != blank -%}
+  <div class="cta cta--{{ align | default: 'center' }}">
+    <a class="button button--cta" href="{{ link | default: '#product-buy' }}">
+      {{- label | escape -}}
+    </a>
+    {%- if caption != blank -%}
+      <p class="cta__caption">{{ caption | escape }}</p>
+    {%- endif -%}
+  </div>
+{%- endif -%}

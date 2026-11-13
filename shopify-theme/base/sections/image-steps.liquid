@@ -1,0 +1,70 @@
+{%- comment -%}
+  How-to in pictures: one image per step with a numbered label over it.
+  Three across on desktop, a swipeable row on phones.
+{%- endcomment -%}
+
+<div class="color-{{ section.settings.color_scheme }}">
+  <div class="page-width section">
+    {%
+      render 'section-heading',
+      eyebrow: section.settings.eyebrow,
+      heading: section.settings.heading,
+      accent: section.settings.accent,
+      subheading: section.settings.subheading
+    %}
+
+    <ol class="image-steps" role="list">
+      {%- for block in section.blocks -%}
+        <li class="image-step" {{ block.shopify_attributes }}>
+          <div class="image-step__media media">
+            {%- if block.settings.image != blank -%}
+              {{ block.settings.image | image_url: width: 900 | image_tag: widths: '400,600,900', sizes: '(min-width: 750px) 33vw, 80vw', loading: 'lazy', alt: block.settings.image.alt }}
+            {%- else -%}
+              {{ 'lifestyle-2' | placeholder_svg_tag: 'placeholder' }}
+            {%- endif -%}
+            <span class="image-step__label">{{ forloop.index }}. {{ block.settings.title | escape }}</span>
+          </div>
+          {%- if block.settings.text != blank -%}
+            <p class="image-step__text">{{ block.settings.text | escape }}</p>
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+    </ol>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Image steps",
+  "tag": "section",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "default": "scheme-1", "label": "Color scheme" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow" },
+    { "type": "text", "id": "heading", "default": "Feel it work,", "label": "Heading" },
+    { "type": "text", "id": "accent", "default": "fast", "label": "Accent text" },
+    { "type": "text", "id": "subheading", "default": "Three steps, and nothing to learn.", "label": "Subheading" }
+  ],
+  "blocks": [
+    {
+      "type": "step",
+      "name": "Step",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        { "type": "text", "id": "title", "default": "Set", "label": "Title", "info": "Numbered automatically." },
+        { "type": "text", "id": "text", "default": "What to do at this step, in one line.", "label": "Text" }
+      ]
+    }
+  ],
+  "max_blocks": 4,
+  "presets": [
+    {
+      "name": "Image steps",
+      "blocks": [
+        { "type": "step", "settings": { "title": "Set" } },
+        { "type": "step", "settings": { "title": "Apply" } },
+        { "type": "step", "settings": { "title": "Relax" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

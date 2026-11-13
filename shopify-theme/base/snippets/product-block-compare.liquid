@@ -1,0 +1,40 @@
+{%- comment -%}
+  Two-column comparison read from "Label | ours | theirs" lines.
+
+  A block of sections/main-product.liquid, rendered from there with:
+  block
+{%- endcomment -%}
+
+{%- assign compare_lines = block.settings.rows | newline_to_br | split: '<br />' -%}
+<div class="product-block mini-compare" {{ block.shopify_attributes }}>
+  {%- if block.settings.heading != blank -%}
+    <p class="mini-compare__heading">{{ block.settings.heading | escape }}</p>
+  {%- endif -%}
+  <table>
+    <thead>
+      <tr>
+        <td></td>
+        <th scope="col" class="is-ours">{{ block.settings.column_1 | escape }}</th>
+        <th scope="col">{{ block.settings.column_2 | escape }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {%- for line in compare_lines -%}
+        {%- assign row = line | strip -%}
+        {%- if row == blank -%}{%- continue -%}{%- endif -%}
+        {%- assign cells = row | split: '|' -%}
+        {%- assign first = cells[0] | strip -%}
+        {%- assign lead = first | slice: 0 -%}
+        {%- if lead == '#' -%}
+          <tr class="mini-compare__group"><th scope="colgroup" colspan="3">{{ first | remove_first: '#' | strip | escape }}</th></tr>
+        {%- else -%}
+          <tr>
+            <th scope="row">{{ first | escape }}</th>
+            <td class="is-ours">{% render 'compare-cell', value: cells[1] %}</td>
+            <td>{% render 'compare-cell', value: cells[2] %}</td>
+          </tr>
+        {%- endif -%}
+      {%- endfor -%}
+    </tbody>
+  </table>
+</div>

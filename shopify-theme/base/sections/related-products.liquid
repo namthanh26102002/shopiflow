@@ -1,0 +1,64 @@
+{%- comment -%}
+  "You may also like".
+
+  Hand-picked products win when the merchant chooses some. Otherwise it asks
+  Shopify's product recommendations API, which works from what customers
+  actually buy together. That needs the section rendered twice: once with the
+  page (empty, because recommendations are not available then) and once by
+  theme.js from the recommendations URL, which returns this same section with
+  the recommendations object filled in.
+{%- endcomment -%}
+
+{%- liquid
+  assign limit = section.settings.limit
+  assign manual = section.settings.products
+-%}
+
+<div class="color-{{ section.settings.color_scheme }}">
+  {%- if manual != blank -%}
+    <div class="page-width section">
+      {% render 'section-heading', heading: section.settings.heading, accent: section.settings.accent %}
+      <ul class="grid" role="list" style="--grid-desktop: {{ section.settings.columns }};">
+        {%- for item in manual limit: limit -%}
+          <li>{% render 'product-card', card_product: item %}</li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  {%- elsif product -%}
+    <product-recommendations
+      class="page-width section related-products"
+      data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product.id }}&limit={{ limit }}&intent=related"
+    >
+      {%- if recommendations.performed and recommendations.products_count > 0 -%}
+        {% render 'section-heading', heading: section.settings.heading, accent: section.settings.accent %}
+        <ul class="grid" role="list" style="--grid-desktop: {{ section.settings.columns }};">
+          {%- for item in recommendations.products -%}
+            <li>{% render 'product-card', card_product: item %}</li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+    </product-recommendations>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Related products",
+  "tag": "section",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "default": "scheme-1", "label": "Color scheme" },
+    { "type": "text", "id": "heading", "default": "You may", "label": "Heading" },
+    { "type": "text", "id": "accent", "default": "also like", "label": "Accent text" },
+    { "type": "range", "id": "limit", "min": 2, "max": 8, "step": 1, "default": 4, "label": "Products to show" },
+    { "type": "range", "id": "columns", "min": 2, "max": 5, "step": 1, "default": 4, "label": "Columns on desktop" },
+    {
+      "type": "product_list",
+      "id": "products",
+      "limit": 8,
+      "label": "Hand-picked products",
+      "info": "Leave empty to let Shopify recommend products based on what customers buy together. Recommendations need some order history to appear."
+    }
+  ],
+  "presets": [{ "name": "Related products" }]
+}
+{% endschema %}

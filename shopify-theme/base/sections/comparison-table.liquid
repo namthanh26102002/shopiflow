@@ -1,0 +1,135 @@
+{%- comment -%}
+  "Us versus the alternatives" table. The first column is the highlighted one.
+
+  Each cell is typed as plain text and read like this:
+  - "yes" or "yes: note"  -> a tick, with the note underneath
+  - "no"  or "no: note"   -> a cross, with the note underneath
+  - anything else         -> shown as written
+
+  On phones the table scrolls sideways with the row labels pinned, which keeps
+  every column readable instead of squeezing five columns into 375px.
+{%- endcomment -%}
+
+{%- liquid
+  assign column_count = 0
+  for i in (1..4)
+    assign header_key = 'column_' | append: i
+    if section.settings[header_key] != blank
+      assign column_count = i
+    endif
+  endfor
+-%}
+
+<div class="color-{{ section.settings.color_scheme }}">
+  <div class="page-width section">
+    {%
+      render 'section-heading',
+      eyebrow: section.settings.eyebrow,
+      heading: section.settings.heading,
+      accent: section.settings.accent,
+      accent_break: true,
+      subheading: section.settings.subheading
+    %}
+
+    {%- if column_count > 0 -%}
+      <div class="compare-table" tabindex="0">
+        <table>
+          <thead>
+            <tr>
+              <td></td>
+              {%- for i in (1..column_count) -%}
+                {%- assign header_key = 'column_' | append: i -%}
+                <th scope="col" class="{% if forloop.first %}is-ours{% endif %}">{{ section.settings[header_key] | escape }}</th>
+              {%- endfor -%}
+            </tr>
+          </thead>
+          <tbody>
+            {%- for block in section.blocks -%}
+              {%- if block.type == 'group' -%}
+                {%- comment -%}
+                  Empty cells rather than one spanning cell, so the highlighted
+                  column runs unbroken through group headings.
+                {%- endcomment -%}
+                <tr class="compare-table__group" {{ block.shopify_attributes }}>
+                  <th scope="rowgroup">{{ block.settings.label | escape }}</th>
+                  {%- for i in (1..column_count) -%}
+                    <td class="{% if forloop.first %}is-ours{% endif %}"></td>
+                  {%- endfor -%}
+                </tr>
+              {%- else -%}
+                <tr {{ block.shopify_attributes }}>
+                  <th scope="row">{{ block.settings.label | escape }}</th>
+                  {%- for i in (1..column_count) -%}
+                    {%- assign cell_key = 'cell_' | append: i -%}
+                    {%- assign cell_value = block.settings[cell_key] -%}
+                    <td class="{% if forloop.first %}is-ours{% endif %}">
+                      {%- render 'compare-cell', value: cell_value -%}
+                    </td>
+                  {%- endfor -%}
+                </tr>
+              {%- endif -%}
+            {%- endfor -%}
+          </tbody>
+        </table>
+      </div>
+    {%- endif -%}
+
+    {% render 'cta', label: section.settings.button_label, link: section.settings.button_link, caption: section.settings.button_caption %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Comparison table",
+  "tag": "section",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "default": "scheme-1", "label": "Color scheme" },
+    { "type": "text", "id": "eyebrow", "default": "Side by side", "label": "Eyebrow" },
+    { "type": "text", "id": "heading", "default": "The easiest way", "label": "Heading" },
+    { "type": "text", "id": "accent", "default": "to get there", "label": "Accent line" },
+    { "type": "text", "id": "subheading", "default": "How the options really compare.", "label": "Subheading" },
+    { "type": "header", "content": "Columns" },
+    { "type": "text", "id": "column_1", "default": "Ours", "label": "Column 1 (highlighted)" },
+    { "type": "text", "id": "column_2", "default": "Option B", "label": "Column 2" },
+    { "type": "text", "id": "column_3", "default": "Option C", "label": "Column 3" },
+    { "type": "text", "id": "column_4", "default": "Doing nothing", "label": "Column 4" },
+    { "type": "paragraph", "content": "In each row, type yes, no, \"yes: a note\", \"no: a note\" or any text." },
+    { "type": "header", "content": "Button" },
+    { "type": "text", "id": "button_label", "default": "Try it today", "label": "Label" },
+    { "type": "url", "id": "button_link", "label": "Link", "info": "Leave blank to scroll to the buy box on product pages." },
+    { "type": "text", "id": "button_caption", "label": "Line under the button" }
+  ],
+  "blocks": [
+    {
+      "type": "group",
+      "name": "Group heading",
+      "settings": [
+        { "type": "text", "id": "label", "default": "Setup", "label": "Label" }
+      ]
+    },
+    {
+      "type": "row",
+      "name": "Row",
+      "settings": [
+        { "type": "text", "id": "label", "default": "Something buyers care about", "label": "Label" },
+        { "type": "text", "id": "cell_1", "default": "yes", "label": "Column 1" },
+        { "type": "text", "id": "cell_2", "default": "no: Only partly", "label": "Column 2" },
+        { "type": "text", "id": "cell_3", "default": "yes", "label": "Column 3" },
+        { "type": "text", "id": "cell_4", "default": "no", "label": "Column 4" }
+      ]
+    }
+  ],
+  "max_blocks": 12,
+  "presets": [
+    {
+      "name": "Comparison table",
+      "blocks": [
+        { "type": "row" },
+        { "type": "row", "settings": { "label": "No planning ahead", "cell_2": "no: Needs timing" } },
+        { "type": "row", "settings": { "label": "Time it takes", "cell_1": "Minutes a day", "cell_2": "Every time", "cell_3": "Daily effort", "cell_4": "Nothing changes" } },
+        { "type": "row", "settings": { "label": "Easy to stick with", "cell_3": "no: Most people quit" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

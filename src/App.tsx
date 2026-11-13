@@ -15,6 +15,8 @@ const Builder = lazy(() => import("./pages/Builder"));
 const BuilderEntry = lazy(() => import("./pages/BuilderEntry"));
 const AdvertorialBuilder = lazy(() => import("./pages/AdvertorialBuilder"));
 const AdvertorialBuilderEntry = lazy(() => import("./pages/AdvertorialBuilderEntry"));
+const ThemeBuilder = lazy(() => import("./pages/ThemeBuilder"));
+const ThemeBuilderEntry = lazy(() => import("./pages/ThemeBuilderEntry"));
 const QuizPublic = lazy(() => import("./pages/QuizPublic"));
 const AdvertorialPublic = lazy(() => import("./pages/AdvertorialPublic"));
 const SlugResolver = lazy(() => import("./pages/SlugResolver"));
@@ -100,6 +102,22 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AdvertorialBuilder />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/theme-builder"
+              element={
+                <ProtectedRoute>
+                  <ThemeBuilderEntry />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/theme-builder/:themeId"
+              element={
+                <ProtectedRoute>
+                  <ThemeBuilder />
                 </ProtectedRoute>
               }
             />

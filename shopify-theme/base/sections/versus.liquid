@@ -1,0 +1,91 @@
+{%- comment -%}
+  Two photos side by side, theirs and ours, with a verdict between them and
+  a short description under each. The right-hand side is always "ours" and
+  gets the accent treatment.
+{%- endcomment -%}
+
+<div class="color-{{ section.settings.color_scheme }}">
+  <div class="page-width section">
+    {%
+      render 'section-heading',
+      eyebrow: section.settings.eyebrow,
+      heading: section.settings.heading,
+      accent: section.settings.accent,
+      subheading: section.settings.subheading
+    %}
+
+    <div class="versus">
+      {%- for side in (1..2) -%}
+        {%- liquid
+          if side == 1
+            assign prefix = 'left_'
+          else
+            assign prefix = 'right_'
+          endif
+          assign image_key = prefix | append: 'image'
+          assign name_key = prefix | append: 'name'
+          assign tag_key = prefix | append: 'tag'
+          assign text_key = prefix | append: 'text'
+          assign chip_key = prefix | append: 'chip'
+          assign side_image = section.settings[image_key]
+        -%}
+        <figure class="versus__side versus__side--{{ side }}">
+          <div class="versus__photo media">
+            {%- if side_image != blank -%}
+              {{ side_image | image_url: width: 1000 | image_tag: widths: '400,700,1000', sizes: '(min-width: 750px) 45vw, 50vw', loading: 'lazy', alt: side_image.alt }}
+            {%- else -%}
+              {{ 'image' | placeholder_svg_tag: 'placeholder' }}
+            {%- endif -%}
+            <span class="versus__name">{{ section.settings[name_key] | escape }}</span>
+          </div>
+          <figcaption class="versus__info">
+            {%- if section.settings[tag_key] != blank -%}
+              <span class="versus__tag">
+                {%- if side == 2 -%}{% render 'icon', name: 'check', size: 12 %}{%- else -%}{% render 'icon', name: 'x', size: 12 %}{%- endif -%}
+                {{ section.settings[tag_key] | escape }}
+              </span>
+            {%- endif -%}
+            {%- if section.settings[text_key] != blank -%}
+              <p>{{ section.settings[text_key] | escape }}</p>
+            {%- endif -%}
+            {%- if section.settings[chip_key] != blank -%}
+              <span class="versus__chip">{% render 'icon', name: 'clock', size: 12 %}{{ section.settings[chip_key] | escape }}</span>
+            {%- endif -%}
+          </figcaption>
+        </figure>
+      {%- endfor -%}
+
+      {%- if section.settings.verdict != blank -%}
+        <p class="versus__verdict">{{ section.settings.verdict | escape }}</p>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Versus",
+  "tag": "section",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "default": "scheme-1", "label": "Color scheme" },
+    { "type": "text", "id": "eyebrow", "default": "Theirs vs. ours", "label": "Eyebrow" },
+    { "type": "text", "id": "heading", "default": "Same result. None of the hassle.", "label": "Heading" },
+    { "type": "text", "id": "accent", "default": "Ready in seconds.", "label": "Accent text" },
+    { "type": "text", "id": "subheading", "default": "What changes when you switch.", "label": "Subheading" },
+    { "type": "text", "id": "verdict", "default": "No prep. No mess. Just results.", "label": "Verdict between the photos" },
+    { "type": "header", "content": "Left: the alternative" },
+    { "type": "image_picker", "id": "left_image", "label": "Image" },
+    { "type": "text", "id": "left_name", "default": "Others", "label": "Name" },
+    { "type": "text", "id": "left_tag", "default": "The usual way", "label": "Tag" },
+    { "type": "text", "id": "left_text", "default": "What it is like to use, honestly.", "label": "Text" },
+    { "type": "text", "id": "left_chip", "default": "5 min every time", "label": "Chip" },
+    { "type": "header", "content": "Right: yours" },
+    { "type": "image_picker", "id": "right_image", "label": "Image" },
+    { "type": "text", "id": "right_name", "default": "Ours", "label": "Name" },
+    { "type": "text", "id": "right_tag", "default": "Our way", "label": "Tag" },
+    { "type": "text", "id": "right_text", "default": "What changes, in one sentence.", "label": "Text" },
+    { "type": "text", "id": "right_chip", "default": "5 seconds", "label": "Chip" }
+  ],
+  "presets": [{ "name": "Versus" }]
+}
+{% endschema %}

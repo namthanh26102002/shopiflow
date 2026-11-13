@@ -1,0 +1,35 @@
+{%- comment -%}
+  One featured customer review.
+
+  A block of sections/main-product.liquid, rendered from there with:
+  block
+{%- endcomment -%}
+
+<figure class="product-block review-card" {{ block.shopify_attributes }}>
+  <div class="review-card__head">
+    {% render 'avatar', name: block.settings.name, image: block.settings.avatar, size: 44 %}
+    <div>
+      <p class="review-card__name">{{ block.settings.name | escape }}</p>
+      <div class="review-card__meta">
+        {% render 'rating-stars', rating: block.settings.rating, size: 14 %}
+        {%- if block.settings.verified_label != blank -%}
+          <span class="verified">{% render 'icon', name: 'check', size: 12 %}{{ block.settings.verified_label | escape }}</span>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+  {%- if block.settings.headline != blank -%}
+    <blockquote class="review-card__headline">&ldquo;{{ block.settings.headline | escape }}&rdquo;</blockquote>
+  {%- endif -%}
+  {%- if block.settings.body != blank -%}
+    <read-more class="review-card__body">
+      <div class="rte read-more__content">{{ block.settings.body }}</div>
+      <button type="button" class="read-more__toggle" hidden aria-expanded="false">
+        {{- 'general.read_more' | t -}}
+      </button>
+    </read-more>
+  {%- endif -%}
+  {%- if block.settings.date != blank -%}
+    <figcaption class="review-card__date">{{ block.settings.date | escape }}</figcaption>
+  {%- endif -%}
+</figure>

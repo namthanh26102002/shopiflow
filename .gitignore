@@ -33,3 +33,8 @@ supabase/.temp
 supabase/.branches
 
 .vercel
+
+# Shopify theme: upstream themes kept locally for reference only, never shipped.
+shopify-theme/.reference
+shopify-theme/dist
+.shopify

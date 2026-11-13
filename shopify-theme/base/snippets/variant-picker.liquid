@@ -1,0 +1,137 @@
+{%- comment -%}
+  Variant picker.
+
+  Accepts:
+  - product: the product (required)
+  - style: 'pills' | 'swatches' | 'cards'
+  - heading: label above the cards (cards style only)
+
+  'cards' lists every variant as a full-width card with its own price, for
+  products whose variants are really purchase options ("Device only",
+  "Device + refills"). A badge comes from the variant metafield custom.badge
+  (single line text), so it can mark any variant without code changes.
+
+  Every option value is a real link to that variant's own URL, so with
+  JavaScript off a click is an ordinary navigation and Shopify re-renders the
+  page with the right price, availability, media and form. theme.js upgrades
+  the same links to swap the section in place via the Section Rendering API.
+  That is why this renders no radio inputs: there is no state to keep in sync.
+
+  Unavailable values stay clickable rather than disabled. A shopper needs to be
+  able to land on a sold-out size and see that it is sold out; a dead control
+  just looks broken.
+{%- endcomment -%}
+
+<variant-picker class="variant-picker">
+  {%- if product.has_only_default_variant -%}
+    {%- comment -%}Nothing to pick.{%- endcomment -%}
+  {%- elsif style == 'cards' -%}
+    {%- assign selected_id = product.selected_or_first_available_variant.id -%}
+    {%- if heading != blank -%}
+      <p class="variant-cards__heading" id="VariantCards-{{ section.id }}">{{ heading | escape }}</p>
+    {%- endif -%}
+    <ul class="variant-cards" {% if heading != blank %}aria-labelledby="VariantCards-{{ section.id }}"{% endif %}>
+      {%- for variant in product.variants -%}
+        {%- liquid
+          assign badge = variant.metafields.custom.badge.value
+          assign is_selected = false
+          if variant.id == selected_id
+            assign is_selected = true
+          endif
+        -%}
+        <li>
+          <a
+            class="variant-value variant-card"
+            href="{{ variant.url }}"
+            {% if is_selected %}aria-current="true"{% endif %}
+            {% unless variant.available %}data-unavailable{% endunless %}
+            data-option-position="card"
+            data-option-value="{{ variant.id }}"
+          >
+            <span class="variant-card__radio" aria-hidden="true"></span>
+            <span class="variant-card__title">
+              {{- variant.title | escape -}}
+              {%- unless variant.available %}
+                <span class="variant-card__note">{{ 'products.product.sold_out' | t }}</span>
+              {%- endunless -%}
+            </span>
+            {%- if badge != blank -%}
+              <span class="variant-card__badge">{{ badge | escape }}</span>
+            {%- endif -%}
+            <span class="variant-card__prices">
+              <strong>{{ variant.price | money }}</strong>
+              {%- if variant.compare_at_price > variant.price %}
+                <s>
+                  <span class="visually-hidden">{{ 'products.product.price.regular_price' | t }}</span>
+                  {{ variant.compare_at_price | money }}
+                </s>
+              {%- endif -%}
+            </span>
+          </a>
+        </li>
+      {%- endfor -%}
+    </ul>
+  {%- else -%}
+    {%- for option in product.options_with_values -%}
+      {%- liquid
+        assign label_id = 'Option-' | append: section.id | append: '-' | append: option.position
+      -%}
+
+      <div class="variant-option" role="group" aria-labelledby="{{ label_id }}">
+        <span class="variant-option__label" id="{{ label_id }}">
+          {{ option.name | escape }}:
+          <strong>{{ option.selected_value | escape }}</strong>
+        </span>
+
+        <ul class="variant-option__values">
+          {%- for value in option.values -%}
+            {%- liquid
+              assign swatch_style = null
+              if value.swatch.image
+                assign swatch_image = value.swatch.image | image_url: width: 100
+                assign swatch_style = 'background-image: url(' | append: swatch_image | append: ');'
+              elsif value.swatch.color
+                assign swatch_style = 'background-color: rgb(' | append: value.swatch.color.rgb | append: ');'
+              endif
+
+              assign is_swatch = false
+              if style == 'swatches' and swatch_style
+                assign is_swatch = true
+              endif
+            -%}
+
+            <li>
+              <a
+                class="variant-value{% if is_swatch %} variant-value--swatch{% endif %}"
+                href="{{ value.product_url }}"
+                {% if is_swatch %}style="{{ swatch_style }}"{% endif %}
+                {% if value.selected %}aria-current="true"{% endif %}
+                {% unless value.available %}data-unavailable{% endunless %}
+                data-option-position="{{ option.position }}"
+                data-option-value="{{ value | escape }}"
+              >
+                {%- if is_swatch -%}
+                  <span class="visually-hidden">{{ value | escape }}</span>
+                {%- else -%}
+                  {{ value | escape }}
+                {%- endif -%}
+
+                {%- unless value.available -%}
+                  <span class="visually-hidden">
+                    {{- 'products.product.value_unavailable' | t -}}
+                  </span>
+                {%- endunless -%}
+              </a>
+            </li>
+          {%- endfor -%}
+        </ul>
+      </div>
+    {%- endfor -%}
+  {%- endif -%}
+
+  {%- comment -%}
+    No variant id field here. It lives in the product form itself (see
+    sections/main-product.liquid), so the product still adds to cart when a
+    merchant removes this block, e.g. for a single-variant product.
+  {%- endcomment -%}
+</variant-picker>

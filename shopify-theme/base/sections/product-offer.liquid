@@ -1,0 +1,137 @@
+{%- comment -%}
+  Closing offer card: image, what is included, price, and a buy button.
+
+  On a product page it sells that product unless another is chosen. The
+  button posts its own small form for one unit of the selected variant, so it
+  works without JavaScript and does not depend on the main product section.
+{%- endcomment -%}
+
+{%- liquid
+  assign offer_product = section.settings.product | default: product
+  assign offer_variant = offer_product.selected_or_first_available_variant
+  assign saving_percent = 0
+  if offer_variant.compare_at_price > offer_variant.price
+    assign saving_percent = offer_variant.compare_at_price | minus: offer_variant.price | times: 100.0 | divided_by: offer_variant.compare_at_price | round
+  endif
+  assign checks = section.settings.checks | newline_to_br | split: '<br />'
+-%}
+
+<div class="color-{{ section.settings.color_scheme }}">
+  <div class="page-width section">
+    {%
+      render 'section-heading',
+      heading: section.settings.heading,
+      accent: section.settings.accent,
+      accent_break: true,
+      subheading: section.settings.subheading
+    %}
+
+    {%- if offer_product != blank -%}
+      <div class="offer-card">
+        <div class="offer-card__media media">
+          {%- assign offer_media = offer_variant.featured_media | default: offer_product.featured_media -%}
+          {%- if offer_media -%}
+            {{ offer_media.preview_image | image_url: width: 1200 | image_tag: widths: '500,800,1200', sizes: '(min-width: 990px) 40vw, 90vw', loading: 'lazy', alt: offer_media.alt }}
+          {%- else -%}
+            {{ 'product-1' | placeholder_svg_tag: 'placeholder' }}
+          {%- endif -%}
+        </div>
+
+        <div class="offer-card__body">
+          <p class="offer-card__title">{{ section.settings.title | default: offer_product.title | escape }}</p>
+          {%- if section.settings.tagline != blank -%}
+            <p class="offer-card__tagline">{{ section.settings.tagline | escape }}</p>
+          {%- endif -%}
+
+          {%- if section.blocks.size > 0 -%}
+            <ul class="offer-card__includes" role="list">
+              {%- for block in section.blocks -%}
+                <li {{ block.shopify_attributes }}>
+                  <span class="offer-card__tick">{% render 'icon', name: 'check', size: 14 %}</span>
+                  <span class="rte">{{ block.settings.text }}</span>
+                  {%- if block.settings.tag != blank -%}
+                    <span class="offer-card__tag">{{ block.settings.tag | escape }}</span>
+                  {%- endif -%}
+                </li>
+              {%- endfor -%}
+            </ul>
+          {%- endif -%}
+
+          <p class="offer-card__price">
+            <strong>{{ offer_variant.price | money }}</strong>
+            {%- if saving_percent > 0 %}
+              <s>{{ offer_variant.compare_at_price | money }}</s>
+              <span class="save-badge">{{ 'products.product.offers.save' | t: percent: saving_percent }}</span>
+            {%- endif -%}
+          </p>
+
+          {%- form 'product', offer_product, class: 'offer-card__form' -%}
+            <input type="hidden" name="id" value="{{ offer_variant.id }}">
+            <button type="submit" name="add" class="button button--full button--cta" {% unless offer_variant.available %}disabled{% endunless %}>
+              {%- if offer_variant.available and section.settings.button_label != blank -%}
+                {{ section.settings.button_label | escape }}
+              {%- elsif offer_variant.available -%}
+                {{ 'products.product.add_to_cart' | t }}
+              {%- else -%}
+                {{ 'products.product.sold_out' | t }}
+              {%- endif -%}
+            </button>
+          {%- endform -%}
+
+          {%- assign has_checks = false -%}
+          {%- for line in checks -%}{%- if line != blank -%}{%- assign has_checks = true -%}{%- endif -%}{%- endfor -%}
+          {%- if has_checks -%}
+            <ul class="offer-card__checks" role="list">
+              {%- for line in checks -%}
+                {%- assign check = line | strip -%}
+                {%- if check != blank -%}
+                  <li>{% render 'icon', name: 'check', size: 12 %}{{ check | escape }}</li>
+                {%- endif -%}
+              {%- endfor -%}
+            </ul>
+          {%- endif -%}
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Product offer",
+  "tag": "section",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "default": "scheme-3", "label": "Color scheme" },
+    { "type": "product", "id": "product", "label": "Product", "info": "Leave blank on a product page to use that product." },
+    { "type": "text", "id": "heading", "default": "You can keep doing it the old way.", "label": "Heading" },
+    { "type": "text", "id": "accent", "default": "Or you can fix it.", "label": "Accent line" },
+    { "type": "text", "id": "subheading", "default": "The last push, in one or two sentences.", "label": "Subheading" },
+    { "type": "text", "id": "title", "label": "Product name", "info": "Leave blank to use the product title." },
+    { "type": "text", "id": "tagline", "default": "What it does, in one line.", "label": "Tagline" },
+    { "type": "text", "id": "button_label", "default": "Yes, I want this", "label": "Button label" },
+    { "type": "textarea", "id": "checks", "default": "30 day guarantee\nFree shipping\nSecure checkout", "label": "Reassurance line", "info": "One per line." }
+  ],
+  "blocks": [
+    {
+      "type": "include",
+      "name": "Included item",
+      "settings": [
+        { "type": "inline_richtext", "id": "text", "default": "<b>The product</b> and what makes it good", "label": "Text" },
+        { "type": "text", "id": "tag", "label": "Tag", "info": "e.g. FREE" }
+      ]
+    }
+  ],
+  "max_blocks": 8,
+  "presets": [
+    {
+      "name": "Product offer",
+      "blocks": [
+        { "type": "include" },
+        { "type": "include", "settings": { "text": "<b>Everything</b> you need to get started" } },
+        { "type": "include", "settings": { "text": "<b>A bonus guide</b>", "tag": "FREE" } },
+        { "type": "include", "settings": { "text": "<b>Free shipping</b> in plain packaging", "tag": "FREE" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

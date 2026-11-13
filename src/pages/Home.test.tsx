@@ -8,6 +8,9 @@ const projects = {
     { id: 'q1', title: 'Skin quiz', created_at: '2026-10-01', updated_at: new Date().toISOString(), published_url: 'x' },
   ],
   advertorials: [],
+  shopify_themes: [
+    { id: 't1', title: 'Summer store', created_at: '2026-10-01', updated_at: new Date().toISOString(), published_url: null },
+  ],
 };
 
 vi.mock('@/hooks/useAuth', () => ({
@@ -15,7 +18,7 @@ vi.mock('@/hooks/useAuth', () => ({
 }));
 
 vi.mock('@/hooks/useProjects', () => ({
-  useProjects: (table: 'quizzes' | 'advertorials') => ({
+  useProjects: (table: keyof typeof projects) => ({
     projects: projects[table],
     loading: false,
     busy: false,
@@ -47,9 +50,17 @@ describe('Home', () => {
     render(<MemoryRouter><Home /></MemoryRouter>);
     expect(screen.getByText('Skin quiz')).toBeInTheDocument();
     expect(screen.getByText('Live')).toBeInTheDocument();
-    expect(screen.getByText('1 of 2 used')).toBeInTheDocument();
+    // Quizzes and themes each have one project.
+    expect(screen.getAllByText('1 of 2 used')).toHaveLength(2);
     expect(screen.getByText('No advertorials yet')).toBeInTheDocument();
     await waitFor(() => expect(screen.getByText('40%')).toBeInTheDocument());
     expect(screen.getByText('10')).toBeInTheDocument();
+  });
+
+  it('lists Shopify themes without visit stats or a live/draft pill', () => {
+    render(<MemoryRouter><Home /></MemoryRouter>);
+    const card = screen.getByText('Summer store').closest('button')!;
+    expect(card).not.toHaveTextContent('Draft');
+    expect(card).not.toHaveTextContent('last 30 days');
   });
 });

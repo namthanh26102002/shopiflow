@@ -1,0 +1,99 @@
+{%- liquid
+  assign menu = section.settings.menu
+-%}
+
+<div class="color-{{ section.settings.color_scheme }}{% if section.settings.sticky %} header-wrapper--sticky{% endif %}">
+  <div class="page-width">
+    <div class="header">
+      <menu-toggle class="header__menu-toggle" data-panel-id="mobile-menu-{{ section.id }}">
+        <button
+          type="button"
+          class="header__icon"
+          aria-expanded="false"
+          aria-controls="mobile-menu-{{ section.id }}"
+        >
+          <span class="visually-hidden">{{ 'accessibility.menu' | t }}</span>
+          {% render 'icon', name: 'menu' %}
+        </button>
+      </menu-toggle>
+
+      {%- if settings.logo != blank -%}
+        <a class="header__logo" href="{{ routes.root_url }}" style="--logo-width: {{ settings.logo_width }}px;">
+          {{
+            settings.logo
+            | image_url: width: 600
+            | image_tag:
+              widths: '120,240,360,480,600',
+              sizes: '(min-width: 750px) 300px, 180px',
+              alt: shop.name
+          }}
+        </a>
+      {%- else -%}
+        <a class="header__logo" href="{{ routes.root_url }}">{{ shop.name }}</a>
+      {%- endif -%}
+
+      <nav class="header__nav">
+        {%- for link in linklists[menu].links -%}
+          <a
+            href="{{ link.url }}"
+            {% if link.active %}aria-current="page"{% endif %}
+          >
+            {{- link.title | escape -}}
+          </a>
+        {%- endfor -%}
+      </nav>
+
+      <div class="header__actions">
+        <a class="header__icon" href="{{ routes.search_url }}">
+          <span class="visually-hidden">{{ 'accessibility.search' | t }}</span>
+          {% render 'icon', name: 'search' %}
+        </a>
+
+        <a class="header__icon" href="{{ routes.cart_url }}" style="position: relative;">
+          <span class="visually-hidden">{{ 'accessibility.cart' | t }}</span>
+          {% render 'icon', name: 'cart' %}
+          {%- if cart.item_count > 0 -%}
+            <span class="cart-count">{{ cart.item_count }}</span>
+          {%- endif -%}
+        </a>
+      </div>
+    </div>
+
+    <div class="mobile-menu" id="mobile-menu-{{ section.id }}" hidden>
+      {%- for link in linklists[menu].links -%}
+        <a href="{{ link.url }}" {% if link.active %}aria-current="page"{% endif %}>
+          {{- link.title | escape -}}
+        </a>
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Header",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "default": "scheme-1",
+      "label": "Color scheme"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "default": "main-menu",
+      "label": "Menu"
+    },
+    {
+      "type": "checkbox",
+      "id": "sticky",
+      "default": false,
+      "label": "Stick to top on scroll"
+    }
+  ],
+  "enabled_on": {
+    "groups": ["header"]
+  }
+}
+{% endschema %}

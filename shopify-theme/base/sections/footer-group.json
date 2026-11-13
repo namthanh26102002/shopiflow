@@ -1,0 +1,32 @@
+{
+  "type": "footer",
+  "name": "Footer",
+  "sections": {
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "color_scheme": "scheme-2",
+        "show_social": true,
+        "show_payment_icons": true
+      },
+      "blocks": {
+        "menu": {
+          "type": "menu",
+          "settings": {
+            "heading": "Shop",
+            "menu": "footer"
+          }
+        },
+        "text": {
+          "type": "text",
+          "settings": {
+            "heading": "About",
+            "text": "<p>Tell customers what your store is about.</p>"
+          }
+        }
+      },
+      "block_order": ["menu", "text"]
+    }
+  },
+  "order": ["footer"]
+}

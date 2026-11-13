@@ -1,0 +1,46 @@
+{%- comment -%}
+  One-at-a-time testimonial slider.
+
+  A block of sections/main-product.liquid, rendered from there with:
+  block
+{%- endcomment -%}
+
+<div class="product-block quote-slider" {{ block.shopify_attributes }}>
+  {%- if block.settings.eyebrow != blank -%}
+    <p class="eyebrow">{{ block.settings.eyebrow | escape }}</p>
+  {%- endif -%}
+  <scroll-carousel class="carousel quote-slider__carousel">
+    <ul class="carousel__track" tabindex="0">
+      {%- for i in (1..5) -%}
+        {%- liquid
+          assign quote_key = 'quote_' | append: i
+          assign name_key = 'name_' | append: i
+          assign detail_key = 'detail_' | append: i
+          assign quote_name = block.settings[name_key]
+        -%}
+        {%- if block.settings[quote_key] != blank -%}
+          <li class="carousel__slide quote-slider__slide">
+            <blockquote class="quote-slider__quote">{{ block.settings[quote_key] | escape }}</blockquote>
+            <div class="quote-slider__meta">
+              {% render 'avatar', name: quote_name, size: 32 %}
+              <span>
+                <strong>{{ quote_name | escape }}</strong>
+                {%- if block.settings[detail_key] != blank -%}<small>{{ block.settings[detail_key] | escape }}</small>{%- endif -%}
+              </span>
+              <span class="quote-slider__rating">
+                {% render 'rating-stars', rating: block.settings.rating, size: 13 %}
+                {%- if block.settings.verified_label != blank -%}
+                  <span class="verified">{% render 'icon', name: 'check', size: 12 %}{{ block.settings.verified_label | escape }}</span>
+                {%- endif -%}
+              </span>
+            </div>
+          </li>
+        {%- endif -%}
+      {%- endfor -%}
+    </ul>
+    <div class="carousel__controls">
+      <button type="button" class="carousel__nav" data-step="-1" aria-label="{{ 'accessibility.previous' | t }}">{% render 'icon', name: 'chevron-left', size: 16 %}</button>
+      <button type="button" class="carousel__nav" data-step="1" aria-label="{{ 'accessibility.next' | t }}">{% render 'icon', name: 'chevron-right', size: 16 %}</button>
+    </div>
+  </scroll-carousel>
+</div>

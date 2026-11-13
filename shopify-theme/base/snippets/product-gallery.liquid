@@ -1,0 +1,116 @@
+{%- comment -%}
+  Product media gallery: a horizontally scrolling track with arrows and a
+  thumbnail strip.
+
+  Accepts:
+  - product: the product (required)
+  - ratio: 'square' | 'portrait' | 'adapt', default 'square'
+  - thumbs_position: 'bottom' | 'left', default 'bottom'. Left applies from
+    desktop width up; phones always get the strip underneath.
+
+  The track is a native scroll-snap container, so it swipes on touch screens
+  and scrolls with a trackpad even if theme.js never loads. theme.js adds the
+  arrows and thumbnails, and opens the gallery on the selected variant's image.
+  Arrows and thumbnails stay hidden until then, so nobody sees a control that
+  does nothing.
+{%- endcomment -%}
+
+{%- liquid
+  assign ratio = ratio | default: 'square'
+  assign thumbs_position = thumbs_position | default: 'bottom'
+  assign featured = product.selected_or_first_available_variant.featured_media | default: product.featured_media
+  assign track_id = 'GalleryTrack-' | append: section.id
+-%}
+
+{%- if product.media.size > 0 -%}
+  <product-gallery class="gallery gallery--{{ ratio }} gallery--thumbs-{{ thumbs_position }}" data-featured-media="{{ featured.id }}">
+    <div class="gallery__stage">
+      <ul
+        class="gallery__track"
+        id="{{ track_id }}"
+        tabindex="0"
+        aria-label="{{ 'products.product.media.gallery' | t }}"
+      >
+        {%- for media in product.media -%}
+          <li class="gallery__slide media" data-media-id="{{ media.id }}">
+            {%- case media.media_type -%}
+              {%- when 'video' -%}
+                {{ media | video_tag: controls: true, image_size: '1600x' }}
+
+              {%- when 'external_video' -%}
+                {{ media | external_video_tag }}
+
+              {%- else -%}
+                {%- comment -%}
+                  Images, and 3D models as their preview image: model-viewer
+                  is a sizeable dependency nothing else in the theme needs.
+                {%- endcomment -%}
+                {%- liquid
+                  assign loading = 'lazy'
+                  if media.id == featured.id
+                    assign loading = 'eager'
+                  endif
+                -%}
+                {{
+                  media.preview_image
+                  | image_url: width: 1600
+                  | image_tag:
+                    widths: '400,600,800,1200,1600',
+                    sizes: '(min-width: 990px) 55vw, 100vw',
+                    loading: loading,
+                    alt: media.alt
+                }}
+            {%- endcase -%}
+          </li>
+        {%- endfor -%}
+      </ul>
+
+      {%- if product.media.size > 1 -%}
+        <button
+          type="button"
+          class="gallery__nav gallery__nav--prev"
+          data-step="-1"
+          aria-controls="{{ track_id }}"
+          aria-label="{{ 'accessibility.previous' | t }}"
+        >
+          {% render 'icon', name: 'chevron-left' %}
+        </button>
+        <button
+          type="button"
+          class="gallery__nav gallery__nav--next"
+          data-step="1"
+          aria-controls="{{ track_id }}"
+          aria-label="{{ 'accessibility.next' | t }}"
+        >
+          {% render 'icon', name: 'chevron-right' %}
+        </button>
+      {%- endif -%}
+    </div>
+
+    {%- if product.media.size > 1 -%}
+      <ul class="gallery__thumbs">
+        {%- for media in product.media -%}
+          <li>
+            <button
+              type="button"
+              class="gallery__thumb media"
+              data-media-target="{{ media.id }}"
+              {% if media.id == featured.id %}aria-current="true"{% endif %}
+            >
+              <span class="visually-hidden">
+                {{- 'products.product.media.show_image' | t: index: forloop.index -}}
+              </span>
+              {{
+                media.preview_image
+                | image_url: width: 200
+                | image_tag: widths: '100,150,200', sizes: '80px', loading: 'lazy', alt: ''
+              }}
+            </button>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+  </product-gallery>
+{%- else -%}
+  <div class="media media--square">{{ 'product-1' | placeholder_svg_tag }}</div>
+{%- endif -%}

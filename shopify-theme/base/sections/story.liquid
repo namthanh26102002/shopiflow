@@ -1,0 +1,50 @@
+{%- comment -%}
+  One customer's story at length, centred, usually on the dark scheme.
+{%- endcomment -%}
+
+<div class="color-{{ section.settings.color_scheme }}">
+  <div class="page-width section">
+    <figure class="story">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="eyebrow">{{ section.settings.eyebrow | escape }}</p>
+      {%- endif -%}
+      <span class="story__mark">{% render 'icon', name: 'quote', size: 28 %}</span>
+      <blockquote>
+        <p class="story__headline">
+          {{- section.settings.heading | escape }}
+          {% if section.settings.accent != blank %}<span class="heading-accent">{{ section.settings.accent | escape }}</span>{% endif -%}
+        </p>
+        <div class="story__body rte">{{ section.settings.body }}</div>
+      </blockquote>
+      {%- if section.settings.name != blank -%}
+        <figcaption class="story__author">
+          {% render 'avatar', name: section.settings.name, image: section.settings.avatar, size: 40 %}
+          <span>{{ section.settings.name | escape }}</span>
+        </figcaption>
+      {%- endif -%}
+    </figure>
+
+    {% render 'cta', label: section.settings.button_label, link: section.settings.button_link, caption: section.settings.button_caption %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Customer story",
+  "tag": "section",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "default": "scheme-3", "label": "Color scheme" },
+    { "type": "text", "id": "eyebrow", "default": "One customer's story", "label": "Eyebrow" },
+    { "type": "text", "id": "heading", "default": "The line from their story that stops people scrolling.", "label": "Opening line" },
+    { "type": "text", "id": "accent", "default": "The part that stings.", "label": "Accent part" },
+    { "type": "richtext", "id": "body", "default": "<p>What they had tried, what went wrong, and what finally changed. <strong>Bold the turning point.</strong></p>", "label": "Story" },
+    { "type": "text", "id": "name", "default": "Customer N., 52", "label": "Name" },
+    { "type": "image_picker", "id": "avatar", "label": "Photo" },
+    { "type": "header", "content": "Button" },
+    { "type": "text", "id": "button_label", "default": "Yes, I want this", "label": "Label" },
+    { "type": "url", "id": "button_link", "label": "Link", "info": "Leave blank to scroll to the buy box on product pages." },
+    { "type": "text", "id": "button_caption", "label": "Line under the button" }
+  ],
+  "presets": [{ "name": "Customer story" }]
+}
+{% endschema %}

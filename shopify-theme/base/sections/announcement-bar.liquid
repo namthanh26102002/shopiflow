@@ -1,0 +1,46 @@
+{%- comment -%}
+  Announcement bar with several messages. Desktop shows them all in a row;
+  narrow screens show one at a time and theme.js rotates them. Without
+  JavaScript, or with reduced motion requested, the first message stays put.
+{%- endcomment -%}
+
+{%- if section.blocks.size > 0 -%}
+  <div class="color-{{ section.settings.color_scheme }} announcement">
+    <announcement-rotator class="page-width announcement__list" data-interval="{{ section.settings.interval }}">
+      {%- for block in section.blocks -%}
+        <p class="announcement__message{% if forloop.first %} is-active{% endif %}" {{ block.shopify_attributes }}>
+          <span class="announcement__dot" aria-hidden="true"></span>
+          {%- if block.settings.link != blank -%}
+            <a href="{{ block.settings.link }}">{{ block.settings.text }}</a>
+          {%- else -%}
+            <span>{{ block.settings.text }}</span>
+          {%- endif -%}
+        </p>
+      {%- endfor -%}
+    </announcement-rotator>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Announcement bar",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "default": "scheme-4", "label": "Color scheme" },
+    { "type": "range", "id": "interval", "min": 3, "max": 10, "step": 1, "default": 4, "unit": "s", "label": "Seconds per message on phones" }
+  ],
+  "blocks": [
+    {
+      "type": "message",
+      "name": "Message",
+      "settings": [
+        { "type": "inline_richtext", "id": "text", "default": "Order today, it <b>ships next day</b>", "label": "Text", "info": "Bold or underline the key words." },
+        { "type": "url", "id": "link", "label": "Link" }
+      ]
+    }
+  ],
+  "max_blocks": 4,
+  "enabled_on": {
+    "groups": ["header", "footer"]
+  }
+}
+{% endschema %}

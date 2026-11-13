@@ -1,0 +1,174 @@
+<div class="color-{{ section.settings.color_scheme }}">
+  <div class="page-width footer">
+    {%- if section.blocks.size > 0 -%}
+      <div class="footer__blocks">
+        {%- for block in section.blocks -%}
+          <div {{ block.shopify_attributes }}>
+            {%- if block.settings.heading != blank -%}
+              <h2 class="h3">{{ block.settings.heading | escape }}</h2>
+            {%- endif -%}
+
+            {%- case block.type -%}
+              {%- when 'menu' -%}
+                <ul class="footer__list">
+                  {%- for link in linklists[block.settings.menu].links -%}
+                    <li><a href="{{ link.url }}">{{ link.title | escape }}</a></li>
+                  {%- endfor -%}
+                </ul>
+
+              {%- when 'text' -%}
+                <div class="rte">{{ block.settings.text }}</div>
+
+              {%- when 'newsletter' -%}
+                {%- form 'customer', class: 'footer__newsletter' -%}
+                  <input type="hidden" name="contact[tags]" value="newsletter">
+                  <label class="visually-hidden" for="NewsletterEmail-{{ block.id }}">
+                    {{ 'general.newsletter.label' | t }}
+                  </label>
+                  <input
+                    id="NewsletterEmail-{{ block.id }}"
+                    class="field__input"
+                    type="email"
+                    name="contact[email]"
+                    placeholder="{{ 'general.newsletter.placeholder' | t }}"
+                    autocomplete="email"
+                    required
+                  >
+                  <button type="submit" class="button" style="margin-top: 0.5rem;">
+                    {{ 'general.newsletter.submit' | t }}
+                  </button>
+
+                  {%- if form.posted_successfully? -%}
+                    <p>{{ 'general.newsletter.success' | t }}</p>
+                  {%- endif -%}
+                {%- endform -%}
+            {%- endcase -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    <div class="footer__bottom">
+      <span>&copy; {{ 'now' | date: '%Y' }} {{ shop.name }}</span>
+
+      {%- if section.settings.show_social -%}
+        <div class="social">
+          {%- if settings.social_instagram_link != blank -%}
+            <a href="{{ settings.social_instagram_link }}">
+              <span class="visually-hidden">Instagram</span>
+              {% render 'icon', name: 'instagram' %}
+            </a>
+          {%- endif -%}
+          {%- if settings.social_tiktok_link != blank -%}
+            <a href="{{ settings.social_tiktok_link }}">
+              <span class="visually-hidden">TikTok</span>
+              {% render 'icon', name: 'tiktok' %}
+            </a>
+          {%- endif -%}
+          {%- if settings.social_facebook_link != blank -%}
+            <a href="{{ settings.social_facebook_link }}">
+              <span class="visually-hidden">Facebook</span>
+              {% render 'icon', name: 'facebook' %}
+            </a>
+          {%- endif -%}
+          {%- if settings.social_youtube_link != blank -%}
+            <a href="{{ settings.social_youtube_link }}">
+              <span class="visually-hidden">YouTube</span>
+              {% render 'icon', name: 'youtube' %}
+            </a>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.show_payment_icons and shop.enabled_payment_types.size > 0 -%}
+        <div class="social">
+          {%- for type in shop.enabled_payment_types -%}
+            {{ type | payment_type_svg_tag: class: 'payment-icon' }}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Footer",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "default": "scheme-2",
+      "label": "Color scheme"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_social",
+      "default": true,
+      "label": "Show social icons",
+      "info": "Links are set in theme settings under Social media."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_payment_icons",
+      "default": true,
+      "label": "Show payment icons"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "menu",
+      "name": "Menu",
+      "limit": 3,
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "default": "Shop",
+          "label": "Heading"
+        },
+        {
+          "type": "link_list",
+          "id": "menu",
+          "default": "footer",
+          "label": "Menu"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "name": "Text",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "default": "About",
+          "label": "Heading"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "default": "<p>Tell customers what your store is about.</p>",
+          "label": "Text"
+        }
+      ]
+    },
+    {
+      "type": "newsletter",
+      "name": "Newsletter signup",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "default": "Stay in touch",
+          "label": "Heading"
+        }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "groups": ["footer"]
+  }
+}
+{% endschema %}

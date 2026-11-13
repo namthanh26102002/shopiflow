@@ -1,0 +1,260 @@
+{%- comment -%}
+  Media beside a stack of content blocks. Covers both the "problem" layout
+  (two captioned image cards on a tinted panel) and the "how it works" layout
+  (one photo with an overlay note, numbered steps and a comparison pair).
+{%- endcomment -%}
+
+{%- assign step_number = 0 -%}
+
+<div class="color-{{ section.settings.color_scheme }}">
+  <div class="page-width section">
+    <div class="media-text media-text--{{ section.settings.layout }}">
+      <div class="media-text__media">
+        {%- if section.settings.media_style == 'cards' -%}
+          <div class="media-cards">
+            {%- for i in (1..2) -%}
+              {%- liquid
+                assign image_key = 'image'
+                assign label_key = 'image_label'
+                assign caption_key = 'image_caption'
+                if i == 2
+                  assign image_key = 'image_2'
+                  assign label_key = 'image_2_label'
+                  assign caption_key = 'image_2_caption'
+                endif
+                assign card_image = section.settings[image_key]
+              -%}
+              {%- if card_image != blank or section.settings[label_key] != blank -%}
+                <figure class="media-card">
+                  {%- if section.settings[label_key] != blank -%}
+                    <p class="media-card__label media-card__label--{{ i }}">{{ section.settings[label_key] | escape }}</p>
+                  {%- endif -%}
+                  {%- if card_image != blank -%}
+                    {{ card_image | image_url: width: 1000 | image_tag: widths: '400,600,800,1000', sizes: '(min-width: 990px) 40vw, 90vw', loading: 'lazy', alt: card_image.alt }}
+                  {%- else -%}
+                    {{ 'image' | placeholder_svg_tag: 'placeholder' }}
+                  {%- endif -%}
+                  {%- if section.settings[caption_key] != blank -%}
+                    <figcaption>{{ section.settings[caption_key] | escape }}</figcaption>
+                  {%- endif -%}
+                </figure>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        {%- else -%}
+          <div class="media-photo media">
+            {%- if section.settings.image != blank -%}
+              {{ section.settings.image | image_url: width: 1400 | image_tag: widths: '600,900,1200,1400', sizes: '(min-width: 990px) 45vw, 100vw', loading: 'lazy', alt: section.settings.image.alt }}
+            {%- else -%}
+              {{ 'lifestyle-1' | placeholder_svg_tag: 'placeholder' }}
+            {%- endif -%}
+            {%- if section.settings.overlay_title != blank -%}
+              <div class="media-photo__note">
+                <strong>{{ section.settings.overlay_title | escape }}</strong>
+                {%- if section.settings.overlay_text != blank -%}
+                  <span>{{ section.settings.overlay_text | escape }}</span>
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+            {%- if section.settings.badge_text != blank -%}
+              <p class="media-photo__badge"><span class="pill__dot" aria-hidden="true"></span>{{ section.settings.badge_text | escape }}</p>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      </div>
+
+      <div class="media-text__content">
+        {%
+          render 'section-heading',
+          eyebrow: section.settings.eyebrow,
+          heading: section.settings.heading,
+          accent: section.settings.accent,
+          accent_break: true,
+          align: 'left'
+        %}
+
+        {%- for block in section.blocks -%}
+          {%- case block.type -%}
+            {%- when 'quote' -%}
+              <p class="content-quote" {{ block.shopify_attributes }}>{{ block.settings.text | escape }}</p>
+
+            {%- when 'text' -%}
+              <div class="rte content-text" {{ block.shopify_attributes }}>{{ block.settings.text }}</div>
+
+            {%- when 'bullets' -%}
+              {%- assign lines = block.settings.items | newline_to_br | split: '<br />' -%}
+              <ul class="content-bullets content-bullets--{{ block.settings.icon }}" {{ block.shopify_attributes }}>
+                {%- for line in lines -%}
+                  {%- assign item = line | strip -%}
+                  {%- if item != blank -%}
+                    <li>
+                      <span class="content-bullets__icon">{% render 'icon', name: block.settings.icon, size: 16 %}</span>
+                      <span>{{ item | escape }}</span>
+                    </li>
+                  {%- endif -%}
+                {%- endfor -%}
+              </ul>
+
+            {%- when 'step' -%}
+              {%- assign step_number = step_number | plus: 1 -%}
+              <div class="content-step" {{ block.shopify_attributes }}>
+                <span class="content-step__number" aria-hidden="true">{{ step_number }}</span>
+                <div>
+                  <p class="content-step__title">{{ block.settings.title | escape }}</p>
+                  {%- if block.settings.text != blank -%}
+                    <p class="content-step__text">{{ block.settings.text | escape }}</p>
+                  {%- endif -%}
+                </div>
+              </div>
+
+            {%- when 'compare' -%}
+              <div class="content-compare" {{ block.shopify_attributes }}>
+                <div class="content-compare__side">
+                  <p class="content-compare__label">{{ block.settings.left_label | escape }}</p>
+                  <p>{{ block.settings.left_text | escape }}</p>
+                </div>
+                <div class="content-compare__side content-compare__side--ours">
+                  <p class="content-compare__label">{{ block.settings.right_label | escape }}</p>
+                  <p>{{ block.settings.right_text | escape }}</p>
+                </div>
+              </div>
+
+            {%- when 'closing' -%}
+              <p class="content-closing" {{ block.shopify_attributes }}>
+                {{- block.settings.text | escape }}
+                {% if block.settings.accent != blank %}<span class="heading-accent">{{ block.settings.accent | escape }}</span>{% endif -%}
+              </p>
+
+            {%- when 'button' -%}
+              <div {{ block.shopify_attributes }}>
+                {% render 'cta', label: block.settings.label, link: block.settings.link, caption: block.settings.caption, align: 'left' %}
+              </div>
+          {%- endcase -%}
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Media with text",
+  "tag": "section",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "default": "scheme-1", "label": "Color scheme" },
+    {
+      "type": "select",
+      "id": "layout",
+      "options": [
+        { "value": "media-left", "label": "Media left" },
+        { "value": "media-right", "label": "Media right" }
+      ],
+      "default": "media-left",
+      "label": "Layout"
+    },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow" },
+    { "type": "text", "id": "heading", "default": "Name the problem.", "label": "Heading" },
+    { "type": "text", "id": "accent", "default": "Then name what others miss.", "label": "Accent line" },
+    { "type": "header", "content": "Media" },
+    {
+      "type": "select",
+      "id": "media_style",
+      "options": [
+        { "value": "photo", "label": "One photo" },
+        { "value": "cards", "label": "Two captioned cards" }
+      ],
+      "default": "photo",
+      "label": "Style"
+    },
+    { "type": "image_picker", "id": "image", "label": "Image" },
+    { "type": "text", "id": "overlay_title", "label": "Photo note title", "info": "One photo only. A small card over the top corner." },
+    { "type": "text", "id": "overlay_text", "label": "Photo note text" },
+    { "type": "text", "id": "badge_text", "label": "Photo badge", "info": "One photo only. A pill over the bottom corner." },
+    { "type": "text", "id": "image_label", "label": "Card 1 label", "info": "Two cards only." },
+    { "type": "text", "id": "image_caption", "label": "Card 1 caption" },
+    { "type": "image_picker", "id": "image_2", "label": "Card 2 image" },
+    { "type": "text", "id": "image_2_label", "label": "Card 2 label" },
+    { "type": "text", "id": "image_2_caption", "label": "Card 2 caption" }
+  ],
+  "blocks": [
+    {
+      "type": "quote",
+      "name": "Lead-in",
+      "settings": [
+        { "type": "text", "id": "text", "default": "One sentence that frames the rest.", "label": "Text" }
+      ]
+    },
+    {
+      "type": "text",
+      "name": "Text",
+      "settings": [
+        { "type": "richtext", "id": "text", "default": "<p>Explain it simply. <strong>Bold the idea you want them to repeat.</strong></p>", "label": "Text" }
+      ]
+    },
+    {
+      "type": "bullets",
+      "name": "Bullet list",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "options": [
+            { "value": "x", "label": "Cross" },
+            { "value": "check", "label": "Tick" }
+          ],
+          "default": "x",
+          "label": "Marker"
+        },
+        { "type": "textarea", "id": "items", "default": "The first way the usual fix falls short.\nThe second.\nThe third.", "label": "Items", "info": "One per line." }
+      ]
+    },
+    {
+      "type": "step",
+      "name": "Numbered step",
+      "settings": [
+        { "type": "text", "id": "title", "default": "A simple step", "label": "Title" },
+        { "type": "text", "id": "text", "default": "What happens, in one line.", "label": "Text" }
+      ]
+    },
+    {
+      "type": "compare",
+      "name": "Comparison pair",
+      "settings": [
+        { "type": "text", "id": "left_label", "default": "The usual way", "label": "Left label" },
+        { "type": "text", "id": "left_text", "default": "What it does, and what it costs you.", "label": "Left text" },
+        { "type": "text", "id": "right_label", "default": "Our way", "label": "Right label" },
+        { "type": "text", "id": "right_text", "default": "What changes with this product.", "label": "Right text" }
+      ]
+    },
+    {
+      "type": "closing",
+      "name": "Closing line",
+      "settings": [
+        { "type": "text", "id": "text", "default": "The usual fix treats the symptom.", "label": "Text" },
+        { "type": "text", "id": "accent", "default": "This treats the cause.", "label": "Accent part" }
+      ]
+    },
+    {
+      "type": "button",
+      "name": "Button",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "label", "default": "Get yours", "label": "Label" },
+        { "type": "url", "id": "link", "label": "Link", "info": "Leave blank to scroll to the buy box on product pages." },
+        { "type": "text", "id": "caption", "label": "Line under the button" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Media with text",
+      "blocks": [
+        { "type": "quote" },
+        { "type": "text" },
+        { "type": "bullets" },
+        { "type": "closing" }
+      ]
+    }
+  ]
+}
+{% endschema %}

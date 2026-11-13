@@ -1,0 +1,73 @@
+{%- comment -%}
+  "What to expect" timeline: icon circles joined by a line, a card under each.
+  Horizontal on desktop, vertical on phones.
+{%- endcomment -%}
+
+<div class="color-{{ section.settings.color_scheme }}">
+  <div class="page-width section">
+    {%
+      render 'section-heading',
+      eyebrow: section.settings.eyebrow,
+      heading: section.settings.heading,
+      accent: section.settings.accent,
+      subheading: section.settings.subheading
+    %}
+
+    <ol class="timeline" role="list">
+      {%- for block in section.blocks -%}
+        <li class="timeline__step{% if block.settings.highlight %} timeline__step--highlight{% endif %}" {{ block.shopify_attributes }}>
+          <span class="timeline__icon">{% render 'icon', name: block.settings.icon, size: 20 %}</span>
+          <div class="timeline__card">
+            <p class="timeline__label">{{ block.settings.label | escape }}</p>
+            <p class="timeline__title">{{ block.settings.title | escape }}</p>
+            <p class="timeline__text">{{ block.settings.text | escape }}</p>
+          </div>
+        </li>
+      {%- endfor -%}
+    </ol>
+
+    {%- if section.settings.footnote != blank -%}
+      <p class="section-footnote">{{ section.settings.footnote | escape }}</p>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Timeline",
+  "tag": "section",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "default": "scheme-1", "label": "Color scheme" },
+    { "type": "text", "id": "eyebrow", "default": "What to expect", "label": "Eyebrow" },
+    { "type": "text", "id": "heading", "default": "Your first 30 days", "label": "Heading" },
+    { "type": "text", "id": "accent", "default": "with us", "label": "Accent text" },
+    { "type": "text", "id": "subheading", "default": "No complicated plan. One easy habit.", "label": "Subheading" },
+    { "type": "text", "id": "footnote", "default": "Everyone is different. Give it the full trial period before you decide.", "label": "Footnote" }
+  ],
+  "blocks": [
+    {
+      "type": "step",
+      "name": "Step",
+      "settings": [
+        { "type": "select", "id": "icon", "options": [{"value":"none","label":"None"},{"value":"check","label":"Check"},{"value":"x","label":"X"},{"value":"shield","label":"Shield"},{"value":"truck","label":"Truck"},{"value":"package","label":"Package"},{"value":"refresh","label":"Refresh"},{"value":"lock","label":"Lock"},{"value":"clock","label":"Clock"},{"value":"heart","label":"Heart"},{"value":"user","label":"User"},{"value":"cup","label":"Cup"},{"value":"leaf","label":"Leaf"},{"value":"star","label":"Star"},{"value":"zap","label":"Zap"},{"value":"gift","label":"Gift"},{"value":"chat","label":"Chat"},{"value":"home","label":"Home"},{"value":"mail","label":"Mail"},{"value":"calendar","label":"Calendar"},{"value":"power","label":"Power"},{"value":"activity","label":"Activity"},{"value":"target","label":"Target"},{"value":"award","label":"Award"},{"value":"eye-off","label":"Eye off"},{"value":"sparkle","label":"Sparkle"},{"value":"smile","label":"Smile"},{"value":"ban","label":"Ban"},{"value":"chart","label":"Chart"},{"value":"card","label":"Card"}], "default": "power", "label": "Icon" },
+        { "type": "text", "id": "label", "default": "Day 1", "label": "When" },
+        { "type": "text", "id": "title", "default": "Getting started", "label": "Title" },
+        { "type": "text", "id": "text", "default": "What they do and notice at this point.", "label": "Text" },
+        { "type": "checkbox", "id": "highlight", "default": false, "label": "Highlight this step" }
+      ]
+    }
+  ],
+  "max_blocks": 5,
+  "presets": [
+    {
+      "name": "Timeline",
+      "blocks": [
+        { "type": "step", "settings": { "icon": "power", "label": "Day 1" } },
+        { "type": "step", "settings": { "icon": "cup", "label": "Week 1", "title": "It becomes routine" } },
+        { "type": "step", "settings": { "icon": "activity", "label": "Weeks 2 to 3", "title": "Results build" } },
+        { "type": "step", "settings": { "icon": "check", "label": "Day 30", "title": "Your decision", "highlight": true } }
+      ]
+    }
+  ]
+}
+{% endschema %}

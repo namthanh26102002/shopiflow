@@ -1,0 +1,101 @@
+{%- liquid
+  assign collection = collections[section.settings.collection]
+  assign products = collection.products
+-%}
+
+<div class="color-{{ section.settings.color_scheme }}">
+  <div class="page-width section">
+    {%- if section.settings.heading != blank -%}
+      <h2>{{ section.settings.heading | escape }}</h2>
+    {%- endif -%}
+
+    {%- if products.size > 0 -%}
+      <ul class="grid" style="--grid-desktop: {{ section.settings.columns }};">
+        {%- for product in products limit: section.settings.product_limit -%}
+          <li>
+            {% render 'product-card', card_product: product %}
+          </li>
+        {%- endfor -%}
+      </ul>
+
+      {%- if section.settings.show_view_all and collection.all_products_count > section.settings.product_limit -%}
+        <div class="text-center" style="margin-top: 2rem;">
+          <a class="button button--secondary" href="{{ collection.url }}">
+            {{- 'products.product.view_details' | t -}}
+          </a>
+        </div>
+      {%- endif -%}
+    {%- else -%}
+      {%- comment -%}
+        Placeholders keep the section visible in the theme editor before a
+        collection has been chosen, so the merchant can see what they are
+        configuring rather than an empty box.
+      {%- endcomment -%}
+      <ul class="grid" style="--grid-desktop: {{ section.settings.columns }};">
+        {%- for i in (1..section.settings.columns) -%}
+          <li>
+            <div class="card">
+              <div class="media media--square">{{ 'product-1' | placeholder_svg_tag }}</div>
+              <h3 class="card__title">{{ 'products.product.view_details' | t }}</h3>
+            </div>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Featured collection",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "default": "scheme-1",
+      "label": "Color scheme"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "default": "Featured products",
+      "label": "Heading"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "product_limit",
+      "min": 2,
+      "max": 24,
+      "step": 1,
+      "default": 8,
+      "label": "Products to show"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "min": 2,
+      "max": 5,
+      "step": 1,
+      "default": 4,
+      "label": "Columns on desktop"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_view_all",
+      "default": true,
+      "label": "Show \"view all\" when there are more products"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured collection"
+    }
+  ]
+}
+{% endschema %}

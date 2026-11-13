@@ -1,0 +1,49 @@
+{%- comment -%}
+  A round avatar: the photo if there is one, otherwise the person's initials.
+
+  Accepts:
+  - name: the person's name, e.g. "Graham W., 61" (required)
+  - image: an image_picker value (optional)
+  - size: px, default 40
+
+  Initials come from the first two words with punctuation and digits removed,
+  so "Graham W., 61" gives "GW".
+{%- endcomment -%}
+
+{%- liquid
+  assign size = size | default: 40
+  if size == 0
+    assign size = 40
+  endif
+  assign cleaned = name | remove: ',' | remove: '.' | remove: '0' | remove: '1' | remove: '2' | remove: '3' | remove: '4' | remove: '5' | remove: '6' | remove: '7' | remove: '8' | remove: '9' | strip
+  assign words = cleaned | split: ' '
+  assign initials = words[0] | slice: 0 | upcase
+  if words.size > 1
+    assign second = words[1] | slice: 0 | upcase
+    assign initials = initials | append: second
+  endif
+
+  comment
+    Built up front: Liquid does not interpolate {{ }} inside a string
+    literal handed to a filter argument.
+  endcomment
+  assign size_style = 'width: ' | append: size | append: 'px; height: ' | append: size | append: 'px;'
+-%}
+
+{%- if image != blank -%}
+  {{
+    image
+    | image_url: width: 160
+    | image_tag:
+      class: 'avatar',
+      widths: '80,160',
+      sizes: '80px',
+      loading: 'lazy',
+      alt: '',
+      style: size_style
+  }}
+{%- else -%}
+  <span class="avatar avatar--initials" style="{{ size_style }}" aria-hidden="true">
+    {{- initials -}}
+  </span>
+{%- endif -%}

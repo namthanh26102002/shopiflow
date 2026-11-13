@@ -1,0 +1,66 @@
+{%- comment -%}
+  Endless strip of logos: press, partners, stockists.
+
+  The logos are rendered twice and the track slides by exactly half its
+  width, so the loop is seamless. The second copy is aria-hidden, so screen
+  readers hear each logo once. Hover pauses it; reduced motion stops it and
+  shows a centred, wrapping row instead.
+{%- endcomment -%}
+
+{%- capture logos -%}
+  {%- for block in section.blocks -%}
+    {%- if block.settings.image != blank -%}
+      <li class="marquee-logos__item" {{ block.shopify_attributes }}>
+        {%- if block.settings.link != blank -%}<a href="{{ block.settings.link }}">{%- endif -%}
+        {{ block.settings.image | image_url: height: 96 | image_tag: height: 48, loading: 'lazy', alt: block.settings.image.alt }}
+        {%- if block.settings.link != blank -%}</a>{%- endif -%}
+      </li>
+    {%- endif -%}
+  {%- endfor -%}
+{%- endcapture -%}
+
+{%- if logos != blank -%}
+  <div class="color-{{ section.settings.color_scheme }} marquee-logos{% if section.settings.grayscale %} marquee-logos--mono{% endif %}">
+    {%- if section.settings.heading != blank -%}
+      <p class="marquee-logos__heading">{{ section.settings.heading | escape }}</p>
+    {%- endif -%}
+    <div class="marquee-logos__viewport">
+      <div class="marquee-logos__track" style="--marquee-duration: {{ section.settings.duration }}s;">
+        <ul class="marquee-logos__list" role="list">{{ logos }}</ul>
+        <ul class="marquee-logos__list" role="list" aria-hidden="true">{{ logos }}</ul>
+      </div>
+    </div>
+  </div>
+{%- elsif request.design_mode -%}
+  <p class="page-width editor-note">Add logo images to show the marquee.</p>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Logo marquee",
+  "tag": "section",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "default": "scheme-3", "label": "Color scheme" },
+    { "type": "text", "id": "heading", "label": "Heading", "info": "Optional, e.g. \"As featured in\"" },
+    { "type": "range", "id": "duration", "min": 10, "max": 80, "step": 5, "default": 35, "unit": "s", "label": "Seconds per loop" },
+    { "type": "checkbox", "id": "grayscale", "default": true, "label": "Show logos in one color" }
+  ],
+  "blocks": [
+    {
+      "type": "logo",
+      "name": "Logo",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Logo" },
+        { "type": "url", "id": "link", "label": "Link" }
+      ]
+    }
+  ],
+  "max_blocks": 16,
+  "presets": [
+    {
+      "name": "Logo marquee",
+      "blocks": [{ "type": "logo" }, { "type": "logo" }, { "type": "logo" }, { "type": "logo" }, { "type": "logo" }]
+    }
+  ]
+}
+{% endschema %}

@@ -16,3 +16,14 @@ verify_jwt = false
 
 [functions."domain-host"]
 verify_jwt = false
+
+# Shopify: the callback and webhooks are called by Shopify, not a signed-in
+# user; shopify-api checks the caller's session itself, like the others.
+[functions."shopify-oauth-callback"]
+verify_jwt = false
+
+[functions."shopify-webhooks"]
+verify_jwt = false
+
+[functions."shopify-api"]
+verify_jwt = false

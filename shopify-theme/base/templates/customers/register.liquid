@@ -1,0 +1,25 @@
+<div class="page-width section customer-page">
+  <h1>{{ 'customer.register.title' | t }}</h1>
+
+  {%- form 'create_customer' -%}
+    {%- if form.errors -%}
+      <div class="form-errors">{{ form.errors | default_errors }}</div>
+    {%- endif -%}
+
+    <label for="RegisterFirstName">{{ 'customer.register.first_name' | t }}</label>
+    <input id="RegisterFirstName" class="field__input" type="text" name="customer[first_name]" autocomplete="given-name">
+
+    <label for="RegisterLastName">{{ 'customer.register.last_name' | t }}</label>
+    <input id="RegisterLastName" class="field__input" type="text" name="customer[last_name]" autocomplete="family-name">
+
+    <label for="RegisterEmail">{{ 'customer.login.email' | t }}</label>
+    <input id="RegisterEmail" class="field__input" type="email" name="customer[email]" autocomplete="email" required>
+
+    <label for="RegisterPassword">{{ 'customer.login.password' | t }}</label>
+    <input id="RegisterPassword" class="field__input" type="password" name="customer[password]" autocomplete="new-password" required>
+
+    <button type="submit" class="button">{{ 'customer.register.submit' | t }}</button>
+  {%- endform -%}
+
+  <p><a href="{{ routes.account_login_url }}">{{ 'customer.login.title' | t }}</a></p>
+</div>

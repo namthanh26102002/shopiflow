@@ -1,0 +1,108 @@
+{%- liquid
+  assign height = section.settings.height
+-%}
+
+<div
+  class="color-{{ section.settings.color_scheme }} hero"
+  style="--hero-height: {{ height }}px; --hero-overlay: {{ section.settings.overlay_opacity | divided_by: 100.0 }};"
+>
+  {%- if section.settings.image != blank -%}
+    <div class="hero__image">
+      {{
+        section.settings.image
+        | image_url: width: 3000
+        | image_tag:
+          widths: '750,1100,1500,2000,3000',
+          sizes: '100vw',
+          fetchpriority: 'high',
+          alt: section.settings.image.alt
+      }}
+    </div>
+    <div class="hero__overlay"></div>
+  {%- endif -%}
+
+  <div class="hero__content">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="h1">{{ section.settings.heading | escape }}</h2>
+    {%- endif -%}
+
+    {%- if section.settings.text != blank -%}
+      <div class="rte">{{ section.settings.text }}</div>
+    {%- endif -%}
+
+    {%- if section.settings.button_label != blank -%}
+      <a class="button" {% if section.settings.button_link != blank %}href="{{ section.settings.button_link }}"{% else %}role="link" aria-disabled="true"{% endif %}>
+        {{- section.settings.button_label | escape -}}
+      </a>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Hero",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "default": "scheme-3",
+      "label": "Color scheme"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Background image"
+    },
+    {
+      "type": "range",
+      "id": "height",
+      "min": 240,
+      "max": 800,
+      "step": 20,
+      "default": 520,
+      "unit": "px",
+      "label": "Height"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "default": 25,
+      "unit": "%",
+      "label": "Image overlay",
+      "info": "Darkens the image so text stays readable."
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "default": "Your headline here",
+      "label": "Heading"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "default": "<p>Say what makes your store worth buying from.</p>",
+      "label": "Text"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "default": "Shop now",
+      "label": "Button label"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero"
+    }
+  ]
+}
+{% endschema %}

@@ -697,6 +697,78 @@ export type Database = {
         }
         Relationships: []
       }
+      shopify_stores: {
+        Row: {
+          connected_at: string
+          id: string
+          scopes: string
+          shop_domain: string
+          shop_name: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          connected_at?: string
+          id?: string
+          scopes?: string
+          shop_domain: string
+          shop_name?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          connected_at?: string
+          id?: string
+          scopes?: string
+          shop_domain?: string
+          shop_name?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      shopify_themes: {
+        Row: {
+          base_version: string | null
+          created_at: string
+          id: string
+          shopify_file_checksums: Json | null
+          shopify_store_id: string | null
+          shopify_synced_at: string | null
+          shopify_theme_id: string | null
+          theme_data: Json | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          base_version?: string | null
+          created_at?: string
+          id?: string
+          shopify_file_checksums?: Json | null
+          shopify_store_id?: string | null
+          shopify_synced_at?: string | null
+          shopify_theme_id?: string | null
+          theme_data?: Json | null
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          base_version?: string | null
+          created_at?: string
+          id?: string
+          shopify_file_checksums?: Json | null
+          shopify_store_id?: string | null
+          shopify_synced_at?: string | null
+          shopify_theme_id?: string | null
+          theme_data?: Json | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

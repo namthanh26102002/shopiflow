@@ -1,0 +1,110 @@
+{%- comment -%}
+  Guarantee panel: a scrolling strip, a circular badge with its text running
+  round the rim, the promise itself, and trust items underneath.
+
+  Both moving parts (the strip and the rotating rim) stop for visitors who
+  have asked their system for reduced motion; see base.css.
+{%- endcomment -%}
+
+{%- assign ring_id = 'GuaranteeRing-' | append: section.id -%}
+
+<div class="color-{{ section.settings.color_scheme }}">
+  {%- if section.settings.marquee != blank -%}
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee__track">
+        {%- for i in (1..8) -%}<span>{{ section.settings.marquee | escape }}</span>{%- endfor -%}
+      </div>
+    </div>
+  {%- endif -%}
+
+  <div class="page-width section">
+    <div class="guarantee">
+      <div class="guarantee__badge" aria-hidden="true">
+        <svg class="guarantee__ring" viewBox="0 0 200 200">
+          <defs>
+            <path id="{{ ring_id }}" d="M100,100 m-76,0 a76,76 0 1,1 152,0 a76,76 0 1,1 -152,0"/>
+          </defs>
+          <text><textPath href="#{{ ring_id }}">{{ section.settings.ring_text | escape }}</textPath></text>
+        </svg>
+        <span class="guarantee__number">{{ section.settings.badge_number | escape }}</span>
+        <span class="guarantee__unit">{{ section.settings.badge_unit | escape }}</span>
+      </div>
+
+      <div class="guarantee__content">
+        {%
+          render 'section-heading',
+          eyebrow: section.settings.eyebrow,
+          heading: section.settings.heading,
+          accent: section.settings.accent,
+          accent_break: true,
+          align: 'left'
+        %}
+        <div class="rte">{{ section.settings.text }}</div>
+        {%- if section.settings.note != blank -%}
+          <div class="guarantee__note rte">{{ section.settings.note }}</div>
+        {%- endif -%}
+        {% render 'cta', label: section.settings.button_label, link: section.settings.button_link, align: 'left' %}
+      </div>
+    </div>
+
+    {%- if section.blocks.size > 0 -%}
+      <ul class="guarantee__items" role="list">
+        {%- for block in section.blocks -%}
+          <li class="trust-grid__item" {{ block.shopify_attributes }}>
+            <span class="icon-tile">{% render 'icon', name: block.settings.icon, size: 18 %}</span>
+            <span>
+              <strong>{{ block.settings.title | escape }}</strong>
+              {%- if block.settings.text != blank -%}<small>{{ block.settings.text | escape }}</small>{%- endif -%}
+            </span>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Guarantee",
+  "tag": "section",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "default": "scheme-1", "label": "Color scheme" },
+    { "type": "text", "id": "marquee", "default": "Money-back guarantee • 30 days to decide •", "label": "Scrolling strip", "info": "Leave blank to hide." },
+    { "type": "header", "content": "Badge" },
+    { "type": "text", "id": "badge_number", "default": "30", "label": "Number" },
+    { "type": "text", "id": "badge_unit", "default": "Days", "label": "Unit" },
+    { "type": "text", "id": "ring_text", "default": "Money-back guarantee • 30 days to decide •", "label": "Text around the rim" },
+    { "type": "header", "content": "Promise" },
+    { "type": "text", "id": "eyebrow", "default": "Our promise", "label": "Eyebrow" },
+    { "type": "text", "id": "heading", "default": "Try it for 30 days.", "label": "Heading" },
+    { "type": "text", "id": "accent", "default": "Keep it or send it back.", "label": "Accent line" },
+    { "type": "richtext", "id": "text", "default": "<p>Why you can offer this, in one line.</p><p><strong>Exactly what the customer has to do</strong> to get their money back.</p>", "label": "Text" },
+    { "type": "richtext", "id": "note", "default": "<p>Item must be returned. See our refund policy for full details.</p>", "label": "Small print", "info": "Link to your refund policy here." },
+    { "type": "text", "id": "button_label", "default": "Start my 30 days", "label": "Button label" },
+    { "type": "url", "id": "button_link", "label": "Button link", "info": "Leave blank to scroll to the buy box on product pages." }
+  ],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "Trust item",
+      "settings": [
+        { "type": "select", "id": "icon", "options": [{"value":"none","label":"None"},{"value":"check","label":"Check"},{"value":"x","label":"X"},{"value":"shield","label":"Shield"},{"value":"truck","label":"Truck"},{"value":"package","label":"Package"},{"value":"refresh","label":"Refresh"},{"value":"lock","label":"Lock"},{"value":"clock","label":"Clock"},{"value":"heart","label":"Heart"},{"value":"user","label":"User"},{"value":"cup","label":"Cup"},{"value":"leaf","label":"Leaf"},{"value":"star","label":"Star"},{"value":"zap","label":"Zap"},{"value":"gift","label":"Gift"},{"value":"chat","label":"Chat"},{"value":"home","label":"Home"},{"value":"mail","label":"Mail"},{"value":"calendar","label":"Calendar"},{"value":"power","label":"Power"},{"value":"activity","label":"Activity"},{"value":"target","label":"Target"},{"value":"award","label":"Award"},{"value":"eye-off","label":"Eye off"},{"value":"sparkle","label":"Sparkle"},{"value":"smile","label":"Smile"},{"value":"ban","label":"Ban"},{"value":"chart","label":"Chart"},{"value":"card","label":"Card"}], "default": "shield", "label": "Icon" },
+        { "type": "text", "id": "title", "default": "Money-back guarantee", "label": "Title" },
+        { "type": "text", "id": "text", "default": "Full refund on return", "label": "Text" }
+      ]
+    }
+  ],
+  "max_blocks": 4,
+  "presets": [
+    {
+      "name": "Guarantee",
+      "blocks": [
+        { "type": "item", "settings": { "icon": "shield" } },
+        { "type": "item", "settings": { "icon": "award", "title": "1 year warranty", "text": "Replaced if faulty" } },
+        { "type": "item", "settings": { "icon": "package", "title": "Plain packaging", "text": "Nothing on the outside" } },
+        { "type": "item", "settings": { "icon": "truck", "title": "Tracked delivery", "text": "Every order" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

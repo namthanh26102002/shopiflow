@@ -1,0 +1,87 @@
+<div class="color-{{ section.settings.color_scheme }}">
+  <div class="page-width section">
+    <h1>{{ blog.title | escape }}</h1>
+
+    {%- paginate blog.articles by section.settings.posts_per_page -%}
+      <ul class="grid" style="--grid-desktop: {{ section.settings.columns }};">
+        {%- for article in blog.articles -%}
+          <li>
+            <div class="card">
+              {%- if article.image -%}
+                <a class="card__media media media--square" href="{{ article.url }}" tabindex="-1" aria-hidden="true">
+                  {{
+                    article.image
+                    | image_url: width: 800
+                    | image_tag:
+                      loading: 'lazy',
+                      widths: '200,300,400,600,800',
+                      sizes: '(min-width: 750px) 33vw, 50vw',
+                      alt: article.image.alt
+                  }}
+                </a>
+              {%- endif -%}
+              <h2 class="card__title"><a href="{{ article.url }}">{{ article.title | escape }}</a></h2>
+              {%- if section.settings.show_date -%}
+                <span class="card__vendor">{{ article.published_at | date: format: 'date' }}</span>
+              {%- endif -%}
+              {%- if section.settings.show_excerpt and article.excerpt_or_content != blank -%}
+                <div class="rte">{{ article.excerpt_or_content | strip_html | truncatewords: 24 }}</div>
+              {%- endif -%}
+              <a href="{{ article.url }}">{{ 'blogs.article.read_more' | t }}</a>
+            </div>
+          </li>
+        {%- endfor -%}
+      </ul>
+
+      {% render 'pagination', paginate: paginate %}
+    {%- endpaginate -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Blog posts",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "default": "scheme-1",
+      "label": "Color scheme"
+    },
+    {
+      "type": "range",
+      "id": "posts_per_page",
+      "min": 3,
+      "max": 24,
+      "step": 3,
+      "default": 9,
+      "label": "Posts per page"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "default": 3,
+      "label": "Columns on desktop"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "default": true,
+      "label": "Show date"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_excerpt",
+      "default": true,
+      "label": "Show excerpt"
+    }
+  ],
+  "enabled_on": {
+    "templates": ["blog"]
+  }
+}
+{% endschema %}

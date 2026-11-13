@@ -54,7 +54,9 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
 
-  // Both builders have templates; the table tells us which kind.
+  // Quizzes and advertorials have templates; the table tells us which kind.
+  // Shopify themes do not (yet): every theme starts from the base theme.
+  const hasTemplates = table !== 'shopify_themes';
   const templateType: TemplateType = table === 'quizzes' ? 'quiz' : 'advertorial';
 
   const handleCreate = async () => {
@@ -120,10 +122,12 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
             </p>
           )}
 
-          <DropdownMenuItem onClick={() => setGalleryOpen(true)} className="gap-2">
-            <LayoutTemplate className="w-3.5 h-3.5 shrink-0" />
-            Start from a template
-          </DropdownMenuItem>
+          {hasTemplates && (
+            <DropdownMenuItem onClick={() => setGalleryOpen(true)} className="gap-2">
+              <LayoutTemplate className="w-3.5 h-3.5 shrink-0" />
+              Start from a template
+            </DropdownMenuItem>
+          )}
 
           {isAdmin && templateContent && (
             <DropdownMenuItem onClick={() => setSaveTemplateOpen(true)} className="gap-2">
@@ -143,13 +147,15 @@ export const ProjectSwitcher: React.FC<ProjectSwitcherProps> = ({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <TemplateGallery
-        open={galleryOpen}
-        onOpenChange={setGalleryOpen}
-        contentType={templateType}
-        basePath={basePath}
-        noun={noun}
-      />
+      {hasTemplates && (
+        <TemplateGallery
+          open={galleryOpen}
+          onOpenChange={setGalleryOpen}
+          contentType={templateType}
+          basePath={basePath}
+          noun={noun}
+        />
+      )}
 
       {templateContent && (
         <SaveAsTemplateDialog

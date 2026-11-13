@@ -1,0 +1,30 @@
+<div class="page-width section customer-page">
+  <h1>{{ 'customer.login.title' | t }}</h1>
+
+  {%- form 'customer_login' -%}
+    {%- if form.errors -%}
+      <div class="form-errors">{{ form.errors | default_errors }}</div>
+    {%- endif -%}
+
+    <label for="CustomerEmail">{{ 'customer.login.email' | t }}</label>
+    <input id="CustomerEmail" class="field__input" type="email" name="customer[email]" autocomplete="email" required>
+
+    <label for="CustomerPassword">{{ 'customer.login.password' | t }}</label>
+    <input id="CustomerPassword" class="field__input" type="password" name="customer[password]" autocomplete="current-password" required>
+
+    <button type="submit" class="button">{{ 'customer.login.submit' | t }}</button>
+  {%- endform -%}
+
+  <h2>{{ 'customer.recover_password.title' | t }}</h2>
+  {%- form 'recover_customer_password' -%}
+    {%- if form.posted_successfully? -%}
+      <p>{{ 'customer.recover_password.success' | t }}</p>
+    {%- else -%}
+      <label for="RecoverEmail">{{ 'customer.login.email' | t }}</label>
+      <input id="RecoverEmail" class="field__input" type="email" name="email" autocomplete="email" required>
+      <button type="submit" class="button button--secondary">{{ 'customer.recover_password.submit' | t }}</button>
+    {%- endif -%}
+  {%- endform -%}
+
+  <p><a href="{{ routes.account_register_url }}">{{ 'customer.register.title' | t }}</a></p>
+</div>

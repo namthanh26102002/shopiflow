@@ -1,11 +1,12 @@
-// /home — every quiz and advertorial in one place, with how each is doing.
+// /home — every quiz, advertorial and Shopify theme in one place, with how
+// each page is doing.
 //
 // Before this, signing in dropped you into whichever quiz you touched last and
 // the only list was the dropdown next to the project name.
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
-import { BookOpen, HelpCircle, LogOut, Newspaper, Package, Plus } from 'lucide-react';
+import { BookOpen, HelpCircle, LogOut, Newspaper, Package, Plus, Store } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { ProjectSummary, ProjectTable, useProjects } from '@/hooks/useProjects';
@@ -49,7 +50,8 @@ const useProjectStats = (table: ProjectTable, projects: ProjectSummary[]) => {
   const ids = projects.map((p) => p.id).join(',');
 
   useEffect(() => {
-    if (!ids) return;
+    // Themes live on the merchant's own store; there is nothing to count here.
+    if (!ids || table === 'shopify_themes') return;
     let cancelled = false;
     const load = table === 'quizzes' ? loadQuizStats : loadAdvertorialStats;
     Promise.all(ids.split(',').map(async (id) => [id, await load(id)] as const))
@@ -82,6 +84,7 @@ const ProjectCard: React.FC<{
   onOpen: () => void;
 }> = ({ project, table, stats, onOpen }) => {
   const live = !!project.published_url;
+  const tracked = table !== 'shopify_themes';
   const rate = stats?.completions !== undefined && stats.visits > 0
     ? Math.round((stats.completions / stats.visits) * 100)
     : null;
@@ -96,12 +99,13 @@ const ProjectCard: React.FC<{
         <h3 className="font-medium text-foreground truncate group-hover:text-primary">
           {project.title || 'Untitled'}
         </h3>
-        <StatusPill live={live} />
+        {tracked && <StatusPill live={live} />}
       </div>
       <p className="mt-1 text-xs text-muted-foreground">
         Edited {formatDistanceToNow(new Date(project.updated_at), { addSuffix: true })}
       </p>
 
+      {tracked && (
       <div className="mt-4 flex items-end gap-6">
         {stats ? (
           <>
@@ -121,6 +125,7 @@ const ProjectCard: React.FC<{
         )}
         <p className="ml-auto text-[11px] text-muted-foreground">last {STATS_DAYS} days</p>
       </div>
+      )}
     </button>
   );
 };
@@ -170,7 +175,11 @@ const ProjectSection: React.FC<{
       ) : projects.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-8 text-center">
           <p className="text-sm text-foreground font-medium">No {noun}s yet</p>
-          <p className="mt-1 text-xs text-muted-foreground">Create one to start collecting visits.</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {table === 'shopify_themes'
+              ? 'Create one to design your store, then download it for Shopify.'
+              : 'Create one to start collecting visits.'}
+          </p>
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -210,6 +219,7 @@ const Home: React.FC = () => {
 
         <ProjectSection table="quizzes" title="Quizzes" noun="quiz" icon={HelpCircle} basePath="/builder" />
         <ProjectSection table="advertorials" title="Advertorials" noun="advertorial" icon={Newspaper} basePath="/advertorial-builder" />
+        <ProjectSection table="shopify_themes" title="Shopify themes" noun="theme" icon={Store} basePath="/theme-builder" />
 
         <section aria-label="Other tools" className="grid gap-3 sm:grid-cols-2">
           {[

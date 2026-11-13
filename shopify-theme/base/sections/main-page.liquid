@@ -1,0 +1,26 @@
+<div class="color-{{ section.settings.color_scheme }}">
+  <div class="page-width section">
+    <article class="page-content">
+      <h1>{{ page.title | escape }}</h1>
+      <div class="rte">{{ page.content }}</div>
+    </article>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Page content",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "default": "scheme-1",
+      "label": "Color scheme"
+    }
+  ],
+  "enabled_on": {
+    "templates": ["page"]
+  }
+}
+{% endschema %}

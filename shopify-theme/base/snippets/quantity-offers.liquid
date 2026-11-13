@@ -1,0 +1,209 @@
+{%- comment -%}
+  Quantity offers: "Buy 2 Get 3"-style bundle tiers shown as selectable cards.
+
+  Accepts:
+  - offers: the section's quantity_break blocks (required)
+  - variant: the selected variant, whose price every tier is computed from
+  - product: the product, for tier thumbnails when the variant has no image
+  - heading: optional banner text above the tiers
+  - form_id: id of the product form the radios belong to (required). The
+    product section's blocks render outside the <form> element, so each radio
+    joins the form through its form attribute instead.
+  - show_thumbnails: show the variant's image on each tier
+  - sale_text / sale_ends: countdown banner text (with [time]) and the end,
+    "YYYY-MM-DD HH:MM" in store time. Both needed for the banner to show.
+  - gifts: the section's bundle_gift blocks, shown under the tiers
+  - gifts_heading: text above the gifts
+
+  Thumbnails follow the selected variant: a variant change re-renders this
+  whole snippet through the Section Rendering API, prices included.
+
+  Each tier is a radio named "quantity", so choosing one sets how many units
+  the product form adds. That works with JavaScript off. theme.js only steps in
+  when a tier also adds a free gift or applies a discount code, neither of which
+  a plain form post can do.
+
+  Prices are computed, never typed in. The struck-through price is always the
+  real price of the units received, so the savings shown are the savings the
+  shopper actually gets — provided the store has a discount configured to match
+  (see demo/README.md). A theme cannot change what Shopify charges.
+{%- endcomment -%}
+
+{%- liquid
+  assign default_offer_id = offers.first.id
+  assign default_index = 1
+  for offer in offers
+    if offer.settings.selected
+      assign default_offer_id = offer.id
+      assign default_index = forloop.index
+      break
+    endif
+  endfor
+
+  assign variant_media = variant.featured_media | default: product.featured_media
+-%}
+
+<quantity-offers class="offers">
+  {%- if sale_text != blank and sale_ends != blank -%}
+    {%- comment -%}
+      Hidden until theme.js has parsed the end time and found it in the
+      future, so a past or mistyped date never shows a frozen timer.
+    {%- endcomment -%}
+    <sale-countdown
+      class="offers__countdown"
+      data-ends="{{ sale_ends | strip | escape }}"
+      data-offset="{{ 'now' | date: '%z' }}"
+      data-text="{{ sale_text | escape }}"
+      hidden
+    >
+      <p class="offers__countdown-text" data-countdown-text></p>
+    </sale-countdown>
+  {%- endif -%}
+
+  <fieldset class="offers__fieldset">
+    {%- if heading != blank -%}
+      <legend class="offers__heading">{{ heading | escape }}</legend>
+    {%- else -%}
+      <legend class="visually-hidden">{{ 'products.product.offers.legend' | t }}</legend>
+    {%- endif -%}
+
+    <div class="offers__list">
+      {%- for offer in offers -%}
+        {%- liquid
+          assign quantity = offer.settings.quantity
+          assign paid = offer.settings.paid_quantity | at_most: quantity
+          assign keep_percent = 100 | minus: offer.settings.percent_off
+
+          assign full_price = variant.price | times: quantity
+          comment
+            Rounded, not floored: Shopify rounds a percentage discount to the
+            nearest cent, so flooring here would advertise a price one cent
+            below what the shopper is charged.
+          endcomment
+          assign total_price = variant.price | times: paid | times: keep_percent | divided_by: 100.0 | round
+          assign unit_price = total_price | divided_by: quantity
+          comment
+            Formatted before it goes into the translation: a filter after the
+            t arguments would apply to the translated string instead.
+          endcomment
+          assign unit_price_money = unit_price | money
+
+          assign saving_percent = 0
+          if full_price > total_price
+            assign saving_percent = full_price | minus: total_price | times: 100.0 | divided_by: full_price | round
+          endif
+
+          assign gift = offer.settings.gift_product
+          assign gift_variant = gift.selected_or_first_available_variant
+          assign has_gift = false
+          if gift and gift_variant.available
+            assign has_gift = true
+          endif
+
+          assign input_id = 'Offer-' | append: section.id | append: '-' | append: offer.id
+        -%}
+
+        <label
+          class="offer{% if offer.settings.ribbon != blank %} offer--ribboned{% endif %}"
+          for="{{ input_id }}"
+          {{ offer.shopify_attributes }}
+        >
+          {%- if offer.settings.ribbon != blank -%}
+            <span class="offer__ribbon">{{ offer.settings.ribbon | escape }}</span>
+          {%- endif -%}
+
+          <span class="offer__main">
+            <input
+              class="offer__radio"
+              type="radio"
+              form="{{ form_id }}"
+              id="{{ input_id }}"
+              name="quantity"
+              value="{{ quantity }}"
+              data-offer-id="{{ offer.id }}"
+              data-offer-index="{{ forloop.index }}"
+              {% if has_gift %}data-gift-variant-id="{{ gift_variant.id }}"{% endif %}
+              {% if offer.settings.discount_code != blank %}data-discount-code="{{ offer.settings.discount_code | strip | escape }}"{% endif %}
+              {% if offer.id == default_offer_id %}checked{% endif %}
+            >
+
+            {%- if offer.settings.image != blank -%}
+              <span class="offer__thumb">
+                {{ offer.settings.image | image_url: width: 160 | image_tag: widths: '80,160', sizes: '56px', loading: 'lazy', alt: '' }}
+              </span>
+            {%- elsif show_thumbnails and variant_media -%}
+              {%- comment -%}
+                Two overlapping copies read as "more than one" at a glance;
+                more than two just turns into a smear at this size.
+              {%- endcomment -%}
+              <span class="offer__thumb{% if quantity > 1 %} offer__thumb--stack{% endif %}">
+                {{ variant_media.preview_image | image_url: width: 160 | image_tag: widths: '80,160', sizes: '56px', loading: 'lazy', alt: '' }}
+                {%- if quantity > 1 -%}
+                  {{ variant_media.preview_image | image_url: width: 160 | image_tag: widths: '80,160', sizes: '56px', loading: 'lazy', alt: '' }}
+                {%- endif -%}
+              </span>
+            {%- endif -%}
+
+            <span class="offer__body">
+              <span class="offer__title">
+                {{- offer.settings.title | escape -}}
+                {%- if offer.settings.badge != blank -%}
+                  <span class="offer__badge">{{ offer.settings.badge | escape }}</span>
+                {%- elsif saving_percent > 0 -%}
+                  <span class="offer__badge">{{ 'products.product.offers.save' | t: percent: saving_percent }}</span>
+                {%- endif -%}
+              </span>
+
+              {%- if offer.settings.show_unit_price or offer.settings.detail != blank -%}
+                <span class="offer__detail">
+                  {%- if offer.settings.show_unit_price -%}
+                    {{ 'products.product.offers.per_unit' | t: price: unit_price_money, unit: offer.settings.unit_label }}
+                  {%- endif %}
+                  {{ offer.settings.detail | escape -}}
+                </span>
+              {%- endif -%}
+            </span>
+
+            <span class="offer__prices">
+              <span class="offer__price">{{ total_price | money }}</span>
+              {%- if full_price > total_price -%}
+                <s class="offer__compare">
+                  <span class="visually-hidden">{{ 'products.product.price.regular_price' | t }}</span>
+                  {{ full_price | money }}
+                </s>
+              {%- endif -%}
+            </span>
+          </span>
+
+          {%- if has_gift -%}
+            <span class="offer__gift">
+              {%- if gift.featured_media -%}
+                {{
+                  gift.featured_media.preview_image
+                  | image_url: width: 96
+                  | image_tag: class: 'offer__gift-image', widths: '48,96', sizes: '32px', loading: 'lazy', alt: ''
+                }}
+              {%- endif -%}
+              <span class="offer__gift-label">{{ offer.settings.gift_label | escape }}</span>
+              <s class="offer__gift-price">
+                <span class="visually-hidden">{{ 'products.product.price.regular_price' | t }}</span>
+                {{ gift_variant.price | money }}
+              </s>
+            </span>
+          {%- endif -%}
+        </label>
+      {%- endfor -%}
+    </div>
+  </fieldset>
+
+  {%- if gifts.size > 0 -%}
+    {%
+      render 'bundle-gifts',
+      gifts: gifts,
+      offers: offers,
+      selected_index: default_index,
+      form_id: form_id,
+      heading: gifts_heading
+    %}
+  {%- endif -%}
+</quantity-offers>

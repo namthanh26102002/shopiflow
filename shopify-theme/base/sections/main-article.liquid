@@ -1,0 +1,65 @@
+<div class="color-{{ section.settings.color_scheme }}">
+  <div class="page-width section">
+    <article class="article">
+      <h1>{{ article.title | escape }}</h1>
+
+      {%- if section.settings.show_date or section.settings.show_author -%}
+        <p class="card__vendor">
+          {%- if section.settings.show_date -%}
+            {{ article.published_at | date: format: 'date' }}
+          {%- endif -%}
+          {%- if section.settings.show_author and article.author != blank -%}
+            &middot; {{ article.author }}
+          {%- endif -%}
+        </p>
+      {%- endif -%}
+
+      {%- if article.image -%}
+        <div class="media">
+          {{
+            article.image
+            | image_url: width: 1600
+            | image_tag:
+              widths: '400,600,800,1200,1600',
+              sizes: '(min-width: 750px) 50rem, 100vw',
+              alt: article.image.alt
+          }}
+        </div>
+      {%- endif -%}
+
+      <div class="rte article__content">{{ article.content }}</div>
+
+      <a href="{{ blog.url }}">{{ 'blogs.article.back_to_blog' | t: title: blog.title }}</a>
+    </article>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Blog post",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "default": "scheme-1",
+      "label": "Color scheme"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "default": true,
+      "label": "Show date"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_author",
+      "default": false,
+      "label": "Show author"
+    }
+  ],
+  "enabled_on": {
+    "templates": ["article"]
+  }
+}
+{% endschema %}

@@ -1,0 +1,31 @@
+{%- comment -%}
+  Up to three figures with an accent bar, optionally counting up.
+
+  A block of sections/main-product.liquid, rendered from there with:
+  block
+{%- endcomment -%}
+
+<ul class="product-block stat-rows" role="list" {{ block.shopify_attributes }}>
+  {%- for i in (1..3) -%}
+    {%- liquid
+      assign value_key = 'value_' | append: i
+      assign title_key = 'title_' | append: i
+      assign text_key = 'text_' | append: i
+    -%}
+    {%- if block.settings[value_key] != blank -%}
+      <li class="stat-row stat-row--{{ i }}">
+        <span class="stat-row__value">
+          {%- if block.settings.animate -%}
+            <count-up>{{ block.settings[value_key] | escape }}</count-up>
+          {%- else -%}
+            {{ block.settings[value_key] | escape }}
+          {%- endif -%}
+        </span>
+        <span class="stat-row__copy">
+          <strong>{{ block.settings[title_key] | escape }}</strong>
+          {%- if block.settings[text_key] != blank -%}<small>{{ block.settings[text_key] | escape }}</small>{%- endif -%}
+        </span>
+      </li>
+    {%- endif -%}
+  {%- endfor -%}
+</ul>

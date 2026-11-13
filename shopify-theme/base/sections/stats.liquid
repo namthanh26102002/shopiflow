@@ -1,0 +1,94 @@
+{%- comment -%}
+  Evidence panel: an argument on one side, big numbers on the other, and a
+  footnote naming the sources. The footnote is a first-class setting on
+  purpose: a statistic without its source is the part of a sales page most
+  likely to mislead, and most likely to get an ad account flagged.
+{%- endcomment -%}
+
+<div class="color-{{ section.settings.color_scheme }}">
+  <div class="page-width section">
+    <div class="stats-panel">
+      <div class="stats-panel__intro">
+        {%
+          render 'section-heading',
+          eyebrow: section.settings.eyebrow,
+          heading: section.settings.heading,
+          accent: section.settings.accent,
+          accent_break: true,
+          align: 'left'
+        %}
+        {%- if section.settings.text != blank -%}
+          <div class="rte">{{ section.settings.text }}</div>
+        {%- endif -%}
+        {%- if section.settings.callout != blank -%}
+          <div class="stats-panel__callout rte">{{ section.settings.callout }}</div>
+        {%- endif -%}
+      </div>
+
+      <ul class="stats-panel__list" role="list">
+        {%- for block in section.blocks -%}
+          <li class="stat" {{ block.shopify_attributes }}>
+            <p class="stat__figure">
+              <span class="stat__value">
+                {%- if section.settings.animate -%}
+                  <count-up>{{ block.settings.value | escape }}</count-up>
+                {%- else -%}
+                  {{ block.settings.value | escape }}
+                {%- endif -%}
+              </span>
+              <span class="stat__unit">{{ block.settings.unit | escape }}</span>
+            </p>
+            <div>
+              <p class="stat__title">{{ block.settings.title | escape }}</p>
+              <p class="stat__text">{{ block.settings.text | escape }}</p>
+            </div>
+          </li>
+        {%- endfor -%}
+      </ul>
+
+      {%- if section.settings.footnote != blank -%}
+        <div class="stats-panel__footnote rte">{{ section.settings.footnote }}</div>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Stats",
+  "tag": "section",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "default": "scheme-1", "label": "Color scheme" },
+    { "type": "checkbox", "id": "animate", "default": true, "label": "Count numbers up when scrolled into view", "info": "Figures like 94% or 3,000+ animate; ones like \"3 in 4\" stay as written." },
+    { "type": "text", "id": "eyebrow", "default": "The proof, in numbers", "label": "Eyebrow" },
+    { "type": "text", "id": "heading", "default": "Why it works", "label": "Heading" },
+    { "type": "text", "id": "accent", "default": "when other things don't", "label": "Accent line" },
+    { "type": "richtext", "id": "text", "default": "<p><strong>Step one:</strong> what the research says about the cause.</p><p><strong>Step two:</strong> how the product addresses it.</p>", "label": "Text" },
+    { "type": "richtext", "id": "callout", "default": "<p>Sum up the argument in one bold line.</p>", "label": "Dark callout" },
+    { "type": "richtext", "id": "footnote", "default": "<p>Name the source of every figure above: study, year, sample size, and whether it tested this product.</p>", "label": "Sources footnote" }
+  ],
+  "blocks": [
+    {
+      "type": "stat",
+      "name": "Stat",
+      "settings": [
+        { "type": "text", "id": "value", "default": "3 in 4", "label": "Figure" },
+        { "type": "text", "id": "unit", "default": "people", "label": "Unit" },
+        { "type": "text", "id": "title", "default": "What the figure means", "label": "Title" },
+        { "type": "text", "id": "text", "default": "Where it comes from, in one or two lines.", "label": "Text" }
+      ]
+    }
+  ],
+  "max_blocks": 4,
+  "presets": [
+    {
+      "name": "Stats",
+      "blocks": [
+        { "type": "stat" },
+        { "type": "stat", "settings": { "value": "2", "unit": "steps" } },
+        { "type": "stat", "settings": { "value": "6", "unit": "studies" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

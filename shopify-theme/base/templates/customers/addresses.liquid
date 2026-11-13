@@ -1,0 +1,43 @@
+<div class="page-width section customer-page">
+  <h1>{{ 'customer.addresses.title' | t }}</h1>
+
+  <h2>{{ 'customer.addresses.add_new' | t }}</h2>
+  {%- form 'customer_address', customer.new_address -%}
+    {%- if form.errors -%}
+      <div class="form-errors">{{ form.errors | default_errors }}</div>
+    {%- endif -%}
+
+    <label for="AddressFirstName">{{ 'customer.register.first_name' | t }}</label>
+    <input id="AddressFirstName" class="field__input" type="text" name="address[first_name]" autocomplete="given-name">
+
+    <label for="AddressLastName">{{ 'customer.register.last_name' | t }}</label>
+    <input id="AddressLastName" class="field__input" type="text" name="address[last_name]" autocomplete="family-name">
+
+    <label for="AddressLine1">{{ 'customer.addresses.address1' | t }}</label>
+    <input id="AddressLine1" class="field__input" type="text" name="address[address1]" autocomplete="address-line1">
+
+    <label for="AddressCity">{{ 'customer.addresses.city' | t }}</label>
+    <input id="AddressCity" class="field__input" type="text" name="address[city]" autocomplete="address-level2">
+
+    <label for="AddressCountry">{{ 'customer.addresses.country' | t }}</label>
+    <select id="AddressCountry" name="address[country]" autocomplete="country">
+      {{ all_country_option_tags }}
+    </select>
+
+    <label for="AddressZip">{{ 'customer.addresses.zip' | t }}</label>
+    <input id="AddressZip" class="field__input" type="text" name="address[zip]" autocomplete="postal-code">
+
+    <button type="submit" class="button">{{ 'customer.addresses.submit' | t }}</button>
+  {%- endform -%}
+
+  {%- if customer.addresses.size > 0 -%}
+    <h2>{{ 'customer.addresses.saved' | t }}</h2>
+    {%- for address in customer.addresses -%}
+      <div class="customer-address">
+        <p>{{ address | format_address }}</p>
+      </div>
+    {%- endfor -%}
+  {%- endif -%}
+
+  <p><a href="{{ routes.account_url }}">{{ 'customer.account.return' | t }}</a></p>
+</div>

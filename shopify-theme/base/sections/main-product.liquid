@@ -1,0 +1,1061 @@
+{%- comment -%}
+  Product information: gallery on one side, a stack of reorderable blocks on
+  the other.
+
+  The <form> is rendered once, empty apart from the variant id, and every
+  control that belongs to it (offer radios, quantity, buy buttons, the sticky
+  bar's button) joins it through form="{{ form_id }}". That is what lets the
+  merchant put blocks in any order: nothing has to sit inside one <form>
+  element for the submit to carry it.
+{%- endcomment -%}
+
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign offers = section.blocks | where: 'type', 'quantity_break'
+  assign gifts = section.blocks | where: 'type', 'bundle_gift'
+  assign form_id = 'ProductForm-' | append: section.id
+  assign offers_rendered = false
+  assign gifts_rendered = false
+
+  assign saving_percent = 0
+  if current_variant.compare_at_price > current_variant.price
+    assign saving_percent = current_variant.compare_at_price | minus: current_variant.price | times: 100.0 | divided_by: current_variant.compare_at_price | round
+  endif
+-%}
+
+<div class="color-{{ section.settings.color_scheme }}">
+  {%- comment -%}
+    The id is the target the Section Rendering API swaps into on a variant
+    change. theme.js looks it up by data-section-id, so renaming either half
+    breaks the instant swap (the links still work as plain navigation).
+  {%- endcomment -%}
+  <div
+    id="MainProduct-{{ section.id }}"
+    data-section-id="{{ section.id }}"
+    class="page-width product-section"
+  >
+    {%- form 'product', product, id: form_id, class: 'product-form', novalidate: 'novalidate' -%}
+      <input type="hidden" name="id" value="{{ current_variant.id }}">
+    {%- endform -%}
+
+    <product-form-controller data-form-id="{{ form_id }}"></product-form-controller>
+
+    {%- if section.settings.show_breadcrumbs -%}
+      <nav class="breadcrumbs" aria-label="{{ 'general.breadcrumbs.label' | t }}">
+        <ol>
+          <li><a href="{{ routes.root_url }}">{{ 'general.breadcrumbs.home' | t }}</a></li>
+          {%- comment -%}
+            The collection the shopper came through when the URL carries one
+            (/collections/x/products/y), otherwise "Shop all".
+          {%- endcomment -%}
+          {%- if collection -%}
+            <li><a href="{{ collection.url }}">{{ collection.title | escape }}</a></li>
+          {%- else -%}
+            <li><a href="{{ routes.all_products_collection_url }}">{{ 'general.breadcrumbs.all' | t }}</a></li>
+          {%- endif -%}
+          <li><span aria-current="page">{{ product.title | escape }}</span></li>
+        </ol>
+      </nav>
+    {%- endif -%}
+
+    <div class="product{% if section.settings.sticky_media %} product--sticky-media{% endif %}">
+      <div class="product__media">
+        {%
+          render 'product-gallery',
+          product: product,
+          ratio: section.settings.media_ratio,
+          thumbs_position: section.settings.thumbs_position
+        %}
+      </div>
+
+      <div class="product__info">
+        {%- for block in section.blocks -%}
+          {%- case block.type -%}
+            {%- when '@app' -%}
+              <div class="product-block">{% render block %}</div>
+
+            {%- when 'rating' -%}
+              {%- liquid
+                assign rating = product.metafields.reviews.rating.value
+                assign rating_count = product.metafields.reviews.rating_count.value | default: 0
+              -%}
+              {%- if rating != blank -%}
+                {%- liquid
+                  assign scale = rating.scale_max | default: 5
+                  assign on_five = rating.rating | times: 5.0 | divided_by: scale | round: 1
+                  assign label = block.settings.label | replace: '[rating]', on_five | replace: '[count]', rating_count
+                -%}
+                <div class="product-block product-rating" {{ block.shopify_attributes }}>
+                  {% render 'rating-stars', rating: on_five, size: 18 %}
+                  <span>{{ label | escape }}</span>
+                </div>
+              {%- elsif request.design_mode -%}
+                <p class="product-block editor-note" {{ block.shopify_attributes }}>
+                  Star rating appears here once a reviews app writes the product's
+                  reviews.rating metafield. Nothing shows to shoppers until then.
+                </p>
+              {%- endif -%}
+
+            {%- when 'title' -%}
+              <h1 class="product-block product__title product__title--{{ block.settings.size }}" {{ block.shopify_attributes }}>
+                {{- product.title | escape -}}
+              </h1>
+
+            {%- when 'pill' -%}
+              {%- if block.settings.text != blank -%}
+                <div class="product-block" {{ block.shopify_attributes }}>
+                  <p class="pill">
+                    {%- if block.settings.icon == 'none' -%}
+                      <span class="pill__dot" aria-hidden="true"></span>
+                    {%- else -%}
+                      {% render 'icon', name: block.settings.icon, size: 16 %}
+                    {%- endif -%}
+                    {{ block.settings.text | escape }}
+                  </p>
+                </div>
+              {%- endif -%}
+
+            {%- when 'headline' -%}
+              <h2 class="product-block product-headline product-headline--{{ block.settings.size }}" {{ block.shopify_attributes }}>
+                {{- block.settings.text | escape -}}
+                {%- if block.settings.accent != blank -%}
+                  <br><span class="heading-accent">{{ block.settings.accent | escape }}</span>
+                {%- endif -%}
+              </h2>
+
+            {%- when 'heading' -%}
+              <div class="product-block product-block--heading" {{ block.shopify_attributes }}>
+                {%
+                  render 'section-heading',
+                  eyebrow: block.settings.eyebrow,
+                  heading: block.settings.heading,
+                  accent: block.settings.accent,
+                  align: block.settings.align,
+                  level: 'h3'
+                %}
+              </div>
+
+            {%- when 'text' -%}
+              <div class="product-block rte product-text" {{ block.shopify_attributes }}>
+                {{- block.settings.text -}}
+              </div>
+
+            {%- when 'description' -%}
+              {%- if product.description != blank -%}
+                <div class="product-block rte product-text" {{ block.shopify_attributes }}>
+                  {{- product.description -}}
+                </div>
+              {%- endif -%}
+
+            {%- when 'price' -%}
+              <div class="product-block product-price" {{ block.shopify_attributes }}>
+                {% render 'price', target: current_variant %}
+                {%- if block.settings.show_saving and saving_percent > 0 -%}
+                  <span class="save-badge">{{ 'products.product.offers.save' | t: percent: saving_percent }}</span>
+                {%- endif -%}
+              </div>
+
+            {%- when 'benefit' -%}
+              <div class="product-block benefit" {{ block.shopify_attributes }}>
+                <span class="icon-tile">{% render 'icon', name: block.settings.icon %}</span>
+                <div>
+                  <p class="benefit__title">{{ block.settings.title | escape }}</p>
+                  {%- if block.settings.text != blank -%}
+                    <p class="benefit__text">{{ block.settings.text | escape }}</p>
+                  {%- endif -%}
+                </div>
+              </div>
+
+            {%- when 'chips' -%}
+              <ul class="product-block chips" {{ block.shopify_attributes }}>
+                {%- for i in (1..4) -%}
+                  {%- liquid
+                    assign text_key = 'text_' | append: i
+                    assign icon_key = 'icon_' | append: i
+                    assign chip_text = block.settings[text_key]
+                  -%}
+                  {%- if chip_text != blank -%}
+                    <li class="chip">
+                      {% render 'icon', name: block.settings[icon_key], size: 16 %}
+                      {{ chip_text | escape }}
+                    </li>
+                  {%- endif -%}
+                {%- endfor -%}
+              </ul>
+
+            {%- when 'variant_picker' -%}
+              <div class="product-block" {{ block.shopify_attributes }}>
+                {% render 'variant-picker', product: product, style: block.settings.style, heading: block.settings.heading %}
+              </div>
+
+            {%- when 'quantity_break' -%}
+              {%- comment -%}
+                Every tier renders as one group at the position of the first
+                tier block; later tier blocks are already in that group.
+              {%- endcomment -%}
+              {%- unless offers_rendered -%}
+                <div
+                  class="product-block offers-wrapper"
+                  style="--offer-accent: {{ section.settings.offer_accent }}; --offer-accent-text: {{ section.settings.offer_accent_text }}; --offer-ribbon: {{ section.settings.offer_ribbon }};"
+                >
+                  {%
+                    render 'quantity-offers',
+                    offers: offers,
+                    variant: current_variant,
+                    product: product,
+                    heading: section.settings.offers_heading,
+                    form_id: form_id,
+                    show_thumbnails: section.settings.offer_thumbnails,
+                    sale_text: section.settings.offer_sale_text,
+                    sale_ends: section.settings.offer_sale_ends,
+                    gifts: gifts,
+                    gifts_heading: section.settings.gifts_heading
+                  %}
+                </div>
+                {%- assign offers_rendered = true -%}
+              {%- endunless -%}
+
+            {%- when 'bundle_gift' -%}
+              {%- comment -%}
+                With tiers on the page, gifts render inside the tier group,
+                under the tiers. Without any, they stand alone here, at the
+                position of the first gift block, and are always included.
+              {%- endcomment -%}
+              {%- if offers.size == 0 -%}
+                {%- unless gifts_rendered -%}
+                  <div
+                    class="product-block offers-wrapper"
+                    style="--offer-accent: {{ section.settings.offer_accent }}; --offer-accent-text: {{ section.settings.offer_accent_text }}; --offer-ribbon: {{ section.settings.offer_ribbon }};"
+                  >
+                    {%
+                      render 'bundle-gifts',
+                      gifts: gifts,
+                      offers: offers,
+                      selected_index: 0,
+                      form_id: form_id,
+                      heading: section.settings.gifts_heading
+                    %}
+                  </div>
+                  {%- assign gifts_rendered = true -%}
+                {%- endunless -%}
+              {%- endif -%}
+
+            {%- when 'quantity' -%}
+              {%- comment -%}
+                Offers and this stepper both post "quantity"; offers win.
+              {%- endcomment -%}
+              {%- if offers.size == 0 -%}
+                <div class="product-block" {{ block.shopify_attributes }}>
+                  <label for="Quantity-{{ section.id }}">{{ 'products.product.quantity' | t }}</label>
+                  <quantity-input class="quantity">
+                    <button type="button" class="quantity__button" data-action="decrease">
+                      <span class="visually-hidden">{{ 'accessibility.decrease_quantity' | t }}</span>
+                      &minus;
+                    </button>
+                    <input
+                      id="Quantity-{{ section.id }}"
+                      class="quantity__input"
+                      type="number"
+                      name="quantity"
+                      value="1"
+                      min="1"
+                      inputmode="numeric"
+                      form="{{ form_id }}"
+                    >
+                    <button type="button" class="quantity__button" data-action="increase">
+                      <span class="visually-hidden">{{ 'accessibility.increase_quantity' | t }}</span>
+                      &plus;
+                    </button>
+                  </quantity-input>
+                </div>
+              {%- endif -%}
+
+            {%- when 'bundle' -%}
+              {% render 'product-block-bundle', block: block, product: product, current_variant: current_variant, form_id: form_id %}
+            {%- when 'buy_buttons' -%}
+              {%- comment -%}
+                #product-buy is where every mid-page CTA lands (snippets/cta).
+                scroll-margin in base.css leaves the offer above it in view.
+              {%- endcomment -%}
+              <div class="product-block product-buy" id="product-buy" {{ block.shopify_attributes }}>
+                <button
+                  type="submit"
+                  name="add"
+                  form="{{ form_id }}"
+                  class="button button--full button--buy"
+                  data-main-buy
+                  {% unless current_variant.available %}disabled{% endunless %}
+                >
+                  <span class="button__row">
+                  <span class="button__label">
+                    {%- if current_variant == nil -%}
+                      {{ 'products.product.unavailable' | t }}
+                    {%- elsif current_variant.available -%}
+                      {%- comment -%}
+                        Branch rather than "label | default: key | t": that
+                        would push a merchant's own label through the
+                        translator and print "translation missing".
+                      {%- endcomment -%}
+                      {%- if block.settings.label != blank -%}
+                        {{ block.settings.label | escape }}
+                      {%- else -%}
+                        {{ 'products.product.add_to_cart' | t }}
+                      {%- endif -%}
+                    {%- else -%}
+                      {{ 'products.product.sold_out' | t }}
+                    {%- endif -%}
+                  </span>
+                  {%- if block.settings.show_price and current_variant.available -%}
+                    <span class="button__price">
+                      <span class="button__divider" aria-hidden="true"></span>
+                      {{ current_variant.price | money }}
+                      {%- if current_variant.compare_at_price > current_variant.price %}
+                        <s>{{ current_variant.compare_at_price | money }}</s>
+                      {%- endif -%}
+                    </span>
+                  {%- endif -%}
+                  </span>
+                  {%- if block.settings.subtext != blank and current_variant.available -%}
+                    <span class="button__sub">{{ block.settings.subtext | escape }}</span>
+                  {%- endif -%}
+                </button>
+              </div>
+
+            {%- when 'payment' -%}
+              <div class="product-block payment-trust" {{ block.shopify_attributes }}>
+                {%- if block.settings.label != blank -%}
+                  <p class="payment-trust__label">{% render 'icon', name: 'lock', size: 14 %}{{ block.settings.label | escape }}</p>
+                {%- endif -%}
+                <ul class="payment-trust__icons">
+                  {%- for type in shop.enabled_payment_types -%}
+                    <li>{{ type | payment_type_svg_tag: class: 'payment-icon' }}</li>
+                  {%- endfor -%}
+                </ul>
+              </div>
+
+            {%- when 'callout' -%}
+              <div class="product-block callout" {{ block.shopify_attributes }}>
+                <span class="icon-tile icon-tile--solid">{% render 'icon', name: block.settings.icon %}</span>
+                <div>
+                  <p class="callout__title">{{ block.settings.title | escape }}</p>
+                  {%- if block.settings.text != blank -%}
+                    <p class="callout__text">{{ block.settings.text | escape }}</p>
+                  {%- endif -%}
+                </div>
+              </div>
+
+            {%- when 'trust_grid' -%}
+              {% render 'product-block-trust-grid', block: block %}
+            {%- when 'review' -%}
+              {% render 'product-block-review', block: block %}
+            {%- when 'price_table' -%}
+              {% render 'product-block-price-table', block: block, current_variant: current_variant %}
+            {%- when 'collapsible' -%}
+              <details class="product-block collapsible" {% if block.settings.open %}open{% endif %} {{ block.shopify_attributes }}>
+                <summary>
+                  {%- if block.settings.icon != 'none' -%}
+                    <span class="collapsible__icon">{% render 'icon', name: block.settings.icon, size: 18 %}</span>
+                  {%- endif -%}
+                  <span class="collapsible__title">{{ block.settings.heading | escape }}</span>
+                  <span class="collapsible__chevron">{% render 'icon', name: 'chevron-down', size: 18 %}</span>
+                </summary>
+                <div class="collapsible__content rte">{{ block.settings.content }}</div>
+              </details>
+
+            {%- when 'image_carousel' -%}
+              {%- liquid
+                assign slide_count = 0
+                for i in (1..6)
+                  assign image_key = 'image_' | append: i
+                  if block.settings[image_key] != blank
+                    assign slide_count = slide_count | plus: 1
+                  endif
+                endfor
+              -%}
+              {%- if slide_count == 0 -%}
+                {%- if request.design_mode -%}
+                  <p class="product-block editor-note" {{ block.shopify_attributes }}>Add images to show the carousel.</p>
+                {%- endif -%}
+                {%- continue -%}
+              {%- endif -%}
+              <div class="product-block" {{ block.shopify_attributes }}>
+                <scroll-carousel class="carousel">
+                  <ul class="carousel__track" tabindex="0">
+                    {%- for i in (1..6) -%}
+                      {%- assign image_key = 'image_' | append: i -%}
+                      {%- assign slide = block.settings[image_key] -%}
+                      {%- if slide != blank -%}
+                        <li class="carousel__slide">
+                          {{ slide | image_url: width: 900 | image_tag: widths: '450,900', sizes: '(min-width: 990px) 40vw, 90vw', loading: 'lazy', alt: slide.alt }}
+                        </li>
+                      {%- endif -%}
+                    {%- endfor -%}
+                  </ul>
+                  <div class="carousel__controls">
+                    <button type="button" class="carousel__nav" data-step="-1" aria-label="{{ 'accessibility.previous' | t }}">{% render 'icon', name: 'chevron-left', size: 18 %}</button>
+                    <button type="button" class="carousel__nav" data-step="1" aria-label="{{ 'accessibility.next' | t }}">{% render 'icon', name: 'chevron-right', size: 18 %}</button>
+                  </div>
+                </scroll-carousel>
+                {%- if block.settings.caption != blank -%}
+                  <p class="carousel__caption">{{ block.settings.caption | escape }}</p>
+                {%- endif -%}
+              </div>
+
+            {%- when 'included' -%}
+              {%- comment -%}
+                A variant's own list (metafield custom.included, multi-line
+                text) wins over the block's, so "Device only" and "Device +
+                refills" can each say what is in their box.
+              {%- endcomment -%}
+              {%- liquid
+                assign included_source = current_variant.metafields.custom.included.value | default: block.settings.items
+                assign included_lines = included_source | newline_to_br | split: '<br />'
+              -%}
+              <div class="product-block included" {{ block.shopify_attributes }}>
+                {%- if block.settings.heading != blank -%}
+                  <p class="included__heading">{{ block.settings.heading | escape }}</p>
+                {%- endif -%}
+                <ul class="included__list" role="list">
+                  {%- for line in included_lines -%}
+                    {%- assign item = line | strip -%}
+                    {%- if item != blank -%}
+                      <li><span class="included__tick">{% render 'icon', name: 'check', size: 12 %}</span>{{ item | escape }}</li>
+                    {%- endif -%}
+                  {%- endfor -%}
+                </ul>
+              </div>
+
+            {%- when 'avatars' -%}
+              <div class="product-block avatar-stack" {{ block.shopify_attributes }}>
+                <span class="avatar-stack__faces">
+                  {%- for i in (1..5) -%}
+                    {%- assign face_key = 'image_' | append: i -%}
+                    {%- assign face = block.settings[face_key] -%}
+                    {%- if face != blank -%}
+                      {{ face | image_url: width: 96 | image_tag: class: 'avatar-stack__face', widths: '48,96', sizes: '36px', loading: 'lazy', alt: '' }}
+                    {%- endif -%}
+                  {%- endfor -%}
+                </span>
+                <p class="avatar-stack__text">{{ block.settings.text }}</p>
+              </div>
+
+            {%- when 'installments' -%}
+              {%- comment -%}
+                Shopify only gives payment_terms a form object inside a
+                product form, so this block carries its own small one. It
+                renders the Shop Pay Installments message when the store has
+                it enabled, and nothing otherwise.
+              {%- endcomment -%}
+              <div class="product-block installments" {{ block.shopify_attributes }}>
+                {%- form 'product', product, class: 'installments__form' -%}
+                  <input type="hidden" name="id" value="{{ current_variant.id }}">
+                  {{ form | payment_terms }}
+                {%- endform -%}
+                {%- if block.settings.badge != blank -%}
+                  <span class="installments__badge">{{ block.settings.badge | escape }}</span>
+                {%- endif -%}
+              </div>
+
+            {%- when 'delivery' -%}
+              {% render 'product-block-delivery', block: block %}
+            {%- when 'testimonial_slider' -%}
+              {% render 'product-block-testimonial-slider', block: block %}
+            {%- when 'compare' -%}
+              {% render 'product-block-compare', block: block %}
+            {%- when 'stat_rows' -%}
+              {% render 'product-block-stat-rows', block: block %}
+            {%- when 'logo_card' -%}
+              {%- liquid
+                assign logo_count = 0
+                for i in (1..4)
+                  assign logo_key = 'logo_' | append: i
+                  if block.settings[logo_key] != blank
+                    assign logo_count = logo_count | plus: 1
+                  endif
+                endfor
+              -%}
+              {%- if logo_count == 0 -%}
+                {%- if request.design_mode -%}
+                  <p class="product-block editor-note" {{ block.shopify_attributes }}>Add logos to show the logo card.</p>
+                {%- endif -%}
+                {%- continue -%}
+              {%- endif -%}
+              <div class="product-block logo-card" {{ block.shopify_attributes }}>
+                {%- if block.settings.heading != blank -%}
+                  <p class="logo-card__heading">{{ block.settings.heading | escape }}</p>
+                {%- endif -%}
+                <ul class="logo-card__logos" role="list">
+                  {%- for i in (1..4) -%}
+                    {%- assign logo_key = 'logo_' | append: i -%}
+                    {%- assign logo = block.settings[logo_key] -%}
+                    {%- if logo != blank -%}
+                      <li>{{ logo | image_url: width: 240 | image_tag: widths: '120,240', sizes: '120px', loading: 'lazy', alt: logo.alt }}</li>
+                    {%- endif -%}
+                  {%- endfor -%}
+                </ul>
+              </div>
+
+            {%- when 'custom_liquid' -%}
+              <div class="product-block" {{ block.shopify_attributes }}>{{ block.settings.custom_liquid }}</div>
+          {%- endcase -%}
+        {%- endfor -%}
+      </div>
+    </div>
+
+    {%- if section.settings.sticky_bar -%}
+      <sticky-buy-bar class="sticky-buy sticky-buy--{{ section.settings.sticky_position }} color-{{ section.settings.color_scheme }}" hidden>
+        <div class="sticky-buy__inner page-width">
+          <div class="sticky-buy__product">
+            {%- assign sticky_media = current_variant.featured_media | default: product.featured_media -%}
+            {%- if sticky_media -%}
+              {{ sticky_media.preview_image | image_url: width: 120 | image_tag: class: 'sticky-buy__thumb', widths: '60,120', sizes: '48px', loading: 'lazy', alt: '' }}
+            {%- endif -%}
+            <div>
+              <p class="sticky-buy__title">{{ product.title | escape }}</p>
+              <p class="sticky-buy__price">
+                <strong>{{ current_variant.price | money }}</strong>
+                {%- if current_variant.compare_at_price > current_variant.price %}
+                  <s>{{ current_variant.compare_at_price | money }}</s>
+                  <span class="save-badge save-badge--small">{{ 'products.product.offers.save' | t: percent: saving_percent }}</span>
+                {%- endif -%}
+              </p>
+            </div>
+          </div>
+          <button
+            type="submit"
+            name="add"
+            form="{{ form_id }}"
+            class="button sticky-buy__button"
+            {% unless current_variant.available %}disabled{% endunless %}
+          >
+            {%- if current_variant.available and section.settings.sticky_label != blank -%}
+              {{ section.settings.sticky_label | escape }}
+            {%- elsif current_variant.available -%}
+              {{ 'products.product.add_to_cart' | t }}
+            {%- else -%}
+              {{ 'products.product.sold_out' | t }}
+            {%- endif -%}
+          </button>
+        </div>
+      </sticky-buy-bar>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Product information",
+  "tag": "section",
+  "class": "section-main-product",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "default": "scheme-1", "label": "Color scheme" },
+    { "type": "header", "content": "Media" },
+    {
+      "type": "select",
+      "id": "media_ratio",
+      "options": [
+        { "value": "square", "label": "Square" },
+        { "value": "portrait", "label": "Portrait" },
+        { "value": "adapt", "label": "Adapt to image" }
+      ],
+      "default": "square",
+      "label": "Image shape"
+    },
+    {
+      "type": "select",
+      "id": "thumbs_position",
+      "options": [
+        { "value": "bottom", "label": "Below the image" },
+        { "value": "left", "label": "Left of the image" }
+      ],
+      "default": "bottom",
+      "label": "Thumbnails",
+      "info": "Left applies on desktop. Phones always show them below."
+    },
+    { "type": "checkbox", "id": "sticky_media", "default": true, "label": "Keep gallery in view while scrolling on desktop" },
+    { "type": "checkbox", "id": "show_breadcrumbs", "default": false, "label": "Show breadcrumbs" },
+    { "type": "header", "content": "Sticky add to cart" },
+    { "type": "checkbox", "id": "sticky_bar", "default": true, "label": "Show a buy bar once the main button scrolls away" },
+    {
+      "type": "select",
+      "id": "sticky_position",
+      "options": [
+        { "value": "bottom", "label": "Bottom of the screen" },
+        { "value": "top", "label": "Top of the screen" }
+      ],
+      "default": "bottom",
+      "label": "Bar position"
+    },
+    { "type": "text", "id": "sticky_label", "label": "Bar button label", "info": "Leave blank for \"Add to cart\"." },
+    { "type": "header", "content": "Quantity offers" },
+    {
+      "type": "paragraph",
+      "content": "Quantity offer blocks show bundle tiers. The theme only displays them and adds the chosen quantity to the cart. Create a matching discount in Shopify for each tier, or shoppers will be charged full price."
+    },
+    { "type": "text", "id": "offers_heading", "label": "Banner above offers" },
+    { "type": "checkbox", "id": "offer_thumbnails", "default": true, "label": "Show product image on each offer", "info": "Follows the selected variant. Offers with two or more units show a stacked image. An offer's own image overrides it." },
+    { "type": "text", "id": "offer_sale_text", "label": "Sale countdown text", "info": "Use [time] for the countdown, e.g. \"Our sale ends in [time]\"." },
+    { "type": "text", "id": "offer_sale_ends", "label": "Sale ends", "info": "Store time, as YYYY-MM-DD HH:MM, e.g. 2026-11-30 23:59. The banner hides itself once this passes. A countdown has to end when the sale really ends: a timer that restarts for every visitor is a banned practice under EU consumer law." },
+    { "type": "text", "id": "gifts_heading", "default": "Free gifts with your bundle", "label": "Heading above bundle gifts" },
+    { "type": "color", "id": "offer_accent", "default": "#009975", "label": "Badge and gift bar color" },
+    { "type": "color", "id": "offer_accent_text", "default": "#FFFFFF", "label": "Badge and gift bar text" },
+    { "type": "color", "id": "offer_ribbon", "default": "#E5484D", "label": "Ribbon color" }
+  ],
+  "blocks": [
+    { "type": "@app" },
+    {
+      "type": "rating",
+      "name": "Star rating",
+      "limit": 1,
+      "settings": [
+        { "type": "paragraph", "content": "Reads the reviews.rating and reviews.rating_count metafields that review apps (Judge.me, Loox, Okendo and others) write. Hidden until those exist, so it never shows a made-up score." },
+        { "type": "text", "id": "label", "default": "[rating]/5 rated by [count] customers", "label": "Label", "info": "[rating] and [count] are replaced with the real figures." }
+      ]
+    },
+    {
+      "type": "title",
+      "name": "Title",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "size",
+          "options": [
+            { "value": "small", "label": "Small" },
+            { "value": "medium", "label": "Medium" },
+            { "value": "large", "label": "Large" }
+          ],
+          "default": "medium",
+          "label": "Size"
+        }
+      ]
+    },
+    {
+      "type": "pill",
+      "name": "Pill label",
+      "settings": [
+        { "type": "text", "id": "text", "default": "Your one-line promise", "label": "Text" },
+        { "type": "select", "id": "icon", "options": [{"value":"none","label":"None"},{"value":"check","label":"Check"},{"value":"x","label":"X"},{"value":"shield","label":"Shield"},{"value":"truck","label":"Truck"},{"value":"package","label":"Package"},{"value":"refresh","label":"Refresh"},{"value":"lock","label":"Lock"},{"value":"clock","label":"Clock"},{"value":"heart","label":"Heart"},{"value":"user","label":"User"},{"value":"cup","label":"Cup"},{"value":"leaf","label":"Leaf"},{"value":"star","label":"Star"},{"value":"zap","label":"Zap"},{"value":"gift","label":"Gift"},{"value":"chat","label":"Chat"},{"value":"home","label":"Home"},{"value":"mail","label":"Mail"},{"value":"calendar","label":"Calendar"},{"value":"power","label":"Power"},{"value":"activity","label":"Activity"},{"value":"target","label":"Target"},{"value":"award","label":"Award"},{"value":"eye-off","label":"Eye off"},{"value":"sparkle","label":"Sparkle"},{"value":"smile","label":"Smile"},{"value":"ban","label":"Ban"},{"value":"chart","label":"Chart"},{"value":"card","label":"Card"}], "default": "none", "label": "Icon", "info": "None shows a dot." }
+      ]
+    },
+    {
+      "type": "headline",
+      "name": "Headline",
+      "settings": [
+        { "type": "text", "id": "text", "default": "Lead with the outcome.", "label": "Headline" },
+        { "type": "text", "id": "accent", "default": "Then remove the main objection.", "label": "Accent line", "info": "Shown on its own line in the accent color." },
+        {
+          "type": "select",
+          "id": "size",
+          "options": [
+            { "value": "medium", "label": "Medium" },
+            { "value": "large", "label": "Large" }
+          ],
+          "default": "large",
+          "label": "Size"
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "name": "Heading",
+      "settings": [
+        { "type": "text", "id": "eyebrow", "label": "Eyebrow" },
+        { "type": "text", "id": "heading", "default": "Common questions", "label": "Heading" },
+        { "type": "text", "id": "accent", "label": "Accent text" },
+        {
+          "type": "select",
+          "id": "align",
+          "options": [
+            { "value": "left", "label": "Left" },
+            { "value": "center", "label": "Center" }
+          ],
+          "default": "left",
+          "label": "Alignment"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "name": "Text",
+      "settings": [
+        { "type": "richtext", "id": "text", "default": "<p>Two sentences on what the product does and who it is for. <strong>Bold the part they will remember.</strong></p>", "label": "Text" }
+      ]
+    },
+    { "type": "description", "name": "Product description", "limit": 1, "settings": [] },
+    {
+      "type": "price",
+      "name": "Price",
+      "limit": 1,
+      "settings": [
+        { "type": "checkbox", "id": "show_saving", "default": true, "label": "Show saving badge when on sale" }
+      ]
+    },
+    {
+      "type": "benefit",
+      "name": "Benefit",
+      "settings": [
+        { "type": "select", "id": "icon", "options": [{"value":"none","label":"None"},{"value":"check","label":"Check"},{"value":"x","label":"X"},{"value":"shield","label":"Shield"},{"value":"truck","label":"Truck"},{"value":"package","label":"Package"},{"value":"refresh","label":"Refresh"},{"value":"lock","label":"Lock"},{"value":"clock","label":"Clock"},{"value":"heart","label":"Heart"},{"value":"user","label":"User"},{"value":"cup","label":"Cup"},{"value":"leaf","label":"Leaf"},{"value":"star","label":"Star"},{"value":"zap","label":"Zap"},{"value":"gift","label":"Gift"},{"value":"chat","label":"Chat"},{"value":"home","label":"Home"},{"value":"mail","label":"Mail"},{"value":"calendar","label":"Calendar"},{"value":"power","label":"Power"},{"value":"activity","label":"Activity"},{"value":"target","label":"Target"},{"value":"award","label":"Award"},{"value":"eye-off","label":"Eye off"},{"value":"sparkle","label":"Sparkle"},{"value":"smile","label":"Smile"},{"value":"ban","label":"Ban"},{"value":"chart","label":"Chart"},{"value":"card","label":"Card"}], "default": "check", "label": "Icon" },
+        { "type": "text", "id": "title", "default": "A concrete benefit", "label": "Title" },
+        { "type": "text", "id": "text", "default": "One line that makes it believable.", "label": "Text" }
+      ]
+    },
+    {
+      "type": "chips",
+      "name": "Guarantee chips",
+      "settings": [
+        { "type": "select", "id": "icon_1", "options": [{"value":"none","label":"None"},{"value":"check","label":"Check"},{"value":"x","label":"X"},{"value":"shield","label":"Shield"},{"value":"truck","label":"Truck"},{"value":"package","label":"Package"},{"value":"refresh","label":"Refresh"},{"value":"lock","label":"Lock"},{"value":"clock","label":"Clock"},{"value":"heart","label":"Heart"},{"value":"user","label":"User"},{"value":"cup","label":"Cup"},{"value":"leaf","label":"Leaf"},{"value":"star","label":"Star"},{"value":"zap","label":"Zap"},{"value":"gift","label":"Gift"},{"value":"chat","label":"Chat"},{"value":"home","label":"Home"},{"value":"mail","label":"Mail"},{"value":"calendar","label":"Calendar"},{"value":"power","label":"Power"},{"value":"activity","label":"Activity"},{"value":"target","label":"Target"},{"value":"award","label":"Award"},{"value":"eye-off","label":"Eye off"},{"value":"sparkle","label":"Sparkle"},{"value":"smile","label":"Smile"},{"value":"ban","label":"Ban"},{"value":"chart","label":"Chart"},{"value":"card","label":"Card"}], "default": "calendar", "label": "Icon 1" },
+        { "type": "text", "id": "text_1", "default": "30 days to decide", "label": "Chip 1" },
+        { "type": "select", "id": "icon_2", "options": [{"value":"none","label":"None"},{"value":"check","label":"Check"},{"value":"x","label":"X"},{"value":"shield","label":"Shield"},{"value":"truck","label":"Truck"},{"value":"package","label":"Package"},{"value":"refresh","label":"Refresh"},{"value":"lock","label":"Lock"},{"value":"clock","label":"Clock"},{"value":"heart","label":"Heart"},{"value":"user","label":"User"},{"value":"cup","label":"Cup"},{"value":"leaf","label":"Leaf"},{"value":"star","label":"Star"},{"value":"zap","label":"Zap"},{"value":"gift","label":"Gift"},{"value":"chat","label":"Chat"},{"value":"home","label":"Home"},{"value":"mail","label":"Mail"},{"value":"calendar","label":"Calendar"},{"value":"power","label":"Power"},{"value":"activity","label":"Activity"},{"value":"target","label":"Target"},{"value":"award","label":"Award"},{"value":"eye-off","label":"Eye off"},{"value":"sparkle","label":"Sparkle"},{"value":"smile","label":"Smile"},{"value":"ban","label":"Ban"},{"value":"chart","label":"Chart"},{"value":"card","label":"Card"}], "default": "award", "label": "Icon 2" },
+        { "type": "text", "id": "text_2", "default": "1 year warranty", "label": "Chip 2" },
+        { "type": "select", "id": "icon_3", "options": [{"value":"none","label":"None"},{"value":"check","label":"Check"},{"value":"x","label":"X"},{"value":"shield","label":"Shield"},{"value":"truck","label":"Truck"},{"value":"package","label":"Package"},{"value":"refresh","label":"Refresh"},{"value":"lock","label":"Lock"},{"value":"clock","label":"Clock"},{"value":"heart","label":"Heart"},{"value":"user","label":"User"},{"value":"cup","label":"Cup"},{"value":"leaf","label":"Leaf"},{"value":"star","label":"Star"},{"value":"zap","label":"Zap"},{"value":"gift","label":"Gift"},{"value":"chat","label":"Chat"},{"value":"home","label":"Home"},{"value":"mail","label":"Mail"},{"value":"calendar","label":"Calendar"},{"value":"power","label":"Power"},{"value":"activity","label":"Activity"},{"value":"target","label":"Target"},{"value":"award","label":"Award"},{"value":"eye-off","label":"Eye off"},{"value":"sparkle","label":"Sparkle"},{"value":"smile","label":"Smile"},{"value":"ban","label":"Ban"},{"value":"chart","label":"Chart"},{"value":"card","label":"Card"}], "default": "truck", "label": "Icon 3" },
+        { "type": "text", "id": "text_3", "default": "Free shipping", "label": "Chip 3" },
+        { "type": "select", "id": "icon_4", "options": [{"value":"none","label":"None"},{"value":"check","label":"Check"},{"value":"x","label":"X"},{"value":"shield","label":"Shield"},{"value":"truck","label":"Truck"},{"value":"package","label":"Package"},{"value":"refresh","label":"Refresh"},{"value":"lock","label":"Lock"},{"value":"clock","label":"Clock"},{"value":"heart","label":"Heart"},{"value":"user","label":"User"},{"value":"cup","label":"Cup"},{"value":"leaf","label":"Leaf"},{"value":"star","label":"Star"},{"value":"zap","label":"Zap"},{"value":"gift","label":"Gift"},{"value":"chat","label":"Chat"},{"value":"home","label":"Home"},{"value":"mail","label":"Mail"},{"value":"calendar","label":"Calendar"},{"value":"power","label":"Power"},{"value":"activity","label":"Activity"},{"value":"target","label":"Target"},{"value":"award","label":"Award"},{"value":"eye-off","label":"Eye off"},{"value":"sparkle","label":"Sparkle"},{"value":"smile","label":"Smile"},{"value":"ban","label":"Ban"},{"value":"chart","label":"Chart"},{"value":"card","label":"Card"}], "default": "ban", "label": "Icon 4" },
+        { "type": "text", "id": "text_4", "default": "No subscription", "label": "Chip 4" }
+      ]
+    },
+    {
+      "type": "variant_picker",
+      "name": "Variant picker",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "style",
+          "options": [
+            { "value": "pills", "label": "Pills" },
+            { "value": "swatches", "label": "Swatches" },
+            { "value": "cards", "label": "Cards with prices" }
+          ],
+          "default": "swatches",
+          "label": "Style",
+          "info": "Swatches need colors or images set up on the option in Shopify settings. Cards list every variant with its price; best when variants are purchase options like \"Device only\" and \"Bundle\"."
+        },
+        { "type": "text", "id": "heading", "default": "Choose your option", "label": "Heading above cards", "info": "Cards style only. Badges come from the variant metafield custom.badge." }
+      ]
+    },
+    {
+      "type": "quantity",
+      "name": "Quantity selector",
+      "limit": 1,
+      "settings": [
+        { "type": "paragraph", "content": "Hidden automatically when quantity offers are added, because both set the quantity." }
+      ]
+    },
+    {
+      "type": "quantity_break",
+      "name": "Quantity offer",
+      "limit": 5,
+      "settings": [
+        { "type": "text", "id": "title", "default": "Buy 2 Get 3", "label": "Title" },
+        { "type": "range", "id": "quantity", "min": 1, "max": 10, "step": 1, "default": 3, "label": "Units the customer receives" },
+        { "type": "range", "id": "paid_quantity", "min": 1, "max": 10, "step": 1, "default": 2, "label": "Units the customer pays for", "info": "Lower than units received for buy-X-get-Y. Equal to it for a straight percentage discount." },
+        { "type": "range", "id": "percent_off", "min": 0, "max": 90, "step": 1, "default": 0, "unit": "%", "label": "Extra percentage off", "info": "Applied on top of the paid units. Leave at 0 for pure buy-X-get-Y." },
+        { "type": "text", "id": "badge", "label": "Badge text", "info": "Leave blank to show the calculated saving, e.g. \"Save 33%\"." },
+        { "type": "text", "id": "ribbon", "label": "Ribbon", "info": "e.g. \"Best value\" or \"Most popular\"" },
+        { "type": "checkbox", "id": "show_unit_price", "default": true, "label": "Show price per unit" },
+        { "type": "text", "id": "unit_label", "default": "item", "label": "Unit name", "info": "As in \"$19.99 / item\". Try pair, bottle, pack." },
+        { "type": "text", "id": "detail", "label": "Extra line", "info": "e.g. \"+ Free shipping\". Shown after the unit price." },
+        { "type": "image_picker", "id": "image", "label": "Offer image", "info": "Optional. Replaces the product image on this offer, e.g. a photo of the pair." },
+        { "type": "checkbox", "id": "selected", "default": false, "label": "Selected by default", "info": "If no offer is ticked, the first one is selected." },
+        { "type": "header", "content": "Free gift" },
+        { "type": "product", "id": "gift_product", "label": "Gift product", "info": "Added to the cart with this tier. Needs a Buy X Get Y discount that makes it free." },
+        { "type": "text", "id": "gift_label", "default": "+ Free gift", "label": "Gift label" },
+        { "type": "header", "content": "Discount" },
+        { "type": "text", "id": "discount_code", "label": "Discount code", "info": "Optional. Automatic discounts need nothing here and are more reliable." }
+      ]
+    },
+    {
+      "type": "bundle_gift",
+      "name": "Bundle gift",
+      "limit": 4,
+      "settings": [
+        { "type": "paragraph", "content": "Shown in a row under the quantity offers. Locked gifts stay visible, greyed out, so shoppers see what the bigger bundle adds." },
+        { "type": "range", "id": "unlock_offer", "min": 1, "max": 5, "step": 1, "default": 2, "label": "Unlocks from offer #", "info": "Counts quantity offers from the top. The gift comes with that offer and every offer below it. 1 means always included." },
+        { "type": "product", "id": "product", "label": "Gift product", "info": "Added to the cart when unlocked. Leave empty for a perk that is not a product, like express shipping. Either way, create a discount in Shopify that makes it free." },
+        { "type": "checkbox", "id": "show_variant_picker", "default": true, "label": "Let shoppers choose the gift's variant", "info": "Only when the gift has more than one variant in stock." },
+        { "type": "text", "id": "title", "label": "Title", "info": "Leave blank to use the product title." },
+        { "type": "text", "id": "text", "label": "Short description" },
+        { "type": "image_picker", "id": "image", "label": "Image", "info": "Leave blank to use the gift variant's image." },
+        {
+          "type": "select",
+          "id": "icon",
+          "options": [
+            { "value": "gift", "label": "Gift" },
+            { "value": "truck", "label": "Truck" },
+            { "value": "package", "label": "Package" },
+            { "value": "zap", "label": "Lightning" },
+            { "value": "shield", "label": "Shield" },
+            { "value": "heart", "label": "Heart" },
+            { "value": "star", "label": "Star" },
+            { "value": "award", "label": "Award" }
+          ],
+          "default": "gift",
+          "label": "Icon",
+          "info": "Shown when there is no image."
+        },
+        { "type": "text", "id": "value_label", "default": "FREE", "label": "Value label" },
+        { "type": "checkbox", "id": "show_price", "default": true, "label": "Show the gift's price struck through" }
+      ]
+    },
+    {
+      "type": "bundle",
+      "name": "Offer box",
+      "limit": 1,
+      "settings": [
+        { "type": "paragraph", "content": "The product plus up to three bonuses, with a total. Use this or quantity offers, not both: the total here is for one unit." },
+        { "type": "text", "id": "heading", "default": "Today's offer · Free bonuses included", "label": "Heading" },
+        { "type": "text", "id": "title", "label": "Product name", "info": "Leave blank to use the product title." },
+        { "type": "text", "id": "text", "default": "What is in the box, in one line.", "label": "Product line" },
+        { "type": "header", "content": "Bonus 1" },
+        { "type": "text", "id": "bonus_1_title", "default": "Your first bonus", "label": "Title" },
+        { "type": "text", "id": "bonus_1_text", "default": "What it is and why it helps.", "label": "Text" },
+        { "type": "image_picker", "id": "bonus_1_image", "label": "Image" },
+        { "type": "text", "id": "bonus_1_value", "default": "FREE", "label": "Value label" },
+        { "type": "product", "id": "bonus_1_product", "label": "Add this product to the cart", "info": "Optional. Price it at 0, or create a discount that makes it free." },
+        { "type": "header", "content": "Bonus 2" },
+        { "type": "text", "id": "bonus_2_title", "label": "Title" },
+        { "type": "text", "id": "bonus_2_text", "label": "Text" },
+        { "type": "image_picker", "id": "bonus_2_image", "label": "Image" },
+        { "type": "text", "id": "bonus_2_value", "default": "FREE", "label": "Value label" },
+        { "type": "product", "id": "bonus_2_product", "label": "Add this product to the cart" },
+        { "type": "header", "content": "Bonus 3" },
+        { "type": "text", "id": "bonus_3_title", "label": "Title" },
+        { "type": "text", "id": "bonus_3_text", "label": "Text" },
+        { "type": "image_picker", "id": "bonus_3_image", "label": "Image" },
+        { "type": "text", "id": "bonus_3_value", "default": "FREE", "label": "Value label" },
+        { "type": "product", "id": "bonus_3_product", "label": "Add this product to the cart" },
+        { "type": "header", "content": "Total" },
+        { "type": "checkbox", "id": "show_total", "default": true, "label": "Show total" },
+        { "type": "text", "id": "total_label", "default": "Total today", "label": "Total label" },
+        { "type": "text", "id": "total_note", "default": "Price shown in your local currency", "label": "Note" }
+      ]
+    },
+    {
+      "type": "buy_buttons",
+      "name": "Buy button",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "label", "label": "Label", "info": "Leave blank for \"Add to cart\"." },
+        { "type": "checkbox", "id": "show_price", "default": false, "label": "Show price in the button" },
+        { "type": "text", "id": "subtext", "default": "Try it risk-free. Not right for you? Send it back.", "label": "Line under the label" }
+      ]
+    },
+    {
+      "type": "included",
+      "name": "What's included",
+      "settings": [
+        { "type": "text", "id": "heading", "default": "What's included", "label": "Heading" },
+        { "type": "textarea", "id": "items", "default": "The product\nEverything you need to get started\n30-day money-back guarantee", "label": "Items", "info": "One per line. A variant's custom.included metafield (multi-line text) replaces this list for that variant." }
+      ]
+    },
+    {
+      "type": "avatars",
+      "name": "Avatar stack",
+      "settings": [
+        { "type": "image_picker", "id": "image_1", "label": "Image 1" },
+        { "type": "image_picker", "id": "image_2", "label": "Image 2" },
+        { "type": "image_picker", "id": "image_3", "label": "Image 3" },
+        { "type": "image_picker", "id": "image_4", "label": "Image 4" },
+        { "type": "image_picker", "id": "image_5", "label": "Image 5" },
+        { "type": "inline_richtext", "id": "text", "default": "Trusted by <b>thousands of customers</b> and the professionals they rely on.", "label": "Text", "info": "Use real figures you can back up." }
+      ]
+    },
+    {
+      "type": "installments",
+      "name": "Pay in installments",
+      "limit": 1,
+      "settings": [
+        { "type": "paragraph", "content": "Shows Shopify's Shop Pay Installments message for the current price. Appears only when installments are enabled for your store." },
+        { "type": "text", "id": "badge", "label": "Badge", "info": "Optional, e.g. \"HSA/FSA eligible\". Only claim what applies." }
+      ]
+    },
+    {
+      "type": "delivery",
+      "name": "Delivery estimate",
+      "limit": 1,
+      "settings": [
+        { "type": "paragraph", "content": "Works out ship and delivery dates in the shopper's browser from the rules below. Weekends are skipped unless allowed; public holidays are not known." },
+        { "type": "text", "id": "shipping_text", "default": "Free shipping to", "label": "Shipping line", "info": "Followed by the shopper's country." },
+        { "type": "text", "id": "shipping_tag", "default": "FREE", "label": "Tag" },
+        { "type": "range", "id": "processing_days", "min": 0, "max": 5, "step": 1, "default": 1, "label": "Business days before an order ships" },
+        { "type": "range", "id": "min_days", "min": 1, "max": 20, "step": 1, "default": 3, "label": "Fastest delivery, business days after shipping" },
+        { "type": "range", "id": "max_days", "min": 1, "max": 30, "step": 1, "default": 5, "label": "Slowest delivery, business days after shipping" },
+        { "type": "range", "id": "cutoff_hour", "min": 0, "max": 23, "step": 1, "default": 14, "label": "Order cutoff hour, store time", "info": "Orders after this hour count from the next business day. The countdown runs to it." },
+        { "type": "checkbox", "id": "weekends", "default": false, "label": "Ships and delivers on weekends" },
+        { "type": "checkbox", "id": "show_countdown", "default": true, "label": "Show time left until the cutoff", "info": "Counts down to the real cutoff above, and only before it." }
+      ]
+    },
+    {
+      "type": "testimonial_slider",
+      "name": "Testimonial slider",
+      "settings": [
+        { "type": "paragraph", "content": "Quote real customers with their permission." },
+        { "type": "text", "id": "eyebrow", "default": "Verified customer", "label": "Label" },
+        { "type": "range", "id": "rating", "min": 1, "max": 5, "step": 1, "default": 5, "label": "Stars" },
+        { "type": "text", "id": "verified_label", "default": "Verified purchase", "label": "Verified label", "info": "Only for confirmed purchases." },
+        { "type": "textarea", "id": "quote_1", "default": "The one sentence from a review that sells it.", "label": "Quote 1" },
+        { "type": "text", "id": "name_1", "default": "Customer N.", "label": "Name 1" },
+        { "type": "text", "id": "detail_1", "default": "City", "label": "Detail 1" },
+        { "type": "textarea", "id": "quote_2", "default": "Another short, specific result in the customer's words.", "label": "Quote 2" },
+        { "type": "text", "id": "name_2", "default": "Customer M.", "label": "Name 2" },
+        { "type": "text", "id": "detail_2", "label": "Detail 2" },
+        { "type": "textarea", "id": "quote_3", "label": "Quote 3" },
+        { "type": "text", "id": "name_3", "label": "Name 3" },
+        { "type": "text", "id": "detail_3", "label": "Detail 3" },
+        { "type": "textarea", "id": "quote_4", "label": "Quote 4" },
+        { "type": "text", "id": "name_4", "label": "Name 4" },
+        { "type": "text", "id": "detail_4", "label": "Detail 4" },
+        { "type": "textarea", "id": "quote_5", "label": "Quote 5" },
+        { "type": "text", "id": "name_5", "label": "Name 5" },
+        { "type": "text", "id": "detail_5", "label": "Detail 5" }
+      ]
+    },
+    {
+      "type": "compare",
+      "name": "Comparison",
+      "settings": [
+        { "type": "text", "id": "heading", "default": "How it compares", "label": "Heading" },
+        { "type": "text", "id": "column_1", "default": "Ours", "label": "Column 1 (highlighted)" },
+        { "type": "text", "id": "column_2", "default": "The alternative", "label": "Column 2" },
+        {
+          "type": "textarea",
+          "id": "rows",
+          "default": "# Setup\nSetup time | yes: Instant | no: Several steps\nPortability | yes: Pocket-sized | no: Bulky\n# Everyday use\nCleanup | yes: None | no: Every use",
+          "label": "Rows",
+          "info": "One row per line: Label | column 1 | column 2. Cells read yes, no, \"yes: note\", \"no: note\" or plain text. Start a line with # for a group heading."
+        }
+      ]
+    },
+    {
+      "type": "stat_rows",
+      "name": "Stat rows",
+      "settings": [
+        { "type": "checkbox", "id": "animate", "default": true, "label": "Count up when scrolled into view" },
+        { "type": "paragraph", "content": "Only use figures you can source. Say where they come from in a text block or footnote." },
+        { "type": "text", "id": "value_1", "default": "94%", "label": "Figure 1" },
+        { "type": "text", "id": "title_1", "default": "What the figure measured", "label": "Title 1" },
+        { "type": "text", "id": "text_1", "default": "Who, how many, and the source", "label": "Text 1" },
+        { "type": "text", "id": "value_2", "default": "67%", "label": "Figure 2" },
+        { "type": "text", "id": "title_2", "default": "Second finding", "label": "Title 2" },
+        { "type": "text", "id": "text_2", "default": "Compared to what", "label": "Text 2" },
+        { "type": "text", "id": "value_3", "label": "Figure 3" },
+        { "type": "text", "id": "title_3", "label": "Title 3" },
+        { "type": "text", "id": "text_3", "label": "Text 3" }
+      ]
+    },
+    {
+      "type": "logo_card",
+      "name": "Logo card",
+      "settings": [
+        { "type": "text", "id": "heading", "default": "Featured in", "label": "Heading" },
+        { "type": "image_picker", "id": "logo_1", "label": "Logo 1" },
+        { "type": "image_picker", "id": "logo_2", "label": "Logo 2" },
+        { "type": "image_picker", "id": "logo_3", "label": "Logo 3" },
+        { "type": "image_picker", "id": "logo_4", "label": "Logo 4" }
+      ]
+    },
+    {
+      "type": "payment",
+      "name": "Payment icons",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "label", "default": "Secure checkout", "label": "Label" }
+      ]
+    },
+    {
+      "type": "callout",
+      "name": "Callout",
+      "settings": [
+        { "type": "select", "id": "icon", "options": [{"value":"none","label":"None"},{"value":"check","label":"Check"},{"value":"x","label":"X"},{"value":"shield","label":"Shield"},{"value":"truck","label":"Truck"},{"value":"package","label":"Package"},{"value":"refresh","label":"Refresh"},{"value":"lock","label":"Lock"},{"value":"clock","label":"Clock"},{"value":"heart","label":"Heart"},{"value":"user","label":"User"},{"value":"cup","label":"Cup"},{"value":"leaf","label":"Leaf"},{"value":"star","label":"Star"},{"value":"zap","label":"Zap"},{"value":"gift","label":"Gift"},{"value":"chat","label":"Chat"},{"value":"home","label":"Home"},{"value":"mail","label":"Mail"},{"value":"calendar","label":"Calendar"},{"value":"power","label":"Power"},{"value":"activity","label":"Activity"},{"value":"target","label":"Target"},{"value":"award","label":"Award"},{"value":"eye-off","label":"Eye off"},{"value":"sparkle","label":"Sparkle"},{"value":"smile","label":"Smile"},{"value":"ban","label":"Ban"},{"value":"chart","label":"Chart"},{"value":"card","label":"Card"}], "default": "ban", "label": "Icon" },
+        { "type": "text", "id": "title", "default": "One-time purchase. Not a subscription.", "label": "Title" },
+        { "type": "text", "id": "text", "default": "Pay once, it's yours. No renewals, no hidden fees.", "label": "Text" }
+      ]
+    },
+    {
+      "type": "trust_grid",
+      "name": "Trust grid",
+      "settings": [
+        { "type": "select", "id": "icon_1", "options": [{"value":"none","label":"None"},{"value":"check","label":"Check"},{"value":"x","label":"X"},{"value":"shield","label":"Shield"},{"value":"truck","label":"Truck"},{"value":"package","label":"Package"},{"value":"refresh","label":"Refresh"},{"value":"lock","label":"Lock"},{"value":"clock","label":"Clock"},{"value":"heart","label":"Heart"},{"value":"user","label":"User"},{"value":"cup","label":"Cup"},{"value":"leaf","label":"Leaf"},{"value":"star","label":"Star"},{"value":"zap","label":"Zap"},{"value":"gift","label":"Gift"},{"value":"chat","label":"Chat"},{"value":"home","label":"Home"},{"value":"mail","label":"Mail"},{"value":"calendar","label":"Calendar"},{"value":"power","label":"Power"},{"value":"activity","label":"Activity"},{"value":"target","label":"Target"},{"value":"award","label":"Award"},{"value":"eye-off","label":"Eye off"},{"value":"sparkle","label":"Sparkle"},{"value":"smile","label":"Smile"},{"value":"ban","label":"Ban"},{"value":"chart","label":"Chart"},{"value":"card","label":"Card"}], "default": "truck", "label": "Icon 1" },
+        { "type": "text", "id": "title_1", "default": "Free shipping", "label": "Title 1" },
+        { "type": "text", "id": "text_1", "default": "Tracked, every order", "label": "Text 1" },
+        { "type": "select", "id": "icon_2", "options": [{"value":"none","label":"None"},{"value":"check","label":"Check"},{"value":"x","label":"X"},{"value":"shield","label":"Shield"},{"value":"truck","label":"Truck"},{"value":"package","label":"Package"},{"value":"refresh","label":"Refresh"},{"value":"lock","label":"Lock"},{"value":"clock","label":"Clock"},{"value":"heart","label":"Heart"},{"value":"user","label":"User"},{"value":"cup","label":"Cup"},{"value":"leaf","label":"Leaf"},{"value":"star","label":"Star"},{"value":"zap","label":"Zap"},{"value":"gift","label":"Gift"},{"value":"chat","label":"Chat"},{"value":"home","label":"Home"},{"value":"mail","label":"Mail"},{"value":"calendar","label":"Calendar"},{"value":"power","label":"Power"},{"value":"activity","label":"Activity"},{"value":"target","label":"Target"},{"value":"award","label":"Award"},{"value":"eye-off","label":"Eye off"},{"value":"sparkle","label":"Sparkle"},{"value":"smile","label":"Smile"},{"value":"ban","label":"Ban"},{"value":"chart","label":"Chart"},{"value":"card","label":"Card"}], "default": "award", "label": "Icon 2" },
+        { "type": "text", "id": "title_2", "default": "1 year warranty", "label": "Title 2" },
+        { "type": "text", "id": "text_2", "default": "Free replacement", "label": "Text 2" },
+        { "type": "select", "id": "icon_3", "options": [{"value":"none","label":"None"},{"value":"check","label":"Check"},{"value":"x","label":"X"},{"value":"shield","label":"Shield"},{"value":"truck","label":"Truck"},{"value":"package","label":"Package"},{"value":"refresh","label":"Refresh"},{"value":"lock","label":"Lock"},{"value":"clock","label":"Clock"},{"value":"heart","label":"Heart"},{"value":"user","label":"User"},{"value":"cup","label":"Cup"},{"value":"leaf","label":"Leaf"},{"value":"star","label":"Star"},{"value":"zap","label":"Zap"},{"value":"gift","label":"Gift"},{"value":"chat","label":"Chat"},{"value":"home","label":"Home"},{"value":"mail","label":"Mail"},{"value":"calendar","label":"Calendar"},{"value":"power","label":"Power"},{"value":"activity","label":"Activity"},{"value":"target","label":"Target"},{"value":"award","label":"Award"},{"value":"eye-off","label":"Eye off"},{"value":"sparkle","label":"Sparkle"},{"value":"smile","label":"Smile"},{"value":"ban","label":"Ban"},{"value":"chart","label":"Chart"},{"value":"card","label":"Card"}], "default": "shield", "label": "Icon 3" },
+        { "type": "text", "id": "title_3", "default": "30 days to decide", "label": "Title 3" },
+        { "type": "text", "id": "text_3", "default": "Money-back guarantee", "label": "Text 3" },
+        { "type": "select", "id": "icon_4", "options": [{"value":"none","label":"None"},{"value":"check","label":"Check"},{"value":"x","label":"X"},{"value":"shield","label":"Shield"},{"value":"truck","label":"Truck"},{"value":"package","label":"Package"},{"value":"refresh","label":"Refresh"},{"value":"lock","label":"Lock"},{"value":"clock","label":"Clock"},{"value":"heart","label":"Heart"},{"value":"user","label":"User"},{"value":"cup","label":"Cup"},{"value":"leaf","label":"Leaf"},{"value":"star","label":"Star"},{"value":"zap","label":"Zap"},{"value":"gift","label":"Gift"},{"value":"chat","label":"Chat"},{"value":"home","label":"Home"},{"value":"mail","label":"Mail"},{"value":"calendar","label":"Calendar"},{"value":"power","label":"Power"},{"value":"activity","label":"Activity"},{"value":"target","label":"Target"},{"value":"award","label":"Award"},{"value":"eye-off","label":"Eye off"},{"value":"sparkle","label":"Sparkle"},{"value":"smile","label":"Smile"},{"value":"ban","label":"Ban"},{"value":"chart","label":"Chart"},{"value":"card","label":"Card"}], "default": "lock", "label": "Icon 4" },
+        { "type": "text", "id": "title_4", "default": "Secure checkout", "label": "Title 4" },
+        { "type": "text", "id": "text_4", "default": "Encrypted payment", "label": "Text 4" }
+      ]
+    },
+    {
+      "type": "review",
+      "name": "Featured review",
+      "settings": [
+        { "type": "paragraph", "content": "Quote a real customer review. Copy it from your reviews app." },
+        { "type": "text", "id": "name", "default": "Customer name", "label": "Name" },
+        { "type": "image_picker", "id": "avatar", "label": "Photo", "info": "Initials are shown without one." },
+        { "type": "range", "id": "rating", "min": 1, "max": 5, "step": 1, "default": 5, "label": "Stars" },
+        { "type": "text", "id": "verified_label", "default": "Verified buyer", "label": "Verified label", "info": "Only for reviews from confirmed purchases." },
+        { "type": "text", "id": "headline", "default": "The one line from the review that sells it.", "label": "Headline" },
+        { "type": "richtext", "id": "body", "default": "<p>The rest of the review, in the customer's words.</p>", "label": "Review" },
+        { "type": "text", "id": "date", "label": "Date", "info": "e.g. \"Reviewed 8 Oct 2025\"" }
+      ]
+    },
+    {
+      "type": "price_table",
+      "name": "Cost comparison",
+      "settings": [
+        { "type": "text", "id": "heading", "default": "Pay once. Keep it.", "label": "Heading" },
+        { "type": "text", "id": "subheading", "default": "What the alternatives cost:", "label": "Subheading" },
+        {
+          "type": "textarea",
+          "id": "rows",
+          "default": "# Ongoing costs | Per month | Per year\nAlternative A | $60 | $720\nAlternative B | $35 | $420\n# One-off costs\nAlternative C | $150 to $300",
+          "label": "Rows",
+          "info": "One row per line: Label | value | value. Start a line with # for a group heading."
+        },
+        { "type": "text", "id": "highlight_label", "default": "This product", "label": "Highlighted row label" },
+        { "type": "text", "id": "highlight_value", "default": "[price] once", "label": "Highlighted row value", "info": "[price] becomes the current price." },
+        { "type": "text", "id": "note", "default": "Costs about the same as one month of the alternative. Then it is yours.", "label": "Note" },
+        { "type": "text", "id": "footnote", "default": "Typical prices. Yours may differ.", "label": "Footnote" }
+      ]
+    },
+    {
+      "type": "collapsible",
+      "name": "Collapsible row",
+      "settings": [
+        { "type": "select", "id": "icon", "options": [{"value":"none","label":"None"},{"value":"check","label":"Check"},{"value":"x","label":"X"},{"value":"shield","label":"Shield"},{"value":"truck","label":"Truck"},{"value":"package","label":"Package"},{"value":"refresh","label":"Refresh"},{"value":"lock","label":"Lock"},{"value":"clock","label":"Clock"},{"value":"heart","label":"Heart"},{"value":"user","label":"User"},{"value":"cup","label":"Cup"},{"value":"leaf","label":"Leaf"},{"value":"star","label":"Star"},{"value":"zap","label":"Zap"},{"value":"gift","label":"Gift"},{"value":"chat","label":"Chat"},{"value":"home","label":"Home"},{"value":"mail","label":"Mail"},{"value":"calendar","label":"Calendar"},{"value":"power","label":"Power"},{"value":"activity","label":"Activity"},{"value":"target","label":"Target"},{"value":"award","label":"Award"},{"value":"eye-off","label":"Eye off"},{"value":"sparkle","label":"Sparkle"},{"value":"smile","label":"Smile"},{"value":"ban","label":"Ban"},{"value":"chart","label":"Chart"},{"value":"card","label":"Card"}], "default": "chat", "label": "Icon" },
+        { "type": "text", "id": "heading", "default": "A question customers ask", "label": "Heading" },
+        { "type": "richtext", "id": "content", "default": "<p>The straight answer.</p>", "label": "Content" },
+        { "type": "checkbox", "id": "open", "default": false, "label": "Open by default" }
+      ]
+    },
+    {
+      "type": "image_carousel",
+      "name": "Image carousel",
+      "settings": [
+        { "type": "image_picker", "id": "image_1", "label": "Image 1" },
+        { "type": "image_picker", "id": "image_2", "label": "Image 2" },
+        { "type": "image_picker", "id": "image_3", "label": "Image 3" },
+        { "type": "image_picker", "id": "image_4", "label": "Image 4" },
+        { "type": "image_picker", "id": "image_5", "label": "Image 5" },
+        { "type": "image_picker", "id": "image_6", "label": "Image 6" },
+        { "type": "text", "id": "caption", "label": "Caption" }
+      ]
+    },
+    {
+      "type": "custom_liquid",
+      "name": "Custom liquid",
+      "settings": [
+        { "type": "liquid", "id": "custom_liquid", "label": "Custom liquid" }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["product"]
+  }
+}
+{% endschema %}

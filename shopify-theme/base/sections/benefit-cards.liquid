@@ -1,0 +1,83 @@
+{%- comment -%}
+  A grid of cards with an icon, title and text. Two looks:
+  - panel: icon on a tinted header strip ("what you're working toward")
+  - accent: accent-coloured left edge, icon beside the title ("is this you?")
+{%- endcomment -%}
+
+<div class="color-{{ section.settings.color_scheme }}">
+  <div class="page-width section">
+    {%
+      render 'section-heading',
+      eyebrow: section.settings.eyebrow,
+      heading: section.settings.heading,
+      accent: section.settings.accent,
+      accent_break: true,
+      subheading: section.settings.subheading
+    %}
+
+    <ul class="benefit-cards benefit-cards--{{ section.settings.style }}" role="list" style="--cards-desktop: {{ section.settings.columns }};">
+      {%- for block in section.blocks -%}
+        <li class="benefit-card" {{ block.shopify_attributes }}>
+          <span class="benefit-card__icon">{% render 'icon', name: block.settings.icon %}</span>
+          <div class="benefit-card__body">
+            <p class="benefit-card__title">{{ block.settings.title | escape }}</p>
+            <div class="benefit-card__text rte">{{ block.settings.text }}</div>
+          </div>
+        </li>
+      {%- endfor -%}
+    </ul>
+
+    {%- if section.settings.closing != blank -%}
+      <p class="section-closing">{{ section.settings.closing | escape }}</p>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Benefit cards",
+  "tag": "section",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "default": "scheme-1", "label": "Color scheme" },
+    {
+      "type": "select",
+      "id": "style",
+      "options": [
+        { "value": "panel", "label": "Icon panel" },
+        { "value": "accent", "label": "Accent edge" }
+      ],
+      "default": "panel",
+      "label": "Card style"
+    },
+    { "type": "range", "id": "columns", "min": 2, "max": 5, "step": 1, "default": 2, "label": "Cards per row on desktop" },
+    { "type": "text", "id": "eyebrow", "default": "What you're working toward", "label": "Eyebrow" },
+    { "type": "text", "id": "heading", "default": "Life gets simpler", "label": "Heading" },
+    { "type": "text", "id": "accent", "default": "when this is handled", "label": "Accent line" },
+    { "type": "text", "id": "subheading", "default": "Nobody wants the product. They want what comes with it.", "label": "Subheading" },
+    { "type": "text", "id": "closing", "label": "Closing line" }
+  ],
+  "blocks": [
+    {
+      "type": "card",
+      "name": "Card",
+      "settings": [
+        { "type": "select", "id": "icon", "options": [{"value":"none","label":"None"},{"value":"check","label":"Check"},{"value":"x","label":"X"},{"value":"shield","label":"Shield"},{"value":"truck","label":"Truck"},{"value":"package","label":"Package"},{"value":"refresh","label":"Refresh"},{"value":"lock","label":"Lock"},{"value":"clock","label":"Clock"},{"value":"heart","label":"Heart"},{"value":"user","label":"User"},{"value":"cup","label":"Cup"},{"value":"leaf","label":"Leaf"},{"value":"star","label":"Star"},{"value":"zap","label":"Zap"},{"value":"gift","label":"Gift"},{"value":"chat","label":"Chat"},{"value":"home","label":"Home"},{"value":"mail","label":"Mail"},{"value":"calendar","label":"Calendar"},{"value":"power","label":"Power"},{"value":"activity","label":"Activity"},{"value":"target","label":"Target"},{"value":"award","label":"Award"},{"value":"eye-off","label":"Eye off"},{"value":"sparkle","label":"Sparkle"},{"value":"smile","label":"Smile"},{"value":"ban","label":"Ban"},{"value":"chart","label":"Chart"},{"value":"card","label":"Card"}], "default": "zap", "label": "Icon" },
+        { "type": "text", "id": "title", "default": "An outcome they want", "label": "Title" },
+        { "type": "richtext", "id": "text", "default": "<p>What it looks like in their day. <strong>Bold the feeling.</strong></p>", "label": "Text" }
+      ]
+    }
+  ],
+  "max_blocks": 8,
+  "presets": [
+    {
+      "name": "Benefit cards",
+      "blocks": [
+        { "type": "card", "settings": { "icon": "zap" } },
+        { "type": "card", "settings": { "icon": "heart" } },
+        { "type": "card", "settings": { "icon": "user" } },
+        { "type": "card", "settings": { "icon": "cup" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

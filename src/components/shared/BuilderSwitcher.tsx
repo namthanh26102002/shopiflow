@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronDown, HelpCircle, Newspaper, BookOpen, Package, LayoutDashboard } from 'lucide-react';
+import { ChevronDown, HelpCircle, Newspaper, BookOpen, Package, LayoutDashboard, Store } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +15,7 @@ const builders = [
   { id: 'home', name: 'Home', description: 'All your projects', icon: LayoutDashboard, path: '/home' },
   { id: 'quiz', name: 'Quiz Builder', description: 'Product recommendation quizzes', icon: HelpCircle, path: '/builder' },
   { id: 'advertorial', name: 'Advertorial Builder', description: 'High-converting landing pages', icon: Newspaper, path: '/advertorial-builder' },
+  { id: 'theme', name: 'Shopify Theme', description: 'Design your Shopify store', icon: Store, path: '/theme-builder' },
   { id: 'info', name: 'Info', description: 'Classrooms and lessons', icon: BookOpen, path: '/info' },
   { id: 'orders', name: 'Orders', description: 'Tracking simulation', icon: Package, path: '/orders' },
 ];

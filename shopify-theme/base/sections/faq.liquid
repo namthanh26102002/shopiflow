@@ -1,0 +1,118 @@
+{%- comment -%}
+  Grouped FAQ. Group blocks print a small label; question blocks after a
+  group belong to it. Built on <details>, so it opens and closes, and is
+  searchable with Ctrl+F, with no JavaScript.
+{%- endcomment -%}
+
+{%- liquid
+  assign split = false
+  if section.settings.layout == 'split'
+    assign split = true
+  endif
+-%}
+
+<div class="color-{{ section.settings.color_scheme }}">
+  <div class="page-width section faq-layout faq-layout--{{ section.settings.layout }}">
+    <div class="faq-layout__intro">
+      {%- if split -%}
+        {%
+          render 'section-heading',
+          eyebrow: section.settings.eyebrow,
+          heading: section.settings.heading,
+          accent: section.settings.accent,
+          accent_break: true,
+          subheading: section.settings.subheading,
+          align: 'left'
+        %}
+        {%- if section.settings.contact != blank -%}
+          <div class="faq__contact rte">{{ section.settings.contact }}</div>
+        {%- endif -%}
+      {%- else -%}
+        {%
+          render 'section-heading',
+          eyebrow: section.settings.eyebrow,
+          heading: section.settings.heading,
+          accent: section.settings.accent,
+          subheading: section.settings.subheading
+        %}
+      {%- endif -%}
+    </div>
+
+    <div class="faq">
+      {%- for block in section.blocks -%}
+        {%- case block.type -%}
+          {%- when 'group' -%}
+            <p class="faq__group eyebrow" {{ block.shopify_attributes }}>{{ block.settings.label | escape }}</p>
+          {%- when 'question' -%}
+            <details class="faq__item" {{ block.shopify_attributes }}>
+              <summary>
+                <span>{{ block.settings.question | escape }}</span>
+                <span class="faq__toggle" aria-hidden="true">{% render 'icon', name: 'plus', size: 16 %}</span>
+              </summary>
+              <div class="faq__answer rte">{{ block.settings.answer }}</div>
+            </details>
+        {%- endcase -%}
+      {%- endfor -%}
+
+      {%- if section.settings.contact != blank and split == false -%}
+        <div class="faq__contact rte">{{ section.settings.contact }}</div>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "FAQ",
+  "tag": "section",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "default": "scheme-1", "label": "Color scheme" },
+    {
+      "type": "select",
+      "id": "layout",
+      "options": [
+        { "value": "stacked", "label": "Heading above questions" },
+        { "value": "split", "label": "Heading beside questions" }
+      ],
+      "default": "stacked",
+      "label": "Layout"
+    },
+    { "type": "text", "id": "eyebrow", "default": "Straight answers", "label": "Eyebrow" },
+    { "type": "text", "id": "heading", "default": "Questions people ask", "label": "Heading" },
+    { "type": "text", "id": "accent", "default": "before they buy", "label": "Accent text" },
+    { "type": "text", "id": "subheading", "default": "If you have been let down before, you should ask.", "label": "Subheading" },
+    { "type": "richtext", "id": "contact", "default": "<p><strong>Still have a question?</strong> Email us. A real person reads every message.</p>", "label": "Contact note" }
+  ],
+  "blocks": [
+    {
+      "type": "group",
+      "name": "Group label",
+      "settings": [
+        { "type": "text", "id": "label", "default": "The product", "label": "Label" }
+      ]
+    },
+    {
+      "type": "question",
+      "name": "Question",
+      "settings": [
+        { "type": "text", "id": "question", "default": "A question customers ask", "label": "Question" },
+        { "type": "richtext", "id": "answer", "default": "<p>The straight answer.</p>", "label": "Answer" }
+      ]
+    }
+  ],
+  "max_blocks": 30,
+  "presets": [
+    {
+      "name": "FAQ",
+      "blocks": [
+        { "type": "group" },
+        { "type": "question" },
+        { "type": "question", "settings": { "question": "Is it safe? Who should not use it?" } },
+        { "type": "group", "settings": { "label": "Buying" } },
+        { "type": "question", "settings": { "question": "What if it is not right for me?" } },
+        { "type": "question", "settings": { "question": "Is this a subscription?" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,48 @@
+<div class="color-{{ section.settings.color_scheme }} icon-strip">
+  <ul class="page-width icon-strip__list">
+    {%- for block in section.blocks -%}
+      <li class="icon-strip__item" {{ block.shopify_attributes }}>
+        <span class="icon-tile icon-tile--round">{% render 'icon', name: block.settings.icon, size: 18 %}</span>
+        <span>
+          <strong>{{ block.settings.title | escape }}</strong>
+          {%- if block.settings.text != blank -%}
+            <small>{{ block.settings.text | escape }}</small>
+          {%- endif -%}
+        </span>
+      </li>
+    {%- endfor -%}
+  </ul>
+</div>
+
+{% schema %}
+{
+  "name": "Icon strip",
+  "tag": "section",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "default": "scheme-2", "label": "Color scheme" }
+  ],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "Item",
+      "settings": [
+        { "type": "select", "id": "icon", "options": [{"value":"none","label":"None"},{"value":"check","label":"Check"},{"value":"x","label":"X"},{"value":"shield","label":"Shield"},{"value":"truck","label":"Truck"},{"value":"package","label":"Package"},{"value":"refresh","label":"Refresh"},{"value":"lock","label":"Lock"},{"value":"clock","label":"Clock"},{"value":"heart","label":"Heart"},{"value":"user","label":"User"},{"value":"cup","label":"Cup"},{"value":"leaf","label":"Leaf"},{"value":"star","label":"Star"},{"value":"zap","label":"Zap"},{"value":"gift","label":"Gift"},{"value":"chat","label":"Chat"},{"value":"home","label":"Home"},{"value":"mail","label":"Mail"},{"value":"calendar","label":"Calendar"},{"value":"power","label":"Power"},{"value":"activity","label":"Activity"},{"value":"target","label":"Target"},{"value":"award","label":"Award"},{"value":"eye-off","label":"Eye off"},{"value":"sparkle","label":"Sparkle"},{"value":"smile","label":"Smile"},{"value":"ban","label":"Ban"},{"value":"chart","label":"Chart"},{"value":"card","label":"Card"}], "default": "clock", "label": "Icon" },
+        { "type": "text", "id": "title", "default": "Short benefit", "label": "Title" },
+        { "type": "text", "id": "text", "default": "A few words more", "label": "Text" }
+      ]
+    }
+  ],
+  "max_blocks": 6,
+  "presets": [
+    {
+      "name": "Icon strip",
+      "blocks": [
+        { "type": "item", "settings": { "icon": "clock", "title": "Minutes a day", "text": "Fits into your routine" } },
+        { "type": "item", "settings": { "icon": "smile", "title": "Easy to use", "text": "Nothing to learn" } },
+        { "type": "item", "settings": { "icon": "ban", "title": "No subscription", "text": "Pay once" } },
+        { "type": "item", "settings": { "icon": "shield", "title": "30 days to decide", "text": "Money-back guarantee" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

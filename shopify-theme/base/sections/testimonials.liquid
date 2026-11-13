@@ -1,0 +1,96 @@
+{%- comment -%}
+  Quote cards. Three across on desktop; a swipeable row on phones, because
+  three tall cards stacked on a phone push everything else out of sight.
+{%- endcomment -%}
+
+<div class="color-{{ section.settings.color_scheme }}">
+  <div class="page-width section">
+    {%
+      render 'section-heading',
+      eyebrow: section.settings.eyebrow,
+      heading: section.settings.heading,
+      accent: section.settings.accent,
+      subheading: section.settings.subheading
+    %}
+
+    {%- comment -%}
+      Carousel keeps three in view on desktop and adds arrows, for when there
+      are more testimonials than fit in a row.
+    {%- endcomment -%}
+    {%- if section.settings.layout == 'carousel' -%}<scroll-carousel class="carousel testimonials-carousel">{%- endif -%}
+    <ul class="testimonials testimonials--{{ section.settings.layout }}{% if section.settings.layout == 'carousel' %} carousel__track{% endif %}" role="list"{% if section.settings.layout == 'carousel' %} tabindex="0"{% endif %}>
+      {%- for block in section.blocks -%}
+        <li class="testimonial" {{ block.shopify_attributes }}>
+          <span class="testimonial__mark">{% render 'icon', name: 'quote', size: 22 %}</span>
+          {%- if block.settings.rating > 0 -%}
+            {% render 'rating-stars', rating: block.settings.rating, size: 14 %}
+          {%- endif -%}
+          {%- if block.settings.headline != blank -%}
+            <p class="testimonial__headline">{{ block.settings.headline | escape }}</p>
+          {%- endif -%}
+          <div class="testimonial__body rte">{{ block.settings.body }}</div>
+          <div class="testimonial__author">
+            {% render 'avatar', name: block.settings.name, image: block.settings.avatar, size: 36 %}
+            <span>{{ block.settings.name | escape }}</span>
+          </div>
+        </li>
+      {%- endfor -%}
+    </ul>
+    {%- if section.settings.layout == 'carousel' -%}
+      <div class="carousel__controls">
+        <button type="button" class="carousel__nav" data-step="-1" aria-label="{{ 'accessibility.previous' | t }}">{% render 'icon', name: 'chevron-left', size: 18 %}</button>
+        <button type="button" class="carousel__nav" data-step="1" aria-label="{{ 'accessibility.next' | t }}">{% render 'icon', name: 'chevron-right', size: 18 %}</button>
+      </div>
+      </scroll-carousel>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Testimonials",
+  "tag": "section",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "default": "scheme-1", "label": "Color scheme" },
+    {
+      "type": "select",
+      "id": "layout",
+      "options": [
+        { "value": "grid", "label": "Grid" },
+        { "value": "carousel", "label": "Carousel with arrows" }
+      ],
+      "default": "grid",
+      "label": "Layout"
+    },
+    { "type": "text", "id": "eyebrow", "default": "Real customer experiences", "label": "Eyebrow" },
+    { "type": "text", "id": "heading", "default": "People who were tired of", "label": "Heading" },
+    { "type": "text", "id": "accent", "default": "the old way", "label": "Accent text" },
+    { "type": "text", "id": "subheading", "default": "Every one of them thought there was no better option.", "label": "Subheading" },
+    { "type": "paragraph", "content": "Use real customer words with their permission." }
+  ],
+  "blocks": [
+    {
+      "type": "testimonial",
+      "name": "Testimonial",
+      "settings": [
+        { "type": "text", "id": "headline", "default": "The moment it clicked for them.", "label": "Headline" },
+        { "type": "richtext", "id": "body", "default": "<p>What life was like before, and what changed. <strong>Bold the turning point.</strong></p>", "label": "Text" },
+        { "type": "text", "id": "name", "default": "Customer N., 45", "label": "Name" },
+        { "type": "image_picker", "id": "avatar", "label": "Photo", "info": "Initials are shown without one." },
+        { "type": "range", "id": "rating", "min": 0, "max": 5, "step": 1, "default": 0, "label": "Stars", "info": "0 hides the stars." }
+      ]
+    }
+  ],
+  "max_blocks": 12,
+  "presets": [
+    {
+      "name": "Testimonials",
+      "blocks": [
+        { "type": "testimonial" },
+        { "type": "testimonial" },
+        { "type": "testimonial" }
+      ]
+    }
+  ]
+}
+{% endschema %}

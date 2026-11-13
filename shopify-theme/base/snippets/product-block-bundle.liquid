@@ -1,0 +1,103 @@
+{%- comment -%}
+  The offer box: the product, up to three bonuses and a total.
+
+  A block of sections/main-product.liquid, rendered from there with:
+  block, product, current_variant, form_id
+{%- endcomment -%}
+
+<div class="product-block bundle" {{ block.shopify_attributes }}>
+  {%- if block.settings.heading != blank -%}
+    <p class="bundle__heading">{{ block.settings.heading | escape }}</p>
+  {%- endif -%}
+
+  <div class="bundle__box">
+    <div class="bundle__item">
+      <div class="bundle__thumb media">
+        {%- assign main_media = current_variant.featured_media | default: product.featured_media -%}
+        {%- if main_media -%}
+          {{ main_media.preview_image | image_url: width: 160 | image_tag: widths: '80,160', sizes: '64px', loading: 'lazy', alt: '' }}
+        {%- endif -%}
+      </div>
+      <div class="bundle__copy">
+        <p class="bundle__title">{{ block.settings.title | default: product.title | escape }}</p>
+        {%- if block.settings.text != blank -%}
+          <p class="bundle__text">{{ block.settings.text | escape }}</p>
+        {%- endif -%}
+      </div>
+      <div class="bundle__value">
+        {%- if current_variant.compare_at_price > current_variant.price -%}
+          <s class="bundle__compare">{{ current_variant.compare_at_price | money }}</s>
+        {%- endif -%}
+        <span class="bundle__price">{{ current_variant.price | money }}</span>
+      </div>
+    </div>
+
+    {%- for i in (1..3) -%}
+      {%- liquid
+        comment
+          Keys are assigned first: Liquid cannot run filters
+          inside a [ ] lookup.
+        endcomment
+        assign prefix = 'bonus_' | append: i | append: '_'
+        assign title_key = prefix | append: 'title'
+        assign text_key = prefix | append: 'text'
+        assign image_key = prefix | append: 'image'
+        assign value_key = prefix | append: 'value'
+        assign product_key = prefix | append: 'product'
+        assign bonus_title = block.settings[title_key]
+        assign bonus_text = block.settings[text_key]
+        assign bonus_image = block.settings[image_key]
+        assign bonus_value = block.settings[value_key]
+        assign bonus_product = block.settings[product_key]
+      -%}
+      {%- if bonus_title != blank -%}
+        <div class="bundle__plus" aria-hidden="true">{% render 'icon', name: 'plus', size: 16 %}</div>
+        <div class="bundle__item">
+          <div class="bundle__thumb media">
+            {%- if bonus_image != blank -%}
+              {{ bonus_image | image_url: width: 160 | image_tag: widths: '80,160', sizes: '64px', loading: 'lazy', alt: '' }}
+            {%- elsif bonus_product.featured_media -%}
+              {{ bonus_product.featured_media.preview_image | image_url: width: 160 | image_tag: widths: '80,160', sizes: '64px', loading: 'lazy', alt: '' }}
+            {%- else -%}
+              {% render 'icon', name: 'gift', size: 28 %}
+            {%- endif -%}
+          </div>
+          <div class="bundle__copy">
+            <p class="bundle__title">{{ bonus_title | escape }}</p>
+            {%- if bonus_text != blank -%}
+              <p class="bundle__text">{{ bonus_text | escape }}</p>
+            {%- endif -%}
+          </div>
+          <div class="bundle__value">
+            <span class="bundle__free">{{ bonus_value | default: 'FREE' | escape }}</span>
+          </div>
+          {%- comment -%}
+            No name attribute, so a plain form post ignores it.
+            theme.js reads it and adds the bonus as its own line.
+          {%- endcomment -%}
+          {%- assign bonus_variant = bonus_product.selected_or_first_available_variant -%}
+          {%- if bonus_variant.available -%}
+            <input type="hidden" form="{{ form_id }}" data-extra-variant-id="{{ bonus_variant.id }}">
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    {%- endfor -%}
+
+    {%- if block.settings.show_total -%}
+      <div class="bundle__total">
+        <span class="bundle__total-label">{{ block.settings.total_label | escape }}</span>
+        <span class="bundle__total-value">
+          {%- if block.settings.total_note != blank -%}
+            <span class="bundle__total-note">{{ block.settings.total_note | escape }}</span>
+          {%- endif -%}
+          <span>
+            {%- if current_variant.compare_at_price > current_variant.price -%}
+              <s class="bundle__compare">{{ current_variant.compare_at_price | money }}</s>
+            {%- endif %}
+            <strong class="bundle__price">{{ current_variant.price | money }}</strong>
+          </span>
+        </span>
+      </div>
+    {%- endif -%}
+  </div>
+</div>

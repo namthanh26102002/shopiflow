@@ -1,0 +1,35 @@
+{%- comment -%}
+  One cell of a comparison table, read from plain text:
+  - "yes" or "yes: note"  -> a tick, with the note
+  - "no"  or "no: note"   -> a cross, with the note
+  - anything else         -> shown as written ("Ratio: 2:1" included)
+
+  Accepts:
+  - value: the cell text (required)
+
+  Shared by the comparison-table section and the product column's compare
+  block, so both read cells the same way.
+{%- endcomment -%}
+
+{%- liquid
+  assign raw = value | strip
+  assign parts = raw | split: ':'
+  assign kind = parts[0] | strip | downcase
+  assign note = ''
+  if kind == 'yes' or kind == 'no'
+    if parts.size > 1
+      assign note = raw | remove_first: parts[0] | remove_first: ':' | strip
+    endif
+  else
+    assign note = raw
+  endif
+-%}
+
+{%- if kind == 'yes' -%}
+  <span class="compare-mark compare-mark--yes">{% render 'icon', name: 'check', size: 14 %}<span class="visually-hidden">{{ 'general.yes' | t }}</span></span>
+{%- elsif kind == 'no' -%}
+  <span class="compare-mark compare-mark--no">{% render 'icon', name: 'x', size: 12 %}<span class="visually-hidden">{{ 'general.no' | t }}</span></span>
+{%- endif -%}
+{%- if note != blank -%}
+  <span class="compare-note">{{ note | escape }}</span>
+{%- endif -%}

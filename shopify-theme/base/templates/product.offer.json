@@ -1,0 +1,108 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-product",
+      "settings": {
+        "color_scheme": "scheme-1",
+        "media_ratio": "square",
+        "sticky_media": true,
+        "sticky_bar": true,
+        "offer_accent": "#009975",
+        "offer_accent_text": "#FFFFFF",
+        "offer_ribbon": "#E5484D",
+        "offers_heading": "🎁 End of summer sale - Limited time! 🎁"
+      },
+      "blocks": {
+        "title": {
+          "type": "title",
+          "settings": {
+            "size": "large"
+          }
+        },
+        "price": {
+          "type": "price",
+          "settings": {
+            "show_saving": true
+          }
+        },
+        "picker": {
+          "type": "variant_picker",
+          "settings": {
+            "style": "swatches"
+          }
+        },
+        "offer-one": {
+          "type": "quantity_break",
+          "settings": {
+            "title": "Buy 1",
+            "quantity": 1,
+            "paid_quantity": 1,
+            "percent_off": 0,
+            "show_unit_price": true,
+            "unit_label": "item",
+            "selected": false,
+            "gift_label": "+ Free gift"
+          }
+        },
+        "offer-three": {
+          "type": "quantity_break",
+          "settings": {
+            "title": "Buy 2 Get 3",
+            "quantity": 3,
+            "paid_quantity": 2,
+            "percent_off": 0,
+            "show_unit_price": true,
+            "unit_label": "item",
+            "detail": "+ Free shipping",
+            "selected": false,
+            "gift_label": "+ Free gift"
+          }
+        },
+        "offer-five": {
+          "type": "quantity_break",
+          "settings": {
+            "title": "Buy 3 Get 5",
+            "quantity": 5,
+            "paid_quantity": 3,
+            "percent_off": 0,
+            "ribbon": "Best value",
+            "show_unit_price": true,
+            "unit_label": "item",
+            "detail": "+ Free shipping",
+            "selected": true,
+            "gift_product": "canvas-weekend-tote",
+            "gift_label": "+ Free gift"
+          }
+        },
+        "buy": {
+          "type": "buy_buttons",
+          "settings": {
+            "subtext": ""
+          }
+        },
+        "payment": {
+          "type": "payment",
+          "settings": {}
+        },
+        "description": {
+          "type": "description",
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "title",
+        "price",
+        "picker",
+        "offer-one",
+        "offer-three",
+        "offer-five",
+        "buy",
+        "payment",
+        "description"
+      ]
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

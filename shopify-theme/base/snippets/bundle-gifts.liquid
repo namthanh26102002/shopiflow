@@ -1,0 +1,156 @@
+{%- comment -%}
+  Bundle gifts: the "Free gifts with your bundle" row under the offer tiers.
+
+  Accepts:
+  - gifts: the section's bundle_gift blocks (required)
+  - offers: the section's quantity_break blocks; may be empty
+  - selected_index: 1-based position of the tier selected on load, 0 if none
+  - form_id: id of the product form (required)
+  - heading: optional text above the row
+
+  Each gift unlocks from one tier onward ("Unlocks from offer #"), counted
+  from the top. Locked gifts render with their cart input disabled, and
+  quantity-offers in theme.js re-enables it when a qualifying tier is picked.
+  With no tiers on the page there is nothing to unlock, so every gift is in.
+
+  A gift with a product is added to the cart as its own line, in the variant
+  the shopper picks here. A gift without one (express shipping, an e-book
+  link sent later) is display only. Either way the theme cannot make it free:
+  that takes a discount in Shopify (see demo/README.md).
+{%- endcomment -%}
+
+{%- liquid
+  assign heading_id = 'GiftsHeading-' | append: section.id
+-%}
+
+<div class="gifts" role="group"{% if heading != blank %} aria-labelledby="{{ heading_id }}"{% else %} aria-label="{{ 'products.product.offers.gifts' | t }}"{% endif %}>
+  {%- if heading != blank -%}
+    <p class="gifts__heading" id="{{ heading_id }}">{{ heading | escape }}</p>
+  {%- endif -%}
+
+  <ul class="gifts__list" role="list">
+    {%- for gift in gifts -%}
+      {%- liquid
+        assign gift_product = gift.settings.product
+        assign available_variants = gift_product.variants | where: 'available'
+        assign gift_variant = available_variants.first
+
+        comment
+          A product that cannot be added would promise a gift the cart never
+          gets, so it is left out until it is back in stock.
+        endcomment
+        assign skip_gift = false
+        if gift_product and gift_variant == nil
+          assign skip_gift = true
+        endif
+
+        assign unlock = gift.settings.unlock_offer
+        if offers.size == 0
+          assign unlock = 0
+        elsif unlock > offers.size
+          assign unlock = offers.size
+        endif
+
+        assign locked = false
+        if selected_index < unlock
+          assign locked = true
+        endif
+
+        assign unlock_title = ''
+        if unlock > 0
+          assign unlock_position = unlock | minus: 1
+          assign unlock_title = offers[unlock_position].settings.title
+        endif
+
+        assign gift_title = gift.settings.title | default: gift_product.title
+        assign gift_image = gift.settings.image | default: gift_variant.featured_image | default: gift_product.featured_image
+        assign show_picker = false
+        if gift.settings.show_variant_picker and available_variants.size > 1
+          assign show_picker = true
+        endif
+
+        assign input_id = 'Gift-' | append: section.id | append: '-' | append: gift.id
+      -%}
+
+      {%- unless skip_gift -%}
+      <li
+        class="gift{% if locked %} is-locked{% endif %}"
+        data-unlock="{{ unlock }}"
+        {{ gift.shopify_attributes }}
+      >
+        <span class="gift__value">
+          {{- gift.settings.value_label | escape -}}
+          {%- if gift_variant and gift.settings.show_price and gift_variant.price > 0 %}
+            <s data-gift-price>
+              <span class="visually-hidden">{{ 'products.product.price.regular_price' | t }}</span>
+              {{ gift_variant.price | money }}
+            </s>
+          {%- endif -%}
+        </span>
+
+        <div class="gift__media">
+          {%- if gift_image != blank -%}
+            {{
+              gift_image
+              | image_url: width: 240
+              | image_tag: class: 'gift__image', widths: '120,240', sizes: '120px', loading: 'lazy', alt: ''
+            }}
+          {%- else -%}
+            {% render 'icon', name: gift.settings.icon, size: 56 %}
+          {%- endif -%}
+        </div>
+
+        <p class="gift__title">{{ gift_title | escape }}</p>
+        {%- if gift.settings.text != blank -%}
+          <p class="gift__text">{{ gift.settings.text | escape }}</p>
+        {%- endif -%}
+
+        {%- comment -%}
+          No name attribute, so a plain form post ignores these.
+          theme.js reads the enabled ones and adds each as its own line.
+        {%- endcomment -%}
+        {%- if show_picker -%}
+          <label class="visually-hidden" for="{{ input_id }}">
+            {{- 'products.product.offers.gift_option' | t: gift: gift_title -}}
+          </label>
+          <div class="gift__select">
+            <select
+              id="{{ input_id }}"
+              form="{{ form_id }}"
+              data-bundle-gift
+              {% if locked %}disabled{% endif %}
+            >
+              {%- for variant in available_variants -%}
+                <option
+                  value="{{ variant.id }}"
+                  data-price="{{ variant.price | money | escape }}"
+                  {% if variant.featured_image %}data-image="{{ variant.featured_image | image_url: width: 240 }}"{% endif %}
+                  {% if forloop.first %}selected{% endif %}
+                >
+                  {{- variant.title | escape -}}
+                </option>
+              {%- endfor -%}
+            </select>
+            {% render 'icon', name: 'chevron-down', size: 16 %}
+          </div>
+        {%- elsif gift_variant -%}
+          <input
+            type="hidden"
+            form="{{ form_id }}"
+            value="{{ gift_variant.id }}"
+            data-bundle-gift
+            {% if locked %}disabled{% endif %}
+          >
+        {%- endif -%}
+
+        {%- if unlock > 0 -%}
+          <p class="gift__lock">
+            {% render 'icon', name: 'lock', size: 14 %}
+            <span>{{ 'products.product.offers.unlocks_with' | t: offer: unlock_title }}</span>
+          </p>
+        {%- endif -%}
+      </li>
+      {%- endunless -%}
+    {%- endfor -%}
+  </ul>
+</div>

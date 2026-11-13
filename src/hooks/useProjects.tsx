@@ -1,4 +1,5 @@
-// Lists, creates and deletes builder projects (quizzes / advertorials).
+// Lists, creates and deletes builder projects (quizzes / advertorials /
+// Shopify themes).
 //
 // Non-admins are capped at PROJECT_LIMIT per builder. The cap is enforced by
 // a database trigger (see the project_limits migration); the checks here only
@@ -13,7 +14,7 @@ import { toast } from 'sonner';
 
 export const PROJECT_LIMIT = 2;
 
-export type ProjectTable = 'quizzes' | 'advertorials';
+export type ProjectTable = 'quizzes' | 'advertorials' | 'shopify_themes';
 
 export interface ProjectSummary {
   id: string;
@@ -37,6 +38,12 @@ const newProjectRow = (table: ProjectTable, userId: string) => {
       results: q.results,
       analytics: q.analytics,
     };
+  }
+
+  // theme_data stays NULL ("the base theme, untouched") so this page does not
+  // have to bundle the theme to create one; the editor fills it in.
+  if (table === 'shopify_themes') {
+    return { user_id: userId, title: 'Untitled theme' };
   }
 
   const a = createDefaultAdvertorial();
@@ -63,14 +70,21 @@ export const useProjects = (table: ProjectTable) => {
     }
 
     try {
+      // Themes are never published from here, so they have no published_url.
+      const columns = table === 'shopify_themes'
+        ? 'id, title, created_at, updated_at'
+        : 'id, title, created_at, updated_at, published_url';
       const { data, error } = await supabase
         .from(table)
-        .select('id, title, created_at, updated_at, published_url')
+        .select(columns)
         .eq('user_id', user.id)
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
-      setProjects((data ?? []) as ProjectSummary[]);
+      setProjects(
+        ((data ?? []) as unknown as Array<Omit<ProjectSummary, 'published_url'> & { published_url?: string | null }>)
+          .map((row) => ({ ...row, published_url: row.published_url ?? null })),
+      );
     } catch (err) {
       console.error(`Error loading ${table}:`, err);
       toast.error('Failed to load your projects');

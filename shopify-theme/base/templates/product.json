@@ -1,0 +1,819 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-product",
+      "settings": {
+        "color_scheme": "scheme-1",
+        "media_ratio": "square",
+        "sticky_media": true,
+        "sticky_bar": true,
+        "offer_accent": "#009975",
+        "offer_accent_text": "#FFFFFF",
+        "offer_ribbon": "#E5484D",
+        "sticky_label": "Try it risk-free"
+      },
+      "blocks": {
+        "rating": {
+          "type": "rating",
+          "settings": {}
+        },
+        "title": {
+          "type": "title",
+          "settings": {}
+        },
+        "pill": {
+          "type": "pill",
+          "settings": {
+            "text": "Simple. Private. Fits your day."
+          }
+        },
+        "headline": {
+          "type": "headline",
+          "settings": {}
+        },
+        "text": {
+          "type": "text",
+          "settings": {}
+        },
+        "benefit-1": {
+          "type": "benefit",
+          "settings": {
+            "icon": "target",
+            "title": "Works on the real cause",
+            "text": "Say what it does that the usual fix does not."
+          }
+        },
+        "benefit-2": {
+          "type": "benefit",
+          "settings": {
+            "icon": "ban",
+            "title": "None of the hassle",
+            "text": "Name the chore or side effect they get to skip."
+          }
+        },
+        "benefit-3": {
+          "type": "benefit",
+          "settings": {
+            "icon": "clock",
+            "title": "A few minutes a day",
+            "text": "Show how easily it fits into a normal day."
+          }
+        },
+        "benefit-4": {
+          "type": "benefit",
+          "settings": {
+            "icon": "eye-off",
+            "title": "Private, at home",
+            "text": "Plain packaging and a discreet billing name."
+          }
+        },
+        "chips": {
+          "type": "chips",
+          "settings": {}
+        },
+        "picker": {
+          "type": "variant_picker",
+          "settings": {}
+        },
+        "bundle": {
+          "type": "bundle",
+          "settings": {}
+        },
+        "buy": {
+          "type": "buy_buttons",
+          "settings": {}
+        },
+        "payment": {
+          "type": "payment",
+          "settings": {}
+        },
+        "callout": {
+          "type": "callout",
+          "settings": {}
+        },
+        "trust": {
+          "type": "trust_grid",
+          "settings": {}
+        },
+        "review": {
+          "type": "review",
+          "settings": {}
+        },
+        "costs": {
+          "type": "price_table",
+          "settings": {}
+        },
+        "faq-heading": {
+          "type": "heading",
+          "settings": {
+            "heading": "Common questions"
+          }
+        },
+        "faq-1": {
+          "type": "collapsible",
+          "settings": {
+            "icon": "chat",
+            "heading": "How is this different from the usual fix?"
+          }
+        },
+        "faq-2": {
+          "type": "collapsible",
+          "settings": {
+            "icon": "clock",
+            "heading": "When will I notice a difference?"
+          }
+        },
+        "faq-3": {
+          "type": "collapsible",
+          "settings": {
+            "icon": "package",
+            "heading": "Will anyone know what I ordered?"
+          }
+        },
+        "faq-4": {
+          "type": "collapsible",
+          "settings": {
+            "icon": "shield",
+            "heading": "What if it is not right for me?"
+          }
+        },
+        "installments": {
+          "type": "installments",
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "rating",
+        "title",
+        "pill",
+        "headline",
+        "text",
+        "benefit-1",
+        "benefit-2",
+        "benefit-3",
+        "benefit-4",
+        "chips",
+        "picker",
+        "bundle",
+        "buy",
+        "installments",
+        "payment",
+        "callout",
+        "trust",
+        "review",
+        "costs",
+        "faq-heading",
+        "faq-1",
+        "faq-2",
+        "faq-3",
+        "faq-4"
+      ]
+    },
+    "strip": {
+      "type": "icon-strip",
+      "settings": {
+        "color_scheme": "scheme-2"
+      },
+      "blocks": {
+        "a": {
+          "type": "item",
+          "settings": {
+            "icon": "clock",
+            "title": "Minutes a day",
+            "text": "Fits your routine"
+          }
+        },
+        "b": {
+          "type": "item",
+          "settings": {
+            "icon": "smile",
+            "title": "Easy to use",
+            "text": "Nothing to learn"
+          }
+        },
+        "c": {
+          "type": "item",
+          "settings": {
+            "icon": "ban",
+            "title": "No subscription",
+            "text": "Pay once"
+          }
+        },
+        "d": {
+          "type": "item",
+          "settings": {
+            "icon": "shield",
+            "title": "30 days to decide",
+            "text": "Money-back guarantee"
+          }
+        }
+      },
+      "block_order": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ]
+    },
+    "problem": {
+      "type": "media-text",
+      "settings": {
+        "color_scheme": "scheme-1",
+        "layout": "media-left",
+        "media_style": "cards",
+        "image_label": "The way it should work",
+        "image_caption": "Caption for the \"good\" image.",
+        "image_2_label": "What usually happens",
+        "image_2_caption": "Caption for the \"bad\" image."
+      },
+      "blocks": {
+        "quote": {
+          "type": "quote",
+          "settings": {}
+        },
+        "text": {
+          "type": "text",
+          "settings": {}
+        },
+        "bullets": {
+          "type": "bullets",
+          "settings": {}
+        },
+        "closing": {
+          "type": "closing",
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "quote",
+        "text",
+        "bullets",
+        "closing"
+      ]
+    },
+    "how": {
+      "type": "media-text",
+      "settings": {
+        "color_scheme": "scheme-2",
+        "layout": "media-left",
+        "media_style": "photo",
+        "eyebrow": "How it works",
+        "heading": "Get the result",
+        "accent": "without the hassle",
+        "overlay_title": "In your own time.",
+        "overlay_text": "Nobody needs to know.",
+        "badge_text": "Minutes a day"
+      },
+      "blocks": {
+        "text": {
+          "type": "text",
+          "settings": {}
+        },
+        "s1": {
+          "type": "step",
+          "settings": {
+            "title": "Unbox it",
+            "text": "Everything you need is included."
+          }
+        },
+        "s2": {
+          "type": "step",
+          "settings": {
+            "title": "Switch it on",
+            "text": "No setup, no learning curve."
+          }
+        },
+        "s3": {
+          "type": "step",
+          "settings": {
+            "title": "Get on with your day",
+            "text": "A few minutes, then done."
+          }
+        },
+        "compare": {
+          "type": "compare",
+          "settings": {}
+        },
+        "button": {
+          "type": "button",
+          "settings": {
+            "label": "Get yours →",
+            "caption": "30 days to decide. Plain packaging."
+          }
+        }
+      },
+      "block_order": [
+        "text",
+        "s1",
+        "s2",
+        "s3",
+        "compare",
+        "button"
+      ]
+    },
+    "voices": {
+      "type": "testimonials",
+      "settings": {
+        "color_scheme": "scheme-1"
+      },
+      "blocks": {
+        "t1": {
+          "type": "testimonial",
+          "settings": {}
+        },
+        "t2": {
+          "type": "testimonial",
+          "settings": {}
+        },
+        "t3": {
+          "type": "testimonial",
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "t1",
+        "t2",
+        "t3"
+      ]
+    },
+    "proof": {
+      "type": "stats",
+      "settings": {
+        "color_scheme": "scheme-1"
+      },
+      "blocks": {
+        "a": {
+          "type": "stat",
+          "settings": {
+            "value": "2",
+            "unit": "causes",
+            "title": "What the research points to"
+          }
+        },
+        "b": {
+          "type": "stat",
+          "settings": {
+            "value": "3 in 4",
+            "unit": "people",
+            "title": "Improved in a published trial"
+          }
+        },
+        "c": {
+          "type": "stat",
+          "settings": {
+            "value": "6",
+            "unit": "studies",
+            "title": "Reviewed together"
+          }
+        }
+      },
+      "block_order": [
+        "a",
+        "b",
+        "c"
+      ]
+    },
+    "outcomes": {
+      "type": "benefit-cards",
+      "settings": {
+        "color_scheme": "scheme-2",
+        "style": "panel",
+        "closing": "No planning. No hassle. Just the result."
+      },
+      "blocks": {
+        "a": {
+          "type": "card",
+          "settings": {
+            "icon": "zap",
+            "title": "Be spontaneous again"
+          }
+        },
+        "b": {
+          "type": "card",
+          "settings": {
+            "icon": "heart",
+            "title": "Stop worrying about it"
+          }
+        },
+        "c": {
+          "type": "card",
+          "settings": {
+            "icon": "user",
+            "title": "Feel like yourself"
+          }
+        },
+        "d": {
+          "type": "card",
+          "settings": {
+            "icon": "cup",
+            "title": "A routine you will keep"
+          }
+        }
+      },
+      "block_order": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ]
+    },
+    "compare": {
+      "type": "comparison-table",
+      "settings": {
+        "color_scheme": "scheme-1",
+        "column_1": "Ours",
+        "column_2": "Option B",
+        "column_3": "Option C",
+        "column_4": "Doing nothing",
+        "button_label": "Try it for 30 days →",
+        "button_caption": "No subscription. 30 days to decide."
+      },
+      "blocks": {
+        "r1": {
+          "type": "row",
+          "settings": {
+            "label": "Works on the cause",
+            "cell_1": "yes",
+            "cell_2": "no: Symptom only",
+            "cell_3": "yes",
+            "cell_4": "no"
+          }
+        },
+        "r2": {
+          "type": "row",
+          "settings": {
+            "label": "No planning ahead",
+            "cell_1": "yes",
+            "cell_2": "no: Needs timing",
+            "cell_3": "yes",
+            "cell_4": "yes"
+          }
+        },
+        "r3": {
+          "type": "row",
+          "settings": {
+            "label": "Nothing to swallow",
+            "cell_1": "yes",
+            "cell_2": "no",
+            "cell_3": "yes",
+            "cell_4": "yes"
+          }
+        },
+        "r4": {
+          "type": "row",
+          "settings": {
+            "label": "Time it takes",
+            "cell_1": "Minutes a day",
+            "cell_2": "Every time",
+            "cell_3": "Daily effort",
+            "cell_4": "Nothing changes"
+          }
+        },
+        "r5": {
+          "type": "row",
+          "settings": {
+            "label": "Easy to stick with",
+            "cell_1": "yes",
+            "cell_2": "yes",
+            "cell_3": "no: Most people quit",
+            "cell_4": "yes"
+          }
+        }
+      },
+      "block_order": [
+        "r1",
+        "r2",
+        "r3",
+        "r4",
+        "r5"
+      ]
+    },
+    "story": {
+      "type": "story",
+      "settings": {
+        "color_scheme": "scheme-3",
+        "button_caption": "A few minutes a day. 30 days to decide."
+      }
+    },
+    "timeline": {
+      "type": "timeline",
+      "settings": {
+        "color_scheme": "scheme-1"
+      },
+      "blocks": {
+        "a": {
+          "type": "step",
+          "settings": {
+            "icon": "power",
+            "label": "Day 1",
+            "title": "Getting started"
+          }
+        },
+        "b": {
+          "type": "step",
+          "settings": {
+            "icon": "cup",
+            "label": "Week 1",
+            "title": "It becomes routine"
+          }
+        },
+        "c": {
+          "type": "step",
+          "settings": {
+            "icon": "activity",
+            "label": "Weeks 2 to 3",
+            "title": "Results build"
+          }
+        },
+        "d": {
+          "type": "step",
+          "settings": {
+            "icon": "check",
+            "label": "Day 30",
+            "title": "Your decision",
+            "highlight": true
+          }
+        }
+      },
+      "block_order": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ]
+    },
+    "fit": {
+      "type": "benefit-cards",
+      "settings": {
+        "color_scheme": "scheme-2",
+        "style": "accent",
+        "eyebrow": "Is this you?",
+        "heading": "Made for people who are",
+        "accent": "done working around it",
+        "subheading": "If you nod at any of these, this was built for you."
+      },
+      "blocks": {
+        "a": {
+          "type": "card",
+          "settings": {
+            "icon": "clock",
+            "title": "For people short on time"
+          }
+        },
+        "b": {
+          "type": "card",
+          "settings": {
+            "icon": "refresh",
+            "title": "For people who tried everything"
+          }
+        },
+        "c": {
+          "type": "card",
+          "settings": {
+            "icon": "ban",
+            "title": "For people who gave up on the old way"
+          }
+        },
+        "d": {
+          "type": "card",
+          "settings": {
+            "icon": "home",
+            "title": "For people who want it handled privately"
+          }
+        }
+      },
+      "block_order": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ]
+    },
+    "guarantee": {
+      "type": "guarantee",
+      "settings": {
+        "color_scheme": "scheme-1"
+      },
+      "blocks": {
+        "a": {
+          "type": "item",
+          "settings": {
+            "icon": "shield"
+          }
+        },
+        "b": {
+          "type": "item",
+          "settings": {
+            "icon": "award",
+            "title": "1 year warranty",
+            "text": "Replaced if faulty"
+          }
+        },
+        "c": {
+          "type": "item",
+          "settings": {
+            "icon": "package",
+            "title": "Plain packaging",
+            "text": "Nothing on the outside"
+          }
+        },
+        "d": {
+          "type": "item",
+          "settings": {
+            "icon": "truck",
+            "title": "Tracked delivery",
+            "text": "Every order"
+          }
+        }
+      },
+      "block_order": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ]
+    },
+    "voices_2": {
+      "type": "testimonials",
+      "settings": {
+        "color_scheme": "scheme-2",
+        "eyebrow": "You are not the only one",
+        "heading": "The same story from",
+        "accent": "different people",
+        "subheading": "Different lives. The same quiet worry."
+      },
+      "blocks": {
+        "t1": {
+          "type": "testimonial",
+          "settings": {}
+        },
+        "t2": {
+          "type": "testimonial",
+          "settings": {}
+        },
+        "t3": {
+          "type": "testimonial",
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "t1",
+        "t2",
+        "t3"
+      ]
+    },
+    "faq": {
+      "type": "faq",
+      "settings": {
+        "color_scheme": "scheme-1"
+      },
+      "blocks": {
+        "g1": {
+          "type": "group",
+          "settings": {
+            "label": "The product"
+          }
+        },
+        "q1": {
+          "type": "question",
+          "settings": {
+            "question": "How does it work?"
+          }
+        },
+        "q2": {
+          "type": "question",
+          "settings": {
+            "question": "Is it safe? Who should not use it?"
+          }
+        },
+        "g2": {
+          "type": "group",
+          "settings": {
+            "label": "Results"
+          }
+        },
+        "q3": {
+          "type": "question",
+          "settings": {
+            "question": "How long until I notice anything?"
+          }
+        },
+        "q4": {
+          "type": "question",
+          "settings": {
+            "question": "Do I have to use it forever?"
+          }
+        },
+        "g3": {
+          "type": "group",
+          "settings": {
+            "label": "Buying"
+          }
+        },
+        "q5": {
+          "type": "question",
+          "settings": {
+            "question": "What if it does not work for me?"
+          }
+        },
+        "q6": {
+          "type": "question",
+          "settings": {
+            "question": "Is this a subscription?"
+          }
+        }
+      },
+      "block_order": [
+        "g1",
+        "q1",
+        "q2",
+        "g2",
+        "q3",
+        "q4",
+        "g3",
+        "q5",
+        "q6"
+      ]
+    },
+    "offer": {
+      "type": "product-offer",
+      "settings": {
+        "color_scheme": "scheme-3"
+      },
+      "blocks": {
+        "a": {
+          "type": "include",
+          "settings": {}
+        },
+        "b": {
+          "type": "include",
+          "settings": {
+            "text": "<b>Everything</b> you need to get started"
+          }
+        },
+        "c": {
+          "type": "include",
+          "settings": {
+            "text": "<b>A bonus guide</b>",
+            "tag": "FREE"
+          }
+        },
+        "d": {
+          "type": "include",
+          "settings": {
+            "text": "<b>Free shipping</b> in plain packaging",
+            "tag": "FREE"
+          }
+        }
+      },
+      "block_order": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ]
+    },
+    "reviews": {
+      "type": "apps",
+      "settings": {
+        "color_scheme": "scheme-1"
+      }
+    },
+    "related": {
+      "type": "related-products",
+      "settings": {
+        "color_scheme": "scheme-1",
+        "heading": "You may",
+        "accent": "also like",
+        "limit": 4,
+        "columns": 4
+      }
+    },
+    "newsletter": {
+      "type": "newsletter",
+      "settings": {
+        "color_scheme": "scheme-3"
+      }
+    }
+  },
+  "order": [
+    "main",
+    "strip",
+    "problem",
+    "how",
+    "voices",
+    "proof",
+    "outcomes",
+    "compare",
+    "story",
+    "timeline",
+    "fit",
+    "guarantee",
+    "voices_2",
+    "faq",
+    "offer",
+    "reviews",
+    "related",
+    "newsletter"
+  ]
+}

@@ -1,0 +1,45 @@
+{%- comment -%}
+  Renders a price, marking up a sale as compare-at + sale so screen readers get
+  the distinction rather than two bare numbers.
+
+  Accepts:
+  - target: a product or a variant (required)
+  - show_from: true to prefix with "From" when a product has a price range
+{%- endcomment -%}
+
+{%- liquid
+  assign compare_at = target.compare_at_price
+  if target.object_type == 'product'
+    assign price = target.price
+    assign varies = false
+    if target.price_varies
+      assign varies = true
+    endif
+  else
+    assign price = target.price
+    assign varies = false
+  endif
+  assign on_sale = false
+  if compare_at > price
+    assign on_sale = true
+  endif
+  assign price_money = price | money
+-%}
+
+<div class="price">
+  {%- if on_sale -%}
+    <span class="visually-hidden">{{ 'products.product.price.sale_price' | t }}</span>
+    <span class="price__sale">{{ price | money }}</span>
+    <span class="visually-hidden">{{ 'products.product.price.regular_price' | t }}</span>
+    <s class="price__compare">{{ compare_at | money }}</s>
+  {%- else -%}
+    <span class="visually-hidden">{{ 'products.product.price.regular_price' | t }}</span>
+    <span>
+      {%- if varies and show_from -%}
+        {{ 'products.product.price.from_price' | t: price: price_money }}
+      {%- else -%}
+        {{ price_money }}
+      {%- endif -%}
+    </span>
+  {%- endif -%}
+</div>

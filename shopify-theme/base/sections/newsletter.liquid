@@ -1,0 +1,79 @@
+{%- comment -%}
+  Email signup. Posts to Shopify's customer form, so subscribers land in the
+  store's customer list with marketing consent, and any email app reading
+  that list (Klaviyo, Shopify Email) picks them up.
+{%- endcomment -%}
+
+<div class="color-{{ section.settings.color_scheme }}">
+  <div class="page-width section">
+    <div class="newsletter{% if section.settings.image != blank %} newsletter--with-image{% endif %}">
+      <div class="newsletter__content">
+        {%
+          render 'section-heading',
+          eyebrow: section.settings.eyebrow,
+          heading: section.settings.heading,
+          accent: section.settings.accent,
+          align: 'left'
+        %}
+        {%- if section.settings.text != blank -%}
+          <div class="rte">{{ section.settings.text }}</div>
+        {%- endif -%}
+
+        {%- assign newsletter_form_id = 'Newsletter-' | append: section.id -%}
+        {%- form 'customer', id: newsletter_form_id, class: 'newsletter__form' -%}
+          <input type="hidden" name="contact[tags]" value="newsletter">
+          {%- if form.posted_successfully? -%}
+            <p class="newsletter__success" role="status">{% render 'icon', name: 'check', size: 16 %}{{ section.settings.success | escape }}</p>
+          {%- else -%}
+            <div class="newsletter__field">
+              <label class="visually-hidden" for="NewsletterEmail-{{ section.id }}">{{ 'general.newsletter.label' | t }}</label>
+              <input
+                id="NewsletterEmail-{{ section.id }}"
+                class="field__input"
+                type="email"
+                name="contact[email]"
+                autocomplete="email"
+                placeholder="{{ 'general.newsletter.placeholder' | t }}"
+                required
+                {% if form.errors %}aria-invalid="true" aria-describedby="NewsletterError-{{ section.id }}"{% endif %}
+              >
+              <button type="submit" class="button">{{ section.settings.button_label | escape }}</button>
+            </div>
+            {%- if form.errors -%}
+              <p class="newsletter__error" id="NewsletterError-{{ section.id }}">{{ form.errors.translated_fields.email | capitalize }} {{ form.errors.messages.email }}</p>
+            {%- endif -%}
+          {%- endif -%}
+        {%- endform -%}
+
+        {%- if section.settings.fine_print != blank -%}
+          <div class="newsletter__fine-print rte">{{ section.settings.fine_print }}</div>
+        {%- endif -%}
+      </div>
+
+      {%- if section.settings.image != blank -%}
+        <div class="newsletter__image media">
+          {{ section.settings.image | image_url: width: 1200 | image_tag: widths: '500,800,1200', sizes: '(min-width: 990px) 45vw, 100vw', loading: 'lazy', alt: section.settings.image.alt }}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Newsletter",
+  "tag": "section",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "default": "scheme-3", "label": "Color scheme" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow" },
+    { "type": "text", "id": "heading", "default": "Subscribe to", "label": "Heading" },
+    { "type": "text", "id": "accent", "default": "stay updated", "label": "Accent text" },
+    { "type": "richtext", "id": "text", "default": "<p>What subscribers get, and how often you will email.</p>", "label": "Text" },
+    { "type": "text", "id": "button_label", "default": "Subscribe", "label": "Button label" },
+    { "type": "text", "id": "success", "default": "Thanks, you're on the list.", "label": "Success message" },
+    { "type": "richtext", "id": "fine_print", "default": "<p>Unsubscribe any time.</p>", "label": "Small print", "info": "Link your privacy policy here." },
+    { "type": "image_picker", "id": "image", "label": "Image" }
+  ],
+  "presets": [{ "name": "Newsletter" }]
+}
+{% endschema %}

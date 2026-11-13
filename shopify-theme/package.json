@@ -1,0 +1,22 @@
+{
+  "name": "shopiflow-shopify-theme",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Workspace for the downloadable Shopify theme. Kept out of the webapp's package.json so the Shopify CLI never lands in a Vercel build.",
+  "scripts": {
+    "dev": "shopify theme dev --path base",
+    "dev:sync": "shopify theme dev --path base --theme-editor-sync --reconciliation-strategy keep-local",
+    "console": "shopify theme console --path base",
+    "info": "shopify theme info --path base",
+    "share": "shopify theme share --path base",
+    "check": "shopify theme check --path base",
+    "pull": "shopify theme pull --path base",
+    "push": "shopify theme push --path base --unpublished",
+    "zip": "node scripts/zip.mjs",
+    "demo:catalog": "node demo/build-catalog.mjs"
+  },
+  "devDependencies": {
+    "@shopify/cli": "^4.9.3",
+    "fflate": "^0.8.3"
+  }
+}

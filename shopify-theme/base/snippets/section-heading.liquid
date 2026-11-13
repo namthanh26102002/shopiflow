@@ -1,0 +1,41 @@
+{%- comment -%}
+  The eyebrow / two-tone heading / subheading stack that opens most sections.
+
+  Accepts (all optional):
+  - eyebrow: small uppercase label above the heading
+  - heading: the plain part of the heading
+  - accent: the coloured part, rendered after the plain part
+  - accent_break: true to put the accent on its own line
+  - subheading: one line under the heading
+  - align: 'center' (default) or 'left'
+  - level: heading tag, 'h2' (default) or 'h3'
+{%- endcomment -%}
+
+{%- liquid
+  assign align = align | default: 'center'
+  assign level = level | default: 'h2'
+-%}
+
+{%- if eyebrow != blank or heading != blank or accent != blank or subheading != blank -%}
+  <div class="section-heading section-heading--{{ align }}">
+    {%- if eyebrow != blank -%}
+      <p class="eyebrow">{{ eyebrow | escape }}</p>
+    {%- endif -%}
+
+    {%- if heading != blank or accent != blank -%}
+      <{{ level }} class="section-heading__title">
+        {{- heading | escape -}}
+        {%- if heading != blank and accent != blank -%}
+          {%- if accent_break %}<br>{% else %} {% endif -%}
+        {%- endif -%}
+        {%- if accent != blank -%}
+          <span class="heading-accent">{{ accent | escape }}</span>
+        {%- endif -%}
+      </{{ level }}>
+    {%- endif -%}
+
+    {%- if subheading != blank -%}
+      <p class="section-heading__sub">{{ subheading | escape }}</p>
+    {%- endif -%}
+  </div>
+{%- endif -%}

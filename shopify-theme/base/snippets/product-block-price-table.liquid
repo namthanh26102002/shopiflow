@@ -1,0 +1,63 @@
+{%- comment -%}
+  Cost comparison table read from "Label | value | value" lines.
+
+  A block of sections/main-product.liquid, rendered from there with:
+  block, current_variant
+{%- endcomment -%}
+
+{%- assign lines = block.settings.rows | newline_to_br | split: '<br />' -%}
+<div class="product-block price-table" {{ block.shopify_attributes }}>
+  {%- if block.settings.heading != blank -%}
+    <p class="price-table__heading">{{ block.settings.heading | escape }}</p>
+  {%- endif -%}
+  {%- if block.settings.subheading != blank -%}
+    <p class="price-table__sub">{{ block.settings.subheading | escape }}</p>
+  {%- endif -%}
+  <table>
+    <tbody>
+      {%- for line in lines -%}
+        {%- assign row = line | strip -%}
+        {%- if row == blank -%}{%- continue -%}{%- endif -%}
+        {%- assign cells = row | split: '|' -%}
+        {%- assign first = cells[0] | strip -%}
+        {%- assign lead = first | slice: 0 -%}
+        {%- if lead == '#' -%}
+          <tr class="price-table__group">
+            <th scope="colgroup">{{ first | remove_first: '#' | strip | escape }}</th>
+            {%- if cells.size > 2 -%}
+              <th scope="col">{{ cells[1] | strip | escape }}</th>
+              <th scope="col">{{ cells[2] | strip | escape }}</th>
+            {%- elsif cells.size == 2 -%}
+              <th scope="col" colspan="2">{{ cells[1] | strip | escape }}</th>
+            {%- else -%}
+              <th colspan="2"></th>
+            {%- endif -%}
+          </tr>
+        {%- else -%}
+          <tr>
+            <th scope="row">{{ first | escape }}</th>
+            {%- if cells.size > 2 -%}
+              <td>{{ cells[1] | strip | escape }}</td>
+              <td>{{ cells[2] | strip | escape }}</td>
+            {%- else -%}
+              <td colspan="2">{{ cells[1] | strip | escape }}</td>
+            {%- endif -%}
+          </tr>
+        {%- endif -%}
+      {%- endfor -%}
+      {%- if block.settings.highlight_label != blank -%}
+        {%- assign price_money = current_variant.price | money -%}
+        <tr class="price-table__highlight">
+          <th scope="row">{{ block.settings.highlight_label | escape }}</th>
+          <td colspan="2">{{ block.settings.highlight_value | escape | replace: '[price]', price_money }}</td>
+        </tr>
+      {%- endif -%}
+    </tbody>
+  </table>
+  {%- if block.settings.note != blank -%}
+    <p class="price-table__note">{{ block.settings.note | escape }}</p>
+  {%- endif -%}
+  {%- if block.settings.footnote != blank -%}
+    <p class="price-table__footnote">{{ block.settings.footnote | escape }}</p>
+  {%- endif -%}
+</div>

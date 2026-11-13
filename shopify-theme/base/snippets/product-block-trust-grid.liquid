@@ -1,0 +1,27 @@
+{%- comment -%}
+  Two-by-two grid of trust items.
+
+  A block of sections/main-product.liquid, rendered from there with:
+  block
+{%- endcomment -%}
+
+<ul class="product-block trust-grid" {{ block.shopify_attributes }}>
+  {%- for i in (1..4) -%}
+    {%- liquid
+      assign title_key = 'title_' | append: i
+      assign text_key = 'text_' | append: i
+      assign icon_key = 'icon_' | append: i
+    -%}
+    {%- if block.settings[title_key] != blank -%}
+      <li class="trust-grid__item">
+        <span class="icon-tile">{% render 'icon', name: block.settings[icon_key], size: 18 %}</span>
+        <span>
+          <strong>{{ block.settings[title_key] | escape }}</strong>
+          {%- if block.settings[text_key] != blank -%}
+            <small>{{ block.settings[text_key] | escape }}</small>
+          {%- endif -%}
+        </span>
+      </li>
+    {%- endif -%}
+  {%- endfor -%}
+</ul>

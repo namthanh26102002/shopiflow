@@ -1,0 +1,8 @@
+# Built theme ZIPs: regenerate with `npm run zip`.
+dist
+
+# Upstream themes kept locally as reading material, never shipped.
+.reference
+
+node_modules
+.shopify

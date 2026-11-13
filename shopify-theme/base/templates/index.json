@@ -1,0 +1,54 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero",
+      "settings": {
+        "color_scheme": "scheme-3",
+        "heading": "Your headline here",
+        "text": "<p>Say what makes your store worth buying from.</p>",
+        "button_label": "Shop now"
+      }
+    },
+    "featured": {
+      "type": "featured-collection",
+      "settings": {
+        "color_scheme": "scheme-1",
+        "heading": "Featured products",
+        "product_limit": 8,
+        "columns": 4,
+        "collection": "featured"
+      }
+    },
+    "about": {
+      "type": "rich-text",
+      "settings": {
+        "color_scheme": "scheme-2",
+        "alignment": "center",
+        "narrow": true
+      },
+      "blocks": {
+        "heading": {
+          "type": "heading",
+          "settings": {
+            "heading": "Talk about your brand"
+          }
+        },
+        "text": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Use this space to share what you make, who you make it for, and why it is worth the money.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "heading",
+        "text"
+      ]
+    }
+  },
+  "order": [
+    "hero",
+    "featured",
+    "about"
+  ]
+}

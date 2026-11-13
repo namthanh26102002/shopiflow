@@ -1,0 +1,108 @@
+<div class="color-{{ section.settings.color_scheme }}">
+  <div class="page-width section">
+    <h1>{{ 'cart.title' | t }}</h1>
+
+    {%- if cart.item_count == 0 -%}
+      <p>{{ 'cart.empty' | t }}</p>
+      <a class="button" href="{{ routes.all_products_collection_url }}">
+        {{- 'general.continue_shopping' | t -}}
+      </a>
+    {%- else -%}
+      <form action="{{ routes.cart_url }}" method="post" novalidate>
+        <cart-items>
+          <table class="cart-items">
+            <thead>
+              <tr>
+                <th scope="col">{{ 'cart.item' | t }}</th>
+                <th scope="col">{{ 'cart.quantity' | t }}</th>
+                <th scope="col">{{ 'cart.total' | t }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {%- for item in cart.items -%}
+                <tr>
+                  <td>
+                    <div class="cart-item__details">
+                      {%- if item.image -%}
+                        <a class="cart-item__image" href="{{ item.url }}" tabindex="-1" aria-hidden="true">
+                          {{
+                            item.image
+                            | image_url: width: 200
+                            | image_tag: loading: 'lazy', alt: item.image.alt
+                          }}
+                        </a>
+                      {%- endif -%}
+                      <div>
+                        <a href="{{ item.url }}">{{ item.product.title | escape }}</a>
+                        {%- unless item.variant.title contains 'Default' -%}
+                          <div class="card__vendor">{{ item.variant.title }}</div>
+                        {%- endunless -%}
+                        <div>{{ item.original_price | money }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <label class="visually-hidden" for="Quantity-{{ forloop.index }}">
+                      {{ 'cart.quantity' | t }}
+                    </label>
+                    <input
+                      id="Quantity-{{ forloop.index }}"
+                      class="field__input cart-item__quantity"
+                      type="number"
+                      name="updates[]"
+                      value="{{ item.quantity }}"
+                      min="0"
+                      inputmode="numeric"
+                      data-line="{{ forloop.index }}"
+                    >
+                  </td>
+                  <td>{{ item.final_line_price | money }}</td>
+                </tr>
+              {%- endfor -%}
+            </tbody>
+          </table>
+        </cart-items>
+
+        {%- if settings.cart_show_note -%}
+          <div class="cart__note">
+            <label for="CartNote">{{ 'cart.note' | t }}</label>
+            <textarea id="CartNote" name="note" rows="3">{{ cart.note }}</textarea>
+          </div>
+        {%- endif -%}
+
+        <div class="cart__footer">
+          <div>
+            <strong>{{ 'cart.subtotal' | t }}: {{ cart.total_price | money }}</strong>
+            <p class="cart__tax-note">{{ 'cart.taxes_and_shipping' | t }}</p>
+          </div>
+          <div class="cart__actions">
+            <button type="submit" name="update" class="button button--secondary">
+              {{- 'cart.update' | t -}}
+            </button>
+            <button type="submit" name="checkout" class="button">
+              {{- 'cart.checkout' | t -}}
+            </button>
+          </div>
+        </div>
+      </form>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Cart",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "default": "scheme-1",
+      "label": "Color scheme"
+    }
+  ],
+  "enabled_on": {
+    "templates": ["cart"]
+  }
+}
+{% endschema %}

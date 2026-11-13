@@ -1,0 +1,49 @@
+{
+  "type": "header",
+  "name": "Header",
+  "sections": {
+    "announcement-bar": {
+      "type": "announcement-bar",
+      "settings": {
+        "color_scheme": "scheme-4",
+        "interval": 4
+      },
+      "blocks": {
+        "m1": {
+          "type": "message",
+          "settings": {
+            "text": "Order today, it <b>ships next day</b>"
+          }
+        },
+        "m2": {
+          "type": "message",
+          "settings": {
+            "text": "<b>Free</b> discreet shipping"
+          }
+        },
+        "m3": {
+          "type": "message",
+          "settings": {
+            "text": "<b>30 days</b> to decide"
+          }
+        }
+      },
+      "block_order": [
+        "m1",
+        "m2",
+        "m3"
+      ]
+    },
+    "header": {
+      "type": "header",
+      "settings": {
+        "color_scheme": "scheme-1",
+        "menu": "main-menu"
+      }
+    }
+  },
+  "order": [
+    "announcement-bar",
+    "header"
+  ]
+}
