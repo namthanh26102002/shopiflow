@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ThemeEditorProvider, useThemeEditor } from '@/contexts/ThemeEditorContext';
+import { ShopifySyncProvider } from '@/contexts/ShopifySyncContext';
 import { ThemeHeader } from '@/components/theme/ThemeHeader';
 import { SectionTree } from '@/components/theme/SectionTree';
 import { ThemeSettingsPanel } from '@/components/theme/ThemeSettingsPanel';
@@ -74,7 +75,9 @@ const ThemeBuilder: React.FC = () => {
   if (!themeId) return <Navigate to="/theme-builder" replace />;
   return (
     <ThemeEditorProvider themeId={themeId}>
-      <ThemeBuilderContent />
+      <ShopifySyncProvider>
+        <ThemeBuilderContent />
+      </ShopifySyncProvider>
     </ThemeEditorProvider>
   );
 };

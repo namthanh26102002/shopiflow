@@ -40,6 +40,10 @@ interface ThemeEditorContextValue {
   retrySave: () => void;
   /** Saves now instead of waiting for the debounce (before leaving for Shopify). */
   flushSave: () => Promise<void>;
+  /** Updates bookkeeping (store sync state) without counting as an edit or re-rendering the preview. */
+  updateMeta: (update: (data: ThemeData) => ThemeData) => void;
+  /** Latest data, readable from timers and async code without stale closures. */
+  dataRef: React.MutableRefObject<ThemeData>;
 }
 
 const ThemeEditorContext = createContext<ThemeEditorContextValue | undefined>(undefined);
@@ -206,6 +210,21 @@ export const ThemeEditorProvider: React.FC<{ themeId: string; children: React.Re
     [scheduleSave],
   );
 
+  const updateMeta = useCallback(
+    (update: (current: ThemeData) => ThemeData) => {
+      setData((current) => {
+        const next = update(current);
+        if (next === current) return current;
+        scheduleSave({ data: next, title: latestRef.current.title });
+        return next;
+      });
+    },
+    [scheduleSave],
+  );
+
+  const dataRef = useRef(data);
+  dataRef.current = data;
+
   const setTitle = useCallback(
     (next: string) => {
       setTitleState(next);
@@ -250,8 +269,10 @@ export const ThemeEditorProvider: React.FC<{ themeId: string; children: React.Re
       saveFailed,
       retrySave,
       flushSave,
+      updateMeta,
+      dataRef,
     }),
-    [themeId, title, setTitle, data, revision, lastHint, edit, template, changeTemplate, selection, select, selectionFromPreview, device, loading, notFound, saving, saveFailed, retrySave, flushSave],
+    [themeId, title, setTitle, data, revision, lastHint, edit, template, changeTemplate, selection, select, selectionFromPreview, device, loading, notFound, saving, saveFailed, retrySave, flushSave, updateMeta],
   );
 
   return <ThemeEditorContext.Provider value={value}>{children}</ThemeEditorContext.Provider>;

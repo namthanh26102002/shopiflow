@@ -1,13 +1,15 @@
 // The "Shopify" menu in the theme editor header: connect a store, install the
-// theme on it as an unpublished theme, push later edits, preview on the real
-// store, and publish.
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+// theme on it, keep it in live two-way sync, preview on the real store, and
+// publish. The sync itself runs in ShopifySyncContext.
+import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ExternalLink, Loader2, RefreshCw, Store, Unplug, Upload } from 'lucide-react';
+import { formatDistanceToNowStrict } from 'date-fns';
+import { AlertTriangle, CheckCircle2, CloudOff, ExternalLink, Loader2, RefreshCw, Store, Unplug, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
@@ -21,20 +23,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useThemeEditor } from '@/contexts/ThemeEditorContext';
-import { useShopifyStores } from '@/hooks/useShopifyStores';
-import { buildThemeFiles, exportThemeZip } from '@/lib/shopifyTheme/exportZip';
-import {
-  ShopifyRequestError,
-  bytesToBase64,
-  isSyncableThemeFile,
-  shopifyApi,
-  storeEditorUrl,
-  storePreviewUrl,
-  type LinkedTheme,
-} from '@/lib/shopifyApi';
+import { useShopifySync, type SyncStatus } from '@/contexts/ShopifySyncContext';
+import { shopifyApi, storeEditorUrl, storePreviewUrl } from '@/lib/shopifyApi';
 import { cn } from '@/lib/utils';
-
-type Busy = 'connecting' | 'installing' | 'syncing' | 'publishing' | 'disconnecting' | null;
 
 const RETURN_MESSAGES: Record<string, { ok: boolean; text: string }> = {
   connected: { ok: true, text: 'Store connected.' },
@@ -44,26 +35,64 @@ const RETURN_MESSAGES: Record<string, { ok: boolean; text: string }> = {
   failed: { ok: false, text: 'Connecting to Shopify failed. Try again.' },
 };
 
-const POLL_MS = 3000;
-const POLL_LIMIT = 60;
+const STATUS_DOT: Record<SyncStatus, string> = {
+  idle: 'bg-muted-foreground',
+  syncing: 'bg-blue-500 animate-pulse',
+  synced: 'bg-green-500',
+  pending: 'bg-amber-400',
+  conflict: 'bg-red-500',
+  error: 'bg-red-500',
+  off: 'bg-muted-foreground',
+};
 
-const errorText = (err: unknown) => (err instanceof Error ? err.message : 'Something went wrong');
+const SyncLine: React.FC = () => {
+  const { status, lastSyncedAt, error, autoPush, liveSync, theme } = useShopifySync();
+  const ago = lastSyncedAt ? formatDistanceToNowStrict(lastSyncedAt, { addSuffix: true }) : null;
+  let icon = <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />;
+  let text: string;
+  switch (status) {
+    case 'syncing':
+      icon = <Loader2 className="h-3.5 w-3.5 animate-spin" />;
+      text = 'Syncing with your store…';
+      break;
+    case 'pending':
+      icon = <RefreshCw className="h-3.5 w-3.5 text-amber-500" />;
+      text = autoPush ? 'Sending your changes…' : theme?.role === 'MAIN' ? 'Your changes are not live yet. Update store to publish them.' : 'Your changes are not on the store yet.';
+      break;
+    case 'conflict':
+      icon = <AlertTriangle className="h-3.5 w-3.5 text-red-500" />;
+      text = 'Changed here and in Shopify. Choose which to keep.';
+      break;
+    case 'error':
+      icon = <CloudOff className="h-3.5 w-3.5 text-destructive" />;
+      text = error ?? 'Could not reach your store.';
+      break;
+    case 'off':
+      icon = <CloudOff className="h-3.5 w-3.5" />;
+      text = 'Live sync is off.';
+      break;
+    default:
+      text = ago ? `In sync with your store · ${ago}` : liveSync ? 'In sync with your store' : 'Live sync is off.';
+  }
+  return (
+    <p className="flex items-start gap-1.5 text-xs text-muted-foreground" role="status">
+      <span className="mt-px shrink-0">{icon}</span>
+      <span>{text}</span>
+    </p>
+  );
+};
 
 export const ShopifyPanel: React.FC = () => {
-  const { themeId, title, data, revision, flushSave } = useThemeEditor();
-  const { stores, loading: storesLoading, error: storesError, refresh: refreshStores } = useShopifyStores();
+  const { flushSave } = useThemeEditor();
+  const sync = useShopifySync();
+  const { stores, storesLoading, storesError, theme, statusLoaded, busy, status, liveSync, autoPush, conflict } = sync;
   const [searchParams, setSearchParams] = useSearchParams();
   const [open, setOpen] = useState(false);
-  const [busy, setBusy] = useState<Busy>(null);
-  const [theme, setTheme] = useState<LinkedTheme | null>(null);
-  const [statusLoaded, setStatusLoaded] = useState(false);
+  const [connecting, setConnecting] = useState(false);
   const [shopInput, setShopInput] = useState('');
-  const [storeId, setStoreId] = useState<string>('');
+  const [storeId, setStoreId] = useState('');
   const [showConnect, setShowConnect] = useState(false);
-  const [conflictFiles, setConflictFiles] = useState<string[] | null>(null);
   const [confirmPublish, setConfirmPublish] = useState(false);
-  const [syncedRevision, setSyncedRevision] = useState<number | null>(null);
-  const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Back from Shopify's approval screen: say how it went, then tidy the URL.
   useEffect(() => {
@@ -72,145 +101,32 @@ export const ShopifyPanel: React.FC = () => {
     const message = RETURN_MESSAGES[result] ?? RETURN_MESSAGES.failed;
     if (message.ok) toast.success(message.text);
     else toast.error(message.text);
-    refreshStores();
+    sync.refreshStores();
     setOpen(true);
     const next = new URLSearchParams(searchParams);
     next.delete('shopify');
     setSearchParams(next, { replace: true });
-  }, [searchParams, setSearchParams, refreshStores]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     if (!storeId && stores.length > 0) setStoreId(stores[0].id);
   }, [stores, storeId]);
 
-  const stopPolling = () => {
-    if (pollRef.current) clearTimeout(pollRef.current);
-    pollRef.current = null;
-  };
-
-  const loadStatus = useCallback(
-    async (attempt = 0) => {
-      try {
-        const result = await shopifyApi.status(themeId);
-        setTheme(result.linked ? result.theme ?? null : null);
-        if (!result.linked && result.reason === 'theme_deleted') {
-          toast.message('The theme was deleted from your store, so it is no longer linked.');
-        }
-        // Shopify unpacks a new theme in the background; check again until done.
-        if (result.theme?.processing && attempt < POLL_LIMIT) {
-          pollRef.current = setTimeout(() => loadStatus(attempt + 1), POLL_MS);
-        }
-      } catch (err) {
-        // The connection features are optional; a failure here stays quiet.
-        console.warn('Shopify status unavailable:', err);
-      } finally {
-        setStatusLoaded(true);
-      }
-    },
-    [themeId],
-  );
-
-  useEffect(() => {
-    setTheme(null);
-    setStatusLoaded(false);
-    setSyncedRevision(null);
-    stopPolling();
-    if (stores.length > 0) loadStatus();
-    else setStatusLoaded(true);
-    return stopPolling;
-  }, [themeId, stores.length, loadStatus]);
-
-  const handleError = (err: unknown) => {
-    if (err instanceof ShopifyRequestError && err.code === 'store_disconnected') {
-      refreshStores();
-      setTheme(null);
-    }
-    toast.error(errorText(err));
-  };
-
   const connect = async () => {
-    setBusy('connecting');
+    setConnecting(true);
     try {
       await flushSave();
       const { url } = await shopifyApi.start(shopInput, window.location.href);
       window.location.assign(url);
     } catch (err) {
-      handleError(err);
-      setBusy(null);
+      toast.error(err instanceof Error ? err.message : 'Could not reach Shopify');
+      setConnecting(false);
     }
   };
 
-  const install = async (targetStoreId: string) => {
-    const result = exportThemeZip(data, title);
-    if ('problems' in result) {
-      toast.error('This theme cannot be installed yet', { description: result.problems.slice(0, 3).join('\n') });
-      return;
-    }
-    setBusy('installing');
-    try {
-      await flushSave();
-      const { theme: created } = await shopifyApi.install(themeId, targetStoreId, bytesToBase64(result.bytes), title);
-      setTheme(created);
-      setSyncedRevision(revision);
-      toast.success(`Added to ${created.shopName ?? created.shop} as an unpublished theme.`);
-      stopPolling();
-      if (created.processing) pollRef.current = setTimeout(() => loadStatus(1), POLL_MS);
-    } catch (err) {
-      handleError(err);
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  const sync = async (force = false) => {
-    setBusy('syncing');
-    setConflictFiles(null);
-    try {
-      const files = Object.fromEntries(Object.entries(buildThemeFiles(data)).filter(([name]) => isSyncableThemeFile(name)));
-      const result = await shopifyApi.sync(themeId, files, force);
-      setTheme(result.theme);
-      setSyncedRevision(revision);
-      toast.success('Your store has the latest changes.');
-    } catch (err) {
-      if (err instanceof ShopifyRequestError && err.code === 'conflict') setConflictFiles(err.files ?? []);
-      else handleError(err);
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  const publish = async () => {
-    setConfirmPublish(false);
-    setBusy('publishing');
-    try {
-      const result = await shopifyApi.publish(themeId);
-      setTheme(result.theme);
-      toast.success('Your theme is live.');
-    } catch (err) {
-      handleError(err);
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  const disconnect = async (id: string) => {
-    setBusy('disconnecting');
-    try {
-      await shopifyApi.disconnect(id);
-      if (theme?.storeId === id) setTheme(null);
-      if (storeId === id) setStoreId('');
-      await refreshStores();
-      toast.success('Store disconnected. To remove the app fully, uninstall it in your Shopify admin.');
-    } catch (err) {
-      handleError(err);
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  const linkedStore = theme ? stores.find((store) => store.id === theme.storeId) : undefined;
   const live = theme?.role === 'MAIN';
-  const unsynced = theme && syncedRevision !== null && revision !== syncedRevision;
+  const linkedStore = theme ? stores.find((store) => store.id === theme.storeId) : undefined;
 
   const connectForm = (
     <div className="space-y-2">
@@ -223,11 +139,9 @@ export const ShopifyPanel: React.FC = () => {
         placeholder="your-store.myshopify.com"
         className="h-8 text-sm"
       />
-      <p className="text-xs text-muted-foreground">
-        Shopify will ask you to approve Shopiflow, then bring you back here.
-      </p>
-      <Button size="sm" className="w-full" disabled={!shopInput.trim() || busy !== null} onClick={connect}>
-        {busy === 'connecting' ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Store className="mr-1.5 h-3.5 w-3.5" />}
+      <p className="text-xs text-muted-foreground">Shopify will ask you to approve Shopiflow, then bring you back here.</p>
+      <Button size="sm" className="w-full" disabled={!shopInput.trim() || connecting} onClick={connect}>
+        {connecting ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Store className="mr-1.5 h-3.5 w-3.5" />}
         Connect store
       </Button>
     </div>
@@ -258,29 +172,43 @@ export const ShopifyPanel: React.FC = () => {
             </span>
           </div>
           <p className="mt-0.5 truncate text-xs text-muted-foreground">{theme.shopName ?? theme.shop}</p>
-          {theme.processing && (
+          {theme.processing ? (
             <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
               <Loader2 className="h-3 w-3 animate-spin" /> Shopify is setting up the theme…
             </p>
-          )}
-          {theme.processingFailed && (
+          ) : theme.processingFailed ? (
             <p className="mt-2 text-xs text-destructive">Shopify could not set up this theme. Install it again.</p>
+          ) : (
+            <div className="mt-2">
+              <SyncLine />
+            </div>
           )}
         </div>
 
-        <Button size="sm" className="w-full" disabled={busy !== null || theme.processing} onClick={() => sync(false)}>
-          {busy === 'syncing' ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="mr-1.5 h-3.5 w-3.5" />}
-          Update store
-          {unsynced && <span className="ml-1.5 h-1.5 w-1.5 rounded-full bg-amber-400" aria-label="Has changes not on the store" />}
-        </Button>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <Label htmlFor="shopify-live-sync" className="text-xs font-medium">Live sync</Label>
+            <p className="text-[11px] text-muted-foreground">
+              {live ? 'Brings in Shopify edits. Your edits wait for Update store.' : 'Edits flow both ways as you work.'}
+            </p>
+          </div>
+          <Switch id="shopify-live-sync" checked={liveSync} onCheckedChange={sync.setLiveSync} />
+        </div>
+
+        {(!autoPush || status === 'error') && (
+          <Button size="sm" className="w-full" disabled={busy || theme.processing} onClick={sync.updateStore}>
+            {busy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="mr-1.5 h-3.5 w-3.5" />}
+            {status === 'error' ? 'Try again' : 'Update store'}
+          </Button>
+        )}
 
         <div className="grid grid-cols-2 gap-2">
-          <Button variant="outline" size="sm" asChild disabled={theme.processing}>
+          <Button variant="outline" size="sm" asChild>
             <a href={storePreviewUrl(theme)} target="_blank" rel="noreferrer">
               Preview <ExternalLink className="ml-1 h-3 w-3" />
             </a>
           </Button>
-          <Button variant="outline" size="sm" asChild disabled={theme.processing}>
+          <Button variant="outline" size="sm" asChild>
             <a href={storeEditorUrl(theme)} target="_blank" rel="noreferrer" title="Add images and products in Shopify's editor">
               Customize <ExternalLink className="ml-1 h-3 w-3" />
             </a>
@@ -288,18 +216,17 @@ export const ShopifyPanel: React.FC = () => {
         </div>
 
         {!live && (
-          <Button variant="secondary" size="sm" className="w-full" disabled={busy !== null || theme.processing} onClick={() => setConfirmPublish(true)}>
-            {busy === 'publishing' && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+          <Button variant="secondary" size="sm" className="w-full" disabled={busy || theme.processing} onClick={() => setConfirmPublish(true)}>
             Publish to store
           </Button>
         )}
 
         <div className="flex items-center justify-between border-t border-border pt-2 text-xs">
-          <button type="button" className="text-muted-foreground underline-offset-2 hover:underline" disabled={busy !== null} onClick={() => install(theme.storeId)}>
+          <button type="button" className="text-muted-foreground underline-offset-2 hover:underline" disabled={busy} onClick={() => sync.install(theme.storeId)}>
             Install a fresh copy
           </button>
           {linkedStore && (
-            <button type="button" className="text-muted-foreground underline-offset-2 hover:text-destructive hover:underline" disabled={busy !== null} onClick={() => disconnect(linkedStore.id)}>
+            <button type="button" className="text-muted-foreground underline-offset-2 hover:text-destructive hover:underline" disabled={busy} onClick={() => sync.disconnect(linkedStore.id)}>
               Disconnect store
             </button>
           )}
@@ -335,19 +262,19 @@ export const ShopifyPanel: React.FC = () => {
             </SelectContent>
           </Select>
         </div>
-        <Button size="sm" className="w-full" disabled={!storeId || busy !== null} onClick={() => install(storeId)}>
-          {busy === 'installing' ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Upload className="mr-1.5 h-3.5 w-3.5" />}
+        <Button size="sm" className="w-full" disabled={!storeId || busy} onClick={() => sync.install(storeId)}>
+          {busy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Upload className="mr-1.5 h-3.5 w-3.5" />}
           Install on store
         </Button>
         <p className="text-xs text-muted-foreground">
-          Adds this theme to the store as an unpublished theme. Your live store does not change until you publish.
+          Adds this theme to the store as an unpublished theme and keeps the two in sync. Your live store does not change until you publish.
         </p>
         <div className="flex items-center justify-between border-t border-border pt-2 text-xs">
           <button type="button" className="text-muted-foreground hover:underline" onClick={() => setShowConnect(true)}>
             Connect another store
           </button>
           {storeId && (
-            <button type="button" className="flex items-center gap-1 text-muted-foreground hover:text-destructive" disabled={busy !== null} onClick={() => disconnect(storeId)}>
+            <button type="button" className="flex items-center gap-1 text-muted-foreground hover:text-destructive" disabled={busy} onClick={() => sync.disconnect(storeId)}>
               <Unplug className="h-3 w-3" /> Disconnect
             </button>
           )}
@@ -365,8 +292,8 @@ export const ShopifyPanel: React.FC = () => {
             <span className="hidden sm:inline">Shopify</span>
             {theme && (
               <span
-                className={cn('absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full border-2 border-card', live ? 'bg-green-500' : 'bg-blue-500')}
-                aria-label={live ? 'Live on your store' : 'Installed on your store'}
+                className={cn('absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full border-2 border-card', STATUS_DOT[status])}
+                aria-label={`Store sync: ${status}`}
               />
             )}
           </Button>
@@ -377,22 +304,22 @@ export const ShopifyPanel: React.FC = () => {
         </PopoverContent>
       </Popover>
 
-      <AlertDialog open={conflictFiles !== null} onOpenChange={(next) => !next && setConflictFiles(null)}>
+      <AlertDialog open={!!conflict && !busy}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Changes were made in Shopify</AlertDialogTitle>
+            <AlertDialogTitle>Changed here and in Shopify</AlertDialogTitle>
             <AlertDialogDescription>
-              Someone edited this theme in Shopify's editor since your last update. Updating from here replaces those edits in:
+              Since the last sync, these were edited both in Shopiflow and in Shopify's editor. Choose which version to keep. The other one is replaced.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <ul className="max-h-40 list-disc overflow-y-auto pl-5 font-mono text-xs text-muted-foreground">
-            {(conflictFiles ?? []).map((file) => (
+            {(conflict?.files ?? []).map((file) => (
               <li key={file}>{file}</li>
             ))}
           </ul>
           <AlertDialogFooter>
-            <AlertDialogCancel>Keep Shopify's version</AlertDialogCancel>
-            <AlertDialogAction onClick={() => sync(true)}>Replace with mine</AlertDialogAction>
+            <AlertDialogCancel onClick={() => sync.resolveConflict('theirs')}>Use Shopify's</AlertDialogCancel>
+            <AlertDialogAction onClick={() => sync.resolveConflict('mine')}>Keep mine</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -403,12 +330,20 @@ export const ShopifyPanel: React.FC = () => {
             <AlertDialogTitle>Publish “{theme?.name}”?</AlertDialogTitle>
             <AlertDialogDescription>
               Shoppers on {theme?.shopName ?? theme?.shop} will see this theme right away. Your current live theme stays in your
-              Shopify theme library, so you can switch back from Shopify's admin.
+              Shopify theme library, so you can switch back from Shopify's admin. After publishing, your edits here wait for
+              Update store instead of going live as you type.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={publish}>Publish</AlertDialogAction>
+            <AlertDialogAction
+              onClick={() => {
+                setConfirmPublish(false);
+                void sync.publish();
+              }}
+            >
+              Publish
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

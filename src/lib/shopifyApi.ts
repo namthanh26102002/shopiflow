@@ -55,8 +55,21 @@ export const shopifyApi = {
     call<{ theme: LinkedTheme }>('install', { projectId, storeId, zipBase64, name }),
   status: (projectId: string) =>
     call<{ linked: boolean; theme?: LinkedTheme; reason?: 'store_disconnected' | 'theme_deleted' }>('status', { projectId }),
-  sync: (projectId: string, files: Record<string, string>, force = false) =>
-    call<{ theme: LinkedTheme; written: number }>('sync', { projectId, files, force }),
+  sync: (
+    projectId: string,
+    files: Record<string, string>,
+    options: { force?: boolean; baseChecksums?: Record<string, string | null> } = {},
+  ) =>
+    call<{ theme: LinkedTheme; written: number; checksums: Record<string, string | null> }>('sync', {
+      projectId,
+      files,
+      force: options.force ?? false,
+      baseChecksums: options.baseChecksums,
+    }),
+  pull: (projectId: string) =>
+    call<{ theme: LinkedTheme; files: Record<string, { content: string; checksum: string | null }> | null }>('pull', {
+      projectId,
+    }),
   publish: (projectId: string) => call<{ theme: LinkedTheme }>('publish', { projectId }),
   disconnect: (storeId: string) => call<{ ok: true }>('disconnect', { storeId }),
 };

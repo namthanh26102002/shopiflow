@@ -45,6 +45,15 @@ export interface ThemeData {
   templates: Record<string, TemplateJson>;
   /** Keyed by group file name without extension: "header-group". */
   groups: Record<string, SectionGroupJson>;
+  /**
+   * Last agreement with the store's copy of this theme, for two-way sync
+   * (see storeSync.ts). Absent until the theme is installed on a store.
+   */
+  storeSync?: {
+    themeId: string;
+    base: Record<string, string>;
+    checksums: Record<string, string | null>;
+  };
 }
 
 // ---- Schema ---------------------------------------------------------------

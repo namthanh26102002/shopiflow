@@ -350,6 +350,11 @@ export class ThemeRenderer {
     const tag = schema?.tag ?? 'div';
     const cls = ['shopify-section', schema?.class].filter(Boolean).join(' ');
     const id = ref.scope === 'group' ? `shopify-section-sections--${ref.container}__${ref.key}` : `shopify-section-${ref.key}`;
+    if (instance.type.startsWith('shopify://apps/')) {
+      // Added by a Shopify app on the merchant's store; its code lives in the app.
+      const app = instance.type.split('/')[3] ?? 'an app';
+      return `<${tag} id="${id}" class="${cls}" data-sf-section="${attr}"><div style="margin:16px auto;max-width:960px;padding:20px;border:1px dashed #94a3b8;border-radius:8px;color:#475569;font:14px/1.4 sans-serif;text-align:center">Section from the “${app.replace(/[<>"&]/g, '')}” app. It shows on your store, not in this preview.</div></${tag}>`;
+    }
     let inner: string;
     try {
       const location = ref.scope === 'group' ? ((globals.__data as ThemeData).groups[ref.container]?.type ?? 'custom') : 'template';

@@ -4,7 +4,8 @@
 //   start       { shop, returnUrl }                      → { url } to send the merchant to
 //   install     { projectId, storeId, zipBase64, name }  → creates an unpublished theme
 //   status      { projectId }                            → the linked theme, or linked: false
-//   sync        { projectId, files, force? }             → writes the project's JSON files
+//   sync        { projectId, files, force?, baseChecksums? } → writes the project's JSON files
+//   pull        { projectId }                            → the store's copy of those files
 //   publish     { projectId }                            → makes the linked theme live
 //   disconnect  { storeId }                              → forgets the store and its tokens
 //
@@ -313,7 +314,14 @@ const sync = async (admin: SupabaseClient, userId: string, body: Record<string, 
   if (theme.processing) throw new HttpError(409, 'Shopify is still setting up the theme. Try again in a minute.', 'processing');
 
   const current = await fetchChecksums(store.shop_domain, token, theme.id);
-  const conflicts = changedInShopify(project.shopify_file_checksums, current).filter((name) => name in files);
+  // Live sync sends the checksums it last saw: anything different means
+  // Shopify changed the file since, and the editor must merge first.
+  const baseChecksums = body.baseChecksums as Record<string, string | null> | undefined;
+  const conflicts = (
+    baseChecksums && typeof baseChecksums === 'object'
+      ? Object.keys(files).filter((name) => (current[name] ?? null) !== (baseChecksums[name] ?? null))
+      : changedInShopify(project.shopify_file_checksums, current)
+  ).filter((name) => name in files);
   if (conflicts.length && body.force !== true) {
     throw new HttpError(409, 'These files were changed in Shopify since your last update', 'conflict', { files: conflicts });
   }
@@ -352,7 +360,7 @@ const sync = async (admin: SupabaseClient, userId: string, body: Record<string, 
     .update({ shopify_file_checksums: checksums, shopify_synced_at: new Date().toISOString() })
     .eq('id', project.id);
 
-  return { theme: describeTheme(theme, store), written: entries.length };
+  return { theme: describeTheme(theme, store), written: entries.length, checksums };
 };
 
 const publish = async (admin: SupabaseClient, userId: string, body: Record<string, unknown>) => {
@@ -384,7 +392,73 @@ const disconnect = async (admin: SupabaseClient, userId: string, body: Record<st
   return { ok: true };
 };
 
-const ACTIONS = { start, install, status, sync, publish, disconnect } as const;
+interface ThemeFilesWithBodies {
+  theme: {
+    files: {
+      nodes: Array<{
+        filename: string;
+        checksumMd5: string | null;
+        body: { content?: string; contentBase64?: string } | null;
+      }>;
+      pageInfo: { hasNextPage: boolean; endCursor: string | null };
+    };
+  } | null;
+}
+
+/** The store's current copy of every merchant-editable JSON file, for live sync. */
+const pull = async (admin: SupabaseClient, userId: string, body: Record<string, unknown>) => {
+  const project = await loadProject(admin, userId, body.projectId);
+  if (!project.shopify_store_id || !project.shopify_theme_id) {
+    throw new HttpError(409, 'This theme is not installed on a store yet', 'not_installed');
+  }
+  const store = await loadStore(admin, userId, project.shopify_store_id);
+  const token = await accessTokenFor(admin, store);
+  const theme = await fetchTheme(store.shop_domain, token, project.shopify_theme_id);
+  if (!theme) {
+    await clearLink(admin, project.id);
+    throw new HttpError(409, 'The theme was deleted from the store', 'theme_deleted');
+  }
+  if (theme.processing) return { theme: describeTheme(theme, store), files: null };
+
+  const files: Record<string, { content: string; checksum: string | null }> = {};
+  let after: string | null = null;
+  for (let page = 0; page < 10; page++) {
+    const data: ThemeFilesWithBodies = await adminGraphql<ThemeFilesWithBodies>(
+      store.shop_domain,
+      token,
+      `query($id: ID!, $filenames: [String!], $after: String) {
+        theme(id: $id) {
+          files(filenames: $filenames, first: 50, after: $after) {
+            nodes {
+              filename
+              checksumMd5
+              body {
+                ... on OnlineStoreThemeFileBodyText { content }
+                ... on OnlineStoreThemeFileBodyBase64 { contentBase64 }
+              }
+            }
+            pageInfo { hasNextPage endCursor }
+          }
+        }
+      }`,
+      { id: theme.id, filenames: SYNCED_PATTERNS, after },
+    );
+    if (!data.theme) break;
+    for (const node of data.theme.files.nodes) {
+      if (!isSyncableThemeFile(node.filename)) continue;
+      const content =
+        node.body?.content ??
+        (node.body?.contentBase64 ? new TextDecoder().decode(base64ToBytes(node.body.contentBase64)) : null);
+      if (content !== null) files[node.filename] = { content, checksum: node.checksumMd5 };
+    }
+    if (!data.theme.files.pageInfo.hasNextPage) break;
+    after = data.theme.files.pageInfo.endCursor;
+  }
+
+  return { theme: describeTheme(theme, store), files };
+};
+
+const ACTIONS = { start, install, status, sync, pull, publish, disconnect } as const;
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });

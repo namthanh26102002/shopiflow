@@ -60,12 +60,15 @@ export const validateThemeFiles = (files: Record<string, string>): string[] => {
 
     for (const [key, section] of Object.entries(parsed.sections ?? {})) {
       if (!section?.type) continue;
+      // Sections added by Shopify apps (pulled from the store) live in the app, not the theme.
+      if (section.type.startsWith('shopify://apps/')) continue;
       if (!schemas.has(section.type)) {
         problems.push(`${rel} references unknown section "${section.type}"`);
         continue;
       }
       const allowed = new Set((schemas.get(section.type)?.blocks ?? []).map((block) => block.type));
       for (const block of Object.values(section.blocks ?? {})) {
+        if (block?.type?.startsWith('shopify://apps/')) continue;
         if (block?.type && !allowed.has(block.type) && !allowed.has('@app') && !allowed.has('@theme')) {
           problems.push(`${rel}: section "${key}" has a block of unknown type "${block.type}"`);
         }
